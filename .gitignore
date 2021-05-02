@@ -1,0 +1,10 @@
+/*
+.*
+!/cmake/
+!/res/
+!/.gitignore
+!/docker.md
+!/llvm.cmake
+!/makefile
+!/msvc.cmake
+!/readme.md

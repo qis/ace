@@ -1,0 +1,64 @@
+# Toolchain
+set(ARCH x86-64-v3)
+set(LLVM ${CMAKE_CURRENT_LIST_DIR})
+
+# Settings
+set(CMAKE_BUILD_RPATH ${LLVM}/lib CACHE PATH "")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "")
+set(CMAKE_CONFIGURATION_TYPES Debug Release MinSizeRel RelWithDebInfo CACHE STRING "" FORCE)
+set_property(GLOBAL PROPERTY DEBUG_CONFIGURATIONS Debug MinSizeRel RelWithDebInfo)
+
+# Tools
+set(CMAKE_AR ${LLVM}/bin/llvm-ar CACHE PATH "")
+set(CMAKE_NM ${LLVM}/bin/llvm-nm CACHE PATH "")
+set(CMAKE_RANLIB ${LLVM}/bin/llvm-ranlib CACHE PATH "")
+
+# C Compiler
+set(CMAKE_C_STANDARD 11 CACHE STRING "")
+set(CMAKE_C_EXTENSIONS OFF CACHE BOOL "")
+set(CMAKE_C_STANDARD_REQUIRED ON CACHE BOOL "")
+set(CMAKE_C_COMPILER ${LLVM}/bin/clang CACHE PATH "")
+
+# C++ Compiler
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "")
+set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "")
+set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "")
+set(CMAKE_CXX_COMPILER ${LLVM}/bin/clang++ CACHE PATH "")
+
+# Compiler Flags
+set(LLVM_FLAGS "-march=${ARCH} -ffast-math -fmerge-all-constants")
+set(LLVM_FLAGS "${LLVM_FLAGS} -fdiagnostics-absolute-paths -fcolor-diagnostics")
+
+set(CMAKE_C_FLAGS ${LLVM_FLAGS} CACHE STRING "")
+set(CMAKE_C_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
+set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -flto=full" CACHE STRING "")
+set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG" CACHE STRING "")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG" CACHE STRING "")
+
+set(LLVM_FLAGS "${LLVM_FLAGS} -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables")
+set(LLVM_FLAGS "${LLVM_FLAGS} -fno-rtti")
+
+set(CMAKE_CXX_FLAGS ${LLVM_FLAGS} CACHE STRING "")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto=full -fwhole-program-vtables" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG" CACHE STRING "")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG" CACHE STRING "")
+
+unset(LLVM_FLAGS)
+
+# Linker Flags
+foreach(LINKER SHARED MODULE EXE)
+  set(CMAKE_${LINKER}_LINKER_FLAGS "-pthread -Wl,--as-needed" CACHE STRING "")
+  set(CMAKE_${LINKER}_LINKER_FLAGS_RELEASE "-s -static-libstdc++" CACHE STRING "")
+  set(CMAKE_${LINKER}_LINKER_FLAGS_MINSIZEREL "-s" CACHE STRING "")
+endforeach()
+
+# Directories
+set(CMAKE_PREFIX_PATH ${LLVM} CACHE STRING "")
+set(CMAKE_FIND_ROOT_PATH ${LLVM} CACHE PATH "")
+set(CMAKE_SYSTEM_LIBRARY_PATH ${LLVM}/lib CACHE PATH "")
+set(CMAKE_SYSTEM_INCLUDE_PATH ${LLVM}/include CACHE PATH "")
+include_directories(SYSTEM ${LLVM}/include)
+
+unset(LLVM)
+unset(ARCH)
