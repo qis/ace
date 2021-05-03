@@ -89,10 +89,10 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   // ==========================================================================
   // Extensinos
   // ==========================================================================
-  "clang-format.executable": "${env:ACE}/bin/clang-format",
+  "clang-format.executable": "/opt/ace/bin/clang-format",
   "clangd.arguments": [ "--compile-commands-dir=build" ],
   "clangd.onConfigChanged": "restart",
-  "clangd.path": "${env:ACE}/bin/clangd",
+  "clangd.path": "/opt/ace/bin/clangd",
   "cmake.buildDirectory": "${workspaceFolder}/build",
   "cmake.cmakePath": "/opt/cmake/bin/cmake",
   "cmake.configureOnOpen": true,
