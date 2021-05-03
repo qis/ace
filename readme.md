@@ -117,7 +117,7 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   "gitlens.hovers.currentLine.over": "line",
   "gitlens.hovers.enabled": false,
   "gitlens.statusBar.enabled": false,
-  "lldb.library": "${env:ACE}/lib/liblldb.so",
+  "lldb.library": "/opt/ace/lib/liblldb.so",
 
   // ==========================================================================
   // File Formats
