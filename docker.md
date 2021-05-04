@@ -95,9 +95,10 @@ apt update && apt upgrade -y
 # Install dependencies.
 apt install -y --no-install-recommends \
   ca-certificates git make tzdata wget xz-utils \
-  libc6-dev libpfm4 libedit2 liblzma5 libxml2 zlib1g ninja-build wine64
+  libc6-dev libpfm4 libedit2 liblzma5 libxml2 zlib1g ninja-build wine wine64
 
 update-alternatives --install /usr/bin/wine wine /usr/bin/wine64-stable 100
+update-alternatives --install /usr/bin/winedbg winedbg /usr/bin/winedbg-stable 100
 
 # Install CMake.
 rm -rf /opt/cmake; mkdir -p /opt/cmake
@@ -161,7 +162,9 @@ sudo apt install -y --no-install-recommends \
   libc6-dev libpfm4 libedit2 liblzma5 libxml2 zlib1g ninja-build wine64
 
 sudo update-alternatives --remove-all wine
+sudo update-alternatives --remove-all winedbg
 sudo update-alternatives --install /usr/bin/wine wine /usr/bin/wine64-stable 100
+sudo update-alternatives --install /usr/bin/winedbg winedbg /usr/bin/winedbg-stable 100
 
 # Install CMake.
 sudo rm -rf /opt/cmake; sudo mkdir -p /opt/cmake
