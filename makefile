@@ -32,6 +32,9 @@ MSVC_SOURCES := https://github.com/mstorsjo/msvc-wine
 FMT_VERSION := 7.1.3
 FMT_ARCHIVE := https://github.com/fmtlib/fmt/archive/refs/tags/$(FMT_VERSION).tar.gz
 
+LZ4_VERSION := 1.9.3
+LZ4_ARCHIVE := https://github.com/lz4/lz4/archive/refs/tags/v$(LZ4_VERSION).tar.gz
+
 BENCHMARK_VERSION := 1.5.2
 BENCHMARK_ARCHIVE := https://github.com/google/benchmark/archive/refs/tags/v$(BENCHMARK_VERSION).tar.gz
 
@@ -73,6 +76,7 @@ download/msvc: \
 
 download/libs: \
   src/fmt \
+  src/lz4 \
   src/benchmark \
   src/doctest \
 
@@ -142,6 +146,13 @@ src/fmt.tar.gz:
 src/fmt: src/fmt.tar.gz
 	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
 	@cd $@ && patch -p0 < $(CURDIR)/res/fmt-$(FMT_VERSION).patch
+
+src/lz4.tar.gz:
+	@$(DOWNLOAD) $(LZ4_ARCHIVE) -O $@
+
+src/lz4: src/lz4.tar.gz
+	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
+	@cp res/lz4/CMakeLists.txt src/lz4/CMakeLists.txt
 
 src/benchmark.tar.gz:
 	@$(DOWNLOAD) $(BENCHMARK_ARCHIVE) -O $@
@@ -473,7 +484,7 @@ MSVC_CXX_FLAGS_MINSIZEREL := -Os -DNDEBUG -D_DLL -D_MT -Xclang --dependent-lib=m
 # libs
 # =============================================================================
 
-libs: fmt benchmark doctest
+libs: fmt lz4 benchmark doctest
 
 # =============================================================================
 # fmt
@@ -575,6 +586,90 @@ fmt/msvc/release/install:
 	@ninja -C $(BUILD)/msvc/fmt/release/build install
 	@cp build/msvc/fmt/release/install/lib/fmt.lib $(MSVC)/lib/fmt.lib
 	@cmake -E copy_directory build/msvc/fmt/release/install/include/fmt $(MSVC)/include/fmt
+
+# =============================================================================
+# lz4
+# =============================================================================
+
+lz4: \
+  lz4/llvm \
+  lz4/msvc
+
+lz4/llvm: \
+  lz4/llvm/debug \
+  lz4/llvm/release
+
+lz4/llvm/debug: \
+  lz4/llvm/debug/configure \
+  lz4/llvm/debug/install
+
+lz4/llvm/debug/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="MinSizeRel" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/lz4/debug/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(LLVM_TOOLCHAIN)" \
+	  -DBUILD_SHARED_LIBS=ON \
+	  -B $(BUILD)/lz4/debug/build src/lz4
+
+lz4/llvm/debug/install:
+	@ninja -C $(BUILD)/lz4/debug/build install
+	@cp build/lz4/debug/install/lib/liblz4.so $(LLVM)/lib/liblz4.so
+	@patchelf --set-soname liblz4.so $(LLVM)/lib/liblz4.so
+	@patchelf --set-rpath '$$ORIGIN' $(LLVM)/lib/liblz4.so
+
+lz4/llvm/release: \
+  lz4/llvm/release/configure \
+  lz4/llvm/release/install
+
+lz4/llvm/release/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="Release" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/lz4/release/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(LLVM_TOOLCHAIN)" \
+	  -B $(BUILD)/lz4/release/build src/lz4
+
+lz4/llvm/release/install:
+	@ninja -C $(BUILD)/lz4/release/build install
+	@cp build/lz4/release/install/lib/liblz4.a $(LLVM)/lib/liblz4.a
+	@cmake -E copy_directory build/lz4/release/install/include $(LLVM)/include
+
+lz4/msvc: \
+  lz4/msvc/debug \
+  lz4/msvc/release
+
+lz4/msvc/debug: \
+  lz4/msvc/debug/configure \
+  lz4/msvc/debug/install
+
+lz4/msvc/debug/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="MinSizeRel" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/msvc/lz4/debug/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(MSVC_TOOLCHAIN)" \
+	  -DCMAKE_MINSIZEREL_POSTFIX="d" \
+	  -DBUILD_SHARED_LIBS=ON \
+	  -B $(BUILD)/msvc/lz4/debug/build src/lz4
+
+lz4/msvc/debug/install:
+	@ninja -C $(BUILD)/msvc/lz4/debug/build install
+	@cp build/msvc/lz4/debug/install/bin/lz4d.dll $(MSVC)/bin/lz4d.dll
+	@cp build/msvc/lz4/debug/install/lib/lz4d.lib $(MSVC)/lib/lz4d.lib
+
+lz4/msvc/release: \
+  lz4/msvc/release/configure \
+  lz4/msvc/release/install
+
+lz4/msvc/release/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="Release" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/msvc/lz4/release/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(MSVC_TOOLCHAIN)" \
+	  -B $(BUILD)/msvc/lz4/release/build src/lz4
+
+lz4/msvc/release/install:
+	@ninja -C $(BUILD)/msvc/lz4/release/build install
+	@cp build/msvc/lz4/release/install/lib/lz4.lib $(MSVC)/lib/lz4.lib
+	@cmake -E copy_directory build/msvc/lz4/release/install/include $(MSVC)/include
 
 # =============================================================================
 # benchmark
@@ -736,7 +831,7 @@ clean/build/msvc:
 	rm -rf build/msvc
 
 clean/build/libs:
-	rm -rf build/fmt build/benchmark build/doctest
+	rm -rf build/fmt build/lz4 build/benchmark build/doctest
 
 clean/src:
 	rm -rf src
@@ -749,7 +844,7 @@ clean/src/msvc:
 	rm -rf src/msvc
 
 clean/src/libs:
-	rm -rf src/fmt src/benchmark src/doctest
+	rm -rf src/fmt src/lz4 src/benchmark src/doctest
 
 # =============================================================================
 # reset
@@ -765,5 +860,5 @@ reset/msvc:
 
 .PHONY: download download/llvm download/msvc download/libs
 .PHONY: stage llvm msvc libs
-.PHONY: fmt benchmark doctest
+.PHONY: fmt lz4 benchmark doctest
 .PHONY: clean reset

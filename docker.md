@@ -192,8 +192,8 @@ Build and install third party libraries to an external location with a different
 ```sh
 make download/libs
 cmake -E copy_directory cmake /opt/llvm/cmake
-make LLVM=/opt/llvm LLVM_TOOLCHAIN=/opt/llvm/toolchain.cmake fmt/llvm benchmark/llvm doctest/llvm
-make reset
+make LLVM=/opt/llvm LLVM_TOOLCHAIN=/opt/llvm/toolchain.cmake fmt/llvm lz4/llvm benchmark/llvm doctest/llvm
+make clean
 ```
 
 The corresponding <https://github.com/qis/ace-test> make target is `llvm`.
