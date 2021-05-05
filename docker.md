@@ -192,7 +192,7 @@ Build and install third party libraries to an external location with a different
 ```sh
 make download/libs
 cmake -E copy_directory cmake /opt/llvm/cmake
-make LLVM=/opt/llvm LLVM_TOOLCHAIN=/opt/llvm/toolchain.cmake fmt/llvm benchmark/llvm doctest/llvm
+make LLVM=/opt/llvm LLVM_TOOLCHAIN=/opt/llvm/toolchain.cmake fmt/llvm utf8proc/llvm benchmark/llvm doctest/llvm
 make reset
 ```
 

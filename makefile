@@ -29,14 +29,17 @@ LLVM_SOURCES := https://github.com/llvm/llvm-project/releases/download/llvmorg-$
 
 MSVC_SOURCES := https://github.com/mstorsjo/msvc-wine
 
+FMT_VERSION := 7.1.3
+FMT_ARCHIVE := https://github.com/fmtlib/fmt/archive/refs/tags/$(FMT_VERSION).tar.gz
+
+UTF8PROC_VERSION := 2.6.1
+UTF8PROC_ARCHIVE := https://github.com/JuliaStrings/utf8proc/archive/refs/tags/v$(UTF8PROC_VERSION).tar.gz
+
 BENCHMARK_VERSION := 1.5.2
 BENCHMARK_ARCHIVE := https://github.com/google/benchmark/archive/refs/tags/v$(BENCHMARK_VERSION).tar.gz
 
 DOCTEST_VERSION := 2.4.6
 DOCTEST_ARCHIVE := https://github.com/onqtam/doctest/archive/refs/tags/$(DOCTEST_VERSION).tar.gz
-
-FMT_VERSION := 7.1.3
-FMT_ARCHIVE := https://github.com/fmtlib/fmt/archive/refs/tags/$(FMT_VERSION).tar.gz
 
 BUILD = $(CURDIR)/build
 
@@ -72,9 +75,10 @@ download/msvc: \
   src/msvc
 
 download/libs: \
+  src/fmt \
+  src/utf8proc \
   src/benchmark \
   src/doctest \
-  src/fmt
 
 src/lld.tar.xz:
 	@$(DOWNLOAD) $(LLVM_SOURCES)/lld-$(LLVM_VERSION).src.tar.xz -O $@
@@ -136,6 +140,19 @@ src/msvc:
 	@sh src/msvc/install.sh src/msvc
 	@rm -rf src/msvc/cache
 
+src/fmt.tar.gz:
+	@$(DOWNLOAD) $(FMT_ARCHIVE) -O $@
+
+src/fmt: src/fmt.tar.gz
+	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
+	@cd $@ && patch -p0 < $(CURDIR)/res/fmt-$(FMT_VERSION).patch
+
+src/utf8proc.tar.gz:
+	@$(DOWNLOAD) $(UTF8PROC_ARCHIVE) -O $@
+
+src/utf8proc: src/utf8proc.tar.gz
+	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
+
 src/benchmark.tar.gz:
 	@$(DOWNLOAD) $(BENCHMARK_ARCHIVE) -O $@
 
@@ -149,13 +166,6 @@ src/doctest.tar.gz:
 src/doctest: src/doctest.tar.gz
 	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
 	@cd $@ && patch -p0 < $(CURDIR)/res/doctest-$(DOCTEST_VERSION).patch
-
-src/fmt.tar.gz:
-	@$(DOWNLOAD) $(FMT_ARCHIVE) -O $@
-
-src/fmt: src/fmt.tar.gz
-	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
-	@cd $@ && patch -p0 < $(CURDIR)/res/fmt-$(FMT_VERSION).patch
 
 # =============================================================================
 # stage
@@ -473,7 +483,7 @@ MSVC_CXX_FLAGS_MINSIZEREL := -Os -DNDEBUG -D_DLL -D_MT -Xclang --dependent-lib=m
 # libs
 # =============================================================================
 
-libs: fmt benchmark doctest
+libs: fmt utf8proc benchmark doctest
 
 # =============================================================================
 # fmt
@@ -575,6 +585,91 @@ fmt/msvc/release/install:
 	@ninja -C $(BUILD)/msvc/fmt/release/build install
 	@cp build/msvc/fmt/release/install/lib/fmt.lib $(MSVC)/lib/fmt.lib
 	@cmake -E copy_directory build/msvc/fmt/release/install/include/fmt $(MSVC)/include/fmt
+
+# =============================================================================
+# utf8proc
+# =============================================================================
+
+utf8proc: \
+  utf8proc/llvm \
+  utf8proc/msvc
+
+utf8proc/llvm: \
+  utf8proc/llvm/debug \
+  utf8proc/llvm/release
+
+utf8proc/llvm/debug: \
+  utf8proc/llvm/debug/configure \
+  utf8proc/llvm/debug/install
+
+utf8proc/llvm/debug/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="MinSizeRel" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/utf8proc/debug/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(LLVM_TOOLCHAIN)" \
+	  -DBUILD_SHARED_LIBS=ON \
+	  -B $(BUILD)/utf8proc/debug/build src/utf8proc
+
+utf8proc/llvm/debug/install:
+	@ninja -C $(BUILD)/utf8proc/debug/build install
+	@cp build/utf8proc/debug/install/lib/libutf8proc.so.2.4.1 $(LLVM)/lib/libutf8proc.so
+	@patchelf --set-soname libutf8proc.so $(LLVM)/lib/libutf8proc.so
+	@patchelf --set-rpath '$$ORIGIN' $(LLVM)/lib/libutf8proc.so
+
+utf8proc/llvm/release: \
+  utf8proc/llvm/release/configure \
+  utf8proc/llvm/release/install
+
+utf8proc/llvm/release/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="Release" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/utf8proc/release/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(LLVM_TOOLCHAIN)" \
+	  -B $(BUILD)/utf8proc/release/build src/utf8proc
+
+utf8proc/llvm/release/install:
+	@ninja -C $(BUILD)/utf8proc/release/build install
+	@cp build/utf8proc/release/install/lib/libutf8proc.a $(LLVM)/lib/libutf8proc.a
+	@cmake -E copy build/utf8proc/release/install/include/utf8proc.h $(LLVM)/include/utf8proc.h
+
+utf8proc/msvc: \
+  utf8proc/msvc/debug \
+  utf8proc/msvc/release
+
+utf8proc/msvc/debug: \
+  utf8proc/msvc/debug/configure \
+  utf8proc/msvc/debug/install
+
+utf8proc/msvc/debug/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="MinSizeRel" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/msvc/utf8proc/debug/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(MSVC_TOOLCHAIN)" \
+	  -DCMAKE_CXX_FLAGS_MINSIZEREL="$(MSVC_CXX_FLAGS_MINSIZEREL) -Wno-undefined-var-template" \
+	  -DCMAKE_MINSIZEREL_POSTFIX="d" \
+	  -DBUILD_SHARED_LIBS=ON \
+	  -B $(BUILD)/msvc/utf8proc/debug/build src/utf8proc
+
+utf8proc/msvc/debug/install:
+	@ninja -C $(BUILD)/msvc/utf8proc/debug/build install
+	@cp build/msvc/utf8proc/debug/install/bin/utf8procd.dll $(MSVC)/bin/utf8procd.dll
+	@cp build/msvc/utf8proc/debug/install/lib/utf8procd.lib $(MSVC)/lib/utf8procd.lib
+
+utf8proc/msvc/release: \
+  utf8proc/msvc/release/configure \
+  utf8proc/msvc/release/install
+
+utf8proc/msvc/release/configure:
+	@cmake -Wno-dev -GNinja \
+	  -DCMAKE_BUILD_TYPE="Release" \
+	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/msvc/utf8proc/release/install" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(MSVC_TOOLCHAIN)" \
+	  -B $(BUILD)/msvc/utf8proc/release/build src/utf8proc
+
+utf8proc/msvc/release/install:
+	@ninja -C $(BUILD)/msvc/utf8proc/release/build install
+	@cp build/msvc/utf8proc/release/install/lib/utf8proc.lib $(MSVC)/lib/utf8proc.lib
+	@cmake -E copy build/msvc/utf8proc/release/install/include/utf8proc.h $(MSVC)/include/utf8proc.h
 
 # =============================================================================
 # benchmark
@@ -736,7 +831,7 @@ clean/build/msvc:
 	rm -rf build/msvc
 
 clean/build/libs:
-	rm -rf build/fmt build/benchmark build/doctest
+	rm -rf build/fmt build/utf8proc build/benchmark build/doctest
 
 clean/src:
 	rm -rf src
@@ -749,7 +844,7 @@ clean/src/msvc:
 	rm -rf src/msvc
 
 clean/src/libs:
-	rm -rf src/fmt src/benchmark src/doctest
+	rm -rf src/fmt src/utf8proc src/benchmark src/doctest
 
 # =============================================================================
 # reset
@@ -765,5 +860,5 @@ reset/msvc:
 
 .PHONY: download download/llvm download/msvc download/libs
 .PHONY: stage llvm msvc libs
-.PHONY: fmt benchmark doctest
+.PHONY: fmt utf8proc benchmark doctest
 .PHONY: clean reset
