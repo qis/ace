@@ -152,6 +152,7 @@ src/lz4.tar.gz:
 
 src/lz4: src/lz4.tar.gz
 	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
+	@cd $@ && patch -p0 < $(CURDIR)/res/lz4-$(LZ4_VERSION).patch
 	@cp res/lz4/CMakeLists.txt src/lz4/CMakeLists.txt
 
 src/benchmark.tar.gz:

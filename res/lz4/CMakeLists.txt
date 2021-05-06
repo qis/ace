@@ -17,8 +17,8 @@ target_include_directories(lz4 PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 if(BUILD_SHARED_LIBS)
-  set_target_properties(lz4 PROPERTIES DEFINE_SYMBOL LZ4_EXPORTS)
-  target_compile_definitions(lz4 PUBLIC LZ4_SHARED)
+  set_target_properties(lz4 PROPERTIES DEFINE_SYMBOL LZ4LIB_EXPORTS)
+  target_compile_definitions(lz4 PUBLIC LZ4LIB_SHARED)
   if(NOT WIN32)
     target_compile_options(lz4 PRIVATE -fvisibility=hidden)
   endif()
