@@ -66,6 +66,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG ${LLVM_MT} -flto=full -fwhole-program-
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG ${LLVM_MD}" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -Xclang -gcodeview -DNDEBUG ${LLVM_MD}" CACHE STRING "")
 
+foreach(LANG C CXX)
+  # -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 -loldnames
+  set(CMAKE_${LANG}_STANDARD_LIBRARIES "-lkernel32 -luser32 -lshell32 -lgdi32" CACHE STRING "")
+endforeach()
+
 unset(LLVM_FLAGS)
 unset(LLVM_MT)
 unset(LLVM_MD)

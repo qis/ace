@@ -12,6 +12,7 @@ if(NOT TARGET doctest::doctest)
     set_target_properties(doctest::doctest PROPERTIES
       IMPORTED_LOCATION "${LLVM}/msvc/lib/doctestd.lib"
       IMPORTED_LOCATION_RELEASE "${LLVM}/msvc/lib/doctest.lib")
+    target_link_libraries(doctest::doctest INTERFACE oldnames)
   else()
     set_target_properties(doctest::doctest PROPERTIES
       IMPORTED_LOCATION "${LLVM}/lib/libdoctest.a")
