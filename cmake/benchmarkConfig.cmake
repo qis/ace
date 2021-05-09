@@ -9,7 +9,7 @@ if(NOT TARGET benchmark::benchmark)
     set_target_properties(benchmark::benchmark PROPERTIES
       IMPORTED_LOCATION "${LLVM}/msvc/lib/benchmarkd.lib"
       IMPORTED_LOCATION_RELEASE "${LLVM}/msvc/lib/benchmark.lib")
-    target_link_libraries(benchmark::benchmark INTERFACE shlwapi)
+    target_link_libraries(benchmark::benchmark INTERFACE shlwapi oldnames)
   else()
     set_target_properties(benchmark::benchmark PROPERTIES
       IMPORTED_LOCATION "${LLVM}/lib/libbenchmark.a")
