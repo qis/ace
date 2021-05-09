@@ -90,7 +90,7 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   // Extensinos
   // ==========================================================================
   "clang-format.executable": "/opt/ace/bin/clang-format",
-  "clangd.arguments": [ "--compile-commands-dir=build" ],
+  "clangd.arguments": [ "--compile-commands-dir=build", "--header-insertion=never" ],
   "clangd.onConfigChanged": "restart",
   "clangd.path": "/opt/ace/bin/clangd",
   "cmake.buildDirectory": "${workspaceFolder}/build",
@@ -156,6 +156,14 @@ Configure [VS Code][code] Keyboard Shortcuts with `CTRL+P` and `Preferences Open
 
 ```json5
 [
+  {
+    "key": "ctrl+up",
+    "command": "cursorUp"
+  },
+  {
+    "key": "ctrl+down",
+    "command": "cursorDown"
+  },
   {
     "key": "ctrl+shift+c",
     "command": "editor.action.clipboardCopyWithSyntaxHighlightingAction"
