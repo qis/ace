@@ -4,6 +4,7 @@
 !/res/
 !/.gitignore
 !/docker.md
+!/format.cmake
 !/llvm.cmake
 !/makefile
 !/msvc.cmake
