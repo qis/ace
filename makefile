@@ -436,6 +436,37 @@ msvc/prepare:
 	@cmake -E copy_directory $(WSDK_INCPATH)/ucrt $(MSVC)/include
 	@cmake -E copy_directory $(WSDK_INCPATH)/um $(MSVC)/include
 	@cmake -E copy_directory $(WSDK_INCPATH)/shared $(MSVC)/include
+	@mv $(MSVC)/include/gdiplusmem.h $(MSVC)/include/GdiplusMem.h
+	@mv $(MSVC)/include/gdiplusbase.h $(MSVC)/include/GdiplusBase.h
+	@mv $(MSVC)/include/gdiplusenums.h $(MSVC)/include/GdiplusEnums.h
+	@mv $(MSVC)/include/gdiplustypes.h $(MSVC)/include/GdiplusTypes.h
+	@mv $(MSVC)/include/gdiplusinit.h $(MSVC)/include/GdiplusInit.h
+	@mv $(MSVC)/include/gdipluspixelformats.h $(MSVC)/include/GdiplusPixelFormats.h
+	@mv $(MSVC)/include/gdipluscolor.h $(MSVC)/include/GdiplusColor.h
+	@mv $(MSVC)/include/gdiplusmetaheader.h $(MSVC)/include/GdiplusMetaHeader.h
+	@mv $(MSVC)/include/gdiplusimaging.h $(MSVC)/include/GdiplusImaging.h
+	@mv $(MSVC)/include/gdipluscolormatrix.h $(MSVC)/include/GdiplusColorMatrix.h
+	@mv $(MSVC)/include/gdiplusgpstubs.h $(MSVC)/include/GdiplusGpStubs.h
+	@mv $(MSVC)/include/gdiplusheaders.h $(MSVC)/include/GdiplusHeaders.h
+	@mv $(MSVC)/include/gdiplusflat.h $(MSVC)/include/GdiplusFlat.h
+	@mv $(MSVC)/include/gdiplusimageattributes.h $(MSVC)/include/GdiplusImageAttributes.h
+	@mv $(MSVC)/include/gdiplusbitmap.h $(MSVC)/include/GdiplusBitmap.h
+	@mv $(MSVC)/include/gdiplusbrush.h $(MSVC)/include/GdiplusBrush.h
+	@mv $(MSVC)/include/gdipluscachedbitmap.h $(MSVC)/include/GdiplusCachedBitmap.h
+	@mv $(MSVC)/include/gdipluseffects.h $(MSVC)/include/GdiplusEffects.h
+	@mv $(MSVC)/include/gdiplusfont.h $(MSVC)/include/GdiplusFont.h
+	@mv $(MSVC)/include/gdiplusfontcollection.h $(MSVC)/include/GdiplusFontCollection.h
+	@mv $(MSVC)/include/gdiplusfontfamily.h $(MSVC)/include/GdiplusFontFamily.h
+	@mv $(MSVC)/include/gdiplusgraphics.h $(MSVC)/include/GdiplusGraphics.h
+	@mv $(MSVC)/include/gdiplusimagecodec.h $(MSVC)/include/GdiplusImageCodec.h
+	@mv $(MSVC)/include/gdipluslinecaps.h $(MSVC)/include/GdiplusLineCaps.h
+	@mv $(MSVC)/include/gdiplusmatrix.h $(MSVC)/include/GdiplusMatrix.h
+	@mv $(MSVC)/include/gdiplusmetafile.h $(MSVC)/include/GdiplusMetafile.h
+	@mv $(MSVC)/include/gdipluspath.h $(MSVC)/include/GdiplusPath.h
+	@mv $(MSVC)/include/gdipluspen.h $(MSVC)/include/GdiplusPen.h
+	@mv $(MSVC)/include/gdiplusregion.h $(MSVC)/include/GdiplusRegion.h
+	@mv $(MSVC)/include/gdiplusstringformat.h $(MSVC)/include/GdiplusStringFormat.h
+
 
 msvc/compiler-rt: \
   msvc/compiler-rt/configure \

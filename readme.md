@@ -80,6 +80,7 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   "telemetry.enableCrashReporter": false,
   "telemetry.enableTelemetry": false,
   "window.closeWhenEmpty": false,
+  "window.dialogStyle": "custom",
   "window.newWindowDimensions": "inherit",
   "window.openFilesInNewWindow": "off",
   "window.openFoldersInNewWindow": "off",
@@ -263,42 +264,6 @@ Configure [VS Code][code] CMake Kits with `CTRL+P` and `CMake: Edit User-Local C
     "name": "ACE MSVC STATIC",
     "toolchainFile": "${env:ACE}/msvc.cmake",
     "cmakeSettings": {
-      "BUILD_SHARED_LIBS": "OFF"
-    }
-  },
-  {
-    "keep": true,
-    "name": "ACE LLVM (Exceptions)",
-    "toolchainFile": "/opt/llvm/toolchain.cmake",
-    "cmakeSettings": {
-      "LLVM_ENABLE_EXCEPTIONS": "ON",
-      "BUILD_SHARED_LIBS": "ON"
-    }
-  },
-  {
-    "keep": true,
-    "name": "ACE LLVM STATIC (Exceptions)",
-    "toolchainFile": "/opt/llvm/toolchain.cmake",
-    "cmakeSettings": {
-      "LLVM_ENABLE_EXCEPTIONS": "ON",
-      "BUILD_SHARED_LIBS": "OFF"
-    }
-  },
-  {
-    "keep": true,
-    "name": "ACE MSVC (Exceptions)",
-    "toolchainFile": "${env:ACE}/msvc.cmake",
-    "cmakeSettings": {
-      "LLVM_ENABLE_EXCEPTIONS": "ON",
-      "BUILD_SHARED_LIBS": "ON"
-    }
-  },
-  {
-    "keep": true,
-    "name": "ACE MSVC STATIC (Exceptions)",
-    "toolchainFile": "${env:ACE}/msvc.cmake",
-    "cmakeSettings": {
-      "LLVM_ENABLE_EXCEPTIONS": "ON",
       "BUILD_SHARED_LIBS": "OFF"
     }
   }
