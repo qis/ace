@@ -1,6 +1,7 @@
 # Toolchain
 set(ARCH x86-64-v3)
 set(LLVM ${CMAKE_CURRENT_LIST_DIR})
+set(ACE_TOOLCHAIN ON CACHE BOOL "")
 
 # Settings
 set(CMAKE_BUILD_RPATH ${LLVM}/lib CACHE PATH "")
