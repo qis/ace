@@ -90,25 +90,14 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   // ==========================================================================
   // Extensinos
   // ==========================================================================
-  "clang-format.executable": "/opt/ace/bin/clang-format",
   "clangd.arguments": [ "--compile-commands-dir=build", "--header-insertion=never" ],
   "clangd.onConfigChanged": "restart",
-  "clangd.path": "/opt/ace/bin/clangd",
   "cmake.buildDirectory": "${workspaceFolder}/build",
-  "cmake.cmakePath": "/opt/cmake/bin/cmake",
   "cmake.configureOnOpen": true,
   "cmake.generator": "Ninja Multi-Config",
   "cmake.installPrefix": "${workspaceFolder}",
   "cmake.configureSettings": {
     "CMAKE_VERBOSE_MAKEFILE": "OFF"
-  },
-  "cmake.debugConfig": {
-    "name": "LLDB",
-    "type": "lldb",
-    "request": "launch",
-    "terminal": "console",
-    "cwd": "${workspaceRoot}",
-    "program": "${command:cmake.launchTargetPath}"
   },
   "gitlens.codeLens.enabled": false,
   "gitlens.currentLine.enabled": false,
@@ -118,7 +107,6 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   "gitlens.hovers.currentLine.over": "line",
   "gitlens.hovers.enabled": false,
   "gitlens.statusBar.enabled": false,
-  "lldb.library": "/opt/ace/lib/liblldb.so",
 
   // ==========================================================================
   // File Formats
@@ -144,7 +132,39 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   "[makefile]": {
     "editor.tabSize": 8,
     "editor.renderWhitespace": "boundary"
-  }
+  },
+
+  // ==========================================================================
+  // Linux
+  // ==========================================================================
+  //"lldb.library": "/opt/ace/lib/liblldb.so",
+  //"clangd.path": "/opt/ace/bin/clangd",
+  //"clang-format.executable": "/opt/ace/bin/clang-format",
+  //"cmake.cmakePath": "/opt/cmake/bin/cmake",
+  //"cmake.debugConfig": {
+  //  "name": "LLDB",
+  //  "type": "lldb",
+  //  "request": "launch",
+  //  "terminal": "console",
+  //  "cwd": "${workspaceRoot}",
+  //  "program": "${command:cmake.launchTargetPath}"
+  //}
+
+  // ==========================================================================
+  // Windows
+  // ==========================================================================
+  //"lldb.library": "C:/Ace/bin/liblldb.dll",
+  //"clangd.path": "C:/Ace/bin/clangd.exe",
+  //"clang-format.executable": "C:\\Ace\\bin\\clang-format.exe",
+  //"cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
+  //"cmake.debugConfig": {
+  //  "name": "MSVC",
+  //  "type": "windbg",
+  //  "request": "launch",
+  //  "verbosity": "debug",
+  //  "workingDir": "${workspaceRoot}",
+  //  "target": "${command:cmake.launchTargetPath}"
+  //}
 }
 ```
 
@@ -229,7 +249,7 @@ Configure [VS Code][code] Keyboard Shortcuts with `CTRL+P` and `Preferences Open
 </details>
 
 <details>
-<summary><b>CMake Kits</b></summary>
+<summary><b>CMake Kits: Linux</b></summary>
 
 Configure [VS Code][code] CMake Kits with `CTRL+P` and `CMake: Edit User-Local CMake Kits`.
 
@@ -251,6 +271,34 @@ Configure [VS Code][code] CMake Kits with `CTRL+P` and `CMake: Edit User-Local C
       "BUILD_SHARED_LIBS": "OFF"
     }
   },
+  {
+    "keep": true,
+    "name": "ACE MSVC",
+    "toolchainFile": "${env:ACE}/msvc.cmake",
+    "cmakeSettings": {
+      "BUILD_SHARED_LIBS": "ON"
+    }
+  },
+  {
+    "keep": true,
+    "name": "ACE MSVC STATIC",
+    "toolchainFile": "${env:ACE}/msvc.cmake",
+    "cmakeSettings": {
+      "BUILD_SHARED_LIBS": "OFF"
+    }
+  }
+]
+```
+
+</details>
+
+<details>
+<summary><b>CMake Kits: Windows</b></summary>
+
+Configure [VS Code][code] CMake Kits with `CTRL+P` and `CMake: Edit User-Local CMake Kits`.
+
+```json5
+[
   {
     "keep": true,
     "name": "ACE MSVC",
