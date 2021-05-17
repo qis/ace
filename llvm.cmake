@@ -14,19 +14,24 @@ set(CMAKE_AR ${LLVM}/bin/llvm-ar CACHE PATH "")
 set(CMAKE_NM ${LLVM}/bin/llvm-nm CACHE PATH "")
 set(CMAKE_RANLIB ${LLVM}/bin/llvm-ranlib CACHE PATH "")
 
+find_program(CCACHE ccache)
+if(CCACHE)
+  set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE} CACHE PATH "")
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE} CACHE PATH "")
+endif()
+unset(CCACHE)
+
 # C Compiler
 set(CMAKE_C_STANDARD 11 CACHE STRING "")
 set(CMAKE_C_EXTENSIONS OFF CACHE BOOL "")
 set(CMAKE_C_STANDARD_REQUIRED ON CACHE BOOL "")
 set(CMAKE_C_COMPILER ${LLVM}/bin/clang CACHE PATH "")
-set(CMAKE_C_COMPILER_LAUNCHER /usr/bin/ccache CACHE PATH "")
 
 # C++ Compiler
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "")
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "")
 set(CMAKE_CXX_COMPILER ${LLVM}/bin/clang++ CACHE PATH "")
-set(CMAKE_CXX_COMPILER_LAUNCHER /usr/bin/ccache CACHE PATH "")
 
 # Compiler Flags
 set(LLVM_FLAGS "-march=${ARCH} -ffast-math -fmerge-all-constants")
