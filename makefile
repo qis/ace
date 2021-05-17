@@ -35,9 +35,6 @@ FMT_ARCHIVE := https://github.com/fmtlib/fmt/archive/refs/tags/$(FMT_VERSION).ta
 LZ4_VERSION := 1.9.3
 LZ4_ARCHIVE := https://github.com/lz4/lz4/archive/refs/tags/v$(LZ4_VERSION).tar.gz
 
-SDL_VERSION := 2.0.14
-SDL_ARCHIVE := https://www.libsdl.org/release/SDL2-$(SDL_VERSION).tar.gz
-
 BENCHMARK_VERSION := 1.5.2
 BENCHMARK_ARCHIVE := https://github.com/google/benchmark/archive/refs/tags/v$(BENCHMARK_VERSION).tar.gz
 
@@ -80,7 +77,6 @@ download/msvc: \
 download/libs: \
   src/fmt \
   src/lz4 \
-  src/sdl \
   src/benchmark \
   src/doctest
 
@@ -158,13 +154,6 @@ src/lz4: src/lz4.tar.gz
 	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
 	@cd $@ && patch -p0 < $(CURDIR)/res/lz4-$(LZ4_VERSION).patch
 	@cp res/lz4/CMakeLists.txt src/lz4/CMakeLists.txt
-
-src/sdl.tar.gz:
-	@$(DOWNLOAD) $(SDL_ARCHIVE) -O $@
-
-src/sdl: src/sdl.tar.gz
-	@mkdir -p $@ && tar xf $< -C $@ -m --strip-components=1
-	@cd $@ && patch -p0 < $(CURDIR)/res/sdl-$(SDL_VERSION).patch
 
 src/benchmark.tar.gz:
 	@$(DOWNLOAD) $(BENCHMARK_ARCHIVE) -O $@
@@ -526,7 +515,7 @@ MSVC_CXX_FLAGS_MINSIZEREL := -Os -DNDEBUG -D_DLL -D_MT -Xclang --dependent-lib=m
 # libs
 # =============================================================================
 
-libs: fmt lz4 sdl benchmark doctest
+libs: fmt lz4 benchmark doctest
 
 # =============================================================================
 # fmt
@@ -714,95 +703,6 @@ lz4/msvc/release/install:
 	@cmake -E copy_directory build/msvc/lz4/release/install/include $(MSVC)/include
 
 # =============================================================================
-# sdl
-# =============================================================================
-
-SDL_OPTIONS := \
-	  -DJOYSTICK_VIRTUAL=OFF \
-	  -DPTHREADS=OFF \
-	  -DPTHREADS_SEM=OFF \
-	  -DSDL_ATOMIC=OFF \
-	  -DSDL_AUDIO=OFF \
-	  -DSDL_CPUINFO=OFF \
-	  -DSDL_DLOPEN=OFF \
-	  -DSDL_EVENTS=OFF \
-	  -DSDL_FILE=OFF \
-	  -DSDL_FILESYSTEM=OFF \
-	  -DSDL_HAPTIC=OFF \
-	  -DSDL_JOYSTICK=OFF \
-	  -DSDL_LOADSO=OFF \
-	  -DSDL_LOCALE=OFF \
-	  -DSDL_POWER=OFF \
-	  -DSDL_RENDER=ON \
-	  -DSDL_SENSOR=OFF \
-	  -DSDL_TEST=OFF \
-	  -DSDL_THREADS=OFF \
-	  -DSDL_TIMERS=OFF \
-	  -DSDL_VIDEO=OFF \
-	  -DVIDEO_COCOA=OFF \
-	  -DVIDEO_DIRECTFB=OFF \
-	  -DVIDEO_DUMMY=OFF \
-	  -DVIDEO_KMSDRM=OFF \
-	  -DVIDEO_OFFSCREEN=OFF \
-	  -DVIDEO_OPENGL=OFF \
-	  -DVIDEO_OPENGLES=ON \
-	  -DVIDEO_RPI=OFF \
-	  -DVIDEO_VIVANTE=OFF \
-	  -DVIDEO_VULKAN=OFF \
-	  -DVIDEO_WAYLAND=OFF \
-	  -DVIDEO_WAYLAND_QT_TOUCH=OFF \
-	  -DVIDEO_X11=OFF \
-	  -DVIDEO_X11_XCURSOR=OFF \
-	  -DVIDEO_X11_XINERAMA=OFF \
-	  -DVIDEO_X11_XINPUT=OFF \
-	  -DVIDEO_X11_XRANDR=OFF \
-	  -DVIDEO_X11_XSCRNSAVER=OFF \
-	  -DVIDEO_X11_XSHAPE=OFF \
-	  -DVIDEO_X11_XVM=OFF
-
-sdl: \
-  sdl/llvm
-
-sdl/llvm: \
-  sdl/llvm/debug \
-  sdl/llvm/release
-
-sdl/llvm/debug: \
-  sdl/llvm/debug/configure \
-  sdl/llvm/debug/install
-
-sdl/llvm/debug/configure:
-	@cmake -Wno-dev -GNinja \
-	  -DCMAKE_BUILD_TYPE="MinSizeRel" \
-	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/sdl/debug/install" \
-	  -DCMAKE_TOOLCHAIN_FILE="$(LLVM_TOOLCHAIN)" \
-	  -DBUILD_SHARED_LIBS=ON $(SDL_OPTIONS) \
-	  -B $(BUILD)/sdl/debug/build src/sdl
-
-sdl/llvm/debug/install:
-	@ninja -C $(BUILD)/sdl/debug/build install
-	@cp build/sdl/debug/install/lib/libSDL2.so $(LLVM)/lib/libSDL2.so
-	@patchelf --set-soname libSDL2.so $(LLVM)/lib/libSDL2.so
-	@patchelf --set-rpath '$$ORIGIN' $(LLVM)/lib/libSDL2.so
-
-sdl/llvm/release: \
-  sdl/llvm/release/configure \
-  sdl/llvm/release/install
-
-sdl/llvm/release/configure:
-	@cmake -Wno-dev -GNinja \
-	  -DCMAKE_BUILD_TYPE="Release" \
-	  -DCMAKE_INSTALL_PREFIX="$(BUILD)/sdl/release/install" \
-	  -DCMAKE_TOOLCHAIN_FILE="$(LLVM_TOOLCHAIN)" \
-	  $(SDL_OPTIONS) -DSDL_SHARED=OFF \
-	  -B $(BUILD)/sdl/release/build src/sdl
-
-sdl/llvm/release/install:
-	@ninja -C $(BUILD)/sdl/release/build install
-	@cp build/sdl/release/install/lib/libSDL2.a $(LLVM)/lib/libSDL2.a
-	@cmake -E copy_directory build/sdl/release/install/include/SDL2 $(LLVM)/include/SDL2
-
-# =============================================================================
 # benchmark
 # =============================================================================
 
@@ -962,7 +862,7 @@ clean/build/msvc:
 	rm -rf build/msvc
 
 clean/build/libs:
-	rm -rf build/fmt build/lz4 build/sdl build/benchmark build/doctest
+	rm -rf build/fmt build/lz4 build/benchmark build/doctest
 
 clean/src:
 	rm -rf src
@@ -975,7 +875,7 @@ clean/src/msvc:
 	rm -rf src/msvc
 
 clean/src/libs:
-	rm -rf src/fmt src/lz4 src/sdl src/benchmark src/doctest
+	rm -rf src/fmt src/lz4 src/benchmark src/doctest
 
 # =============================================================================
 # reset
@@ -991,5 +891,5 @@ reset/msvc:
 
 .PHONY: download download/llvm download/msvc download/libs
 .PHONY: stage llvm msvc libs
-.PHONY: fmt lz4 sdl benchmark doctest
+.PHONY: fmt lz4 benchmark doctest
 .PHONY: clean reset
