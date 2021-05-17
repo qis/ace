@@ -64,7 +64,6 @@ download: \
   download/libs
 
 download/llvm: \
-  src/llvm-windows \
   src/llvm \
   src/lld \
   src/lldb \
@@ -84,12 +83,6 @@ download/libs: \
   src/sdl \
   src/benchmark \
   src/doctest
-
-src/llvm-windows.exe:
-	@$(DOWNLOAD) $(LLVM_SOURCES)/LLVM-$(LLVM_VERSION)-win64.exe -O $@
-
-src/llvm-windows: src/llvm-windows.exe
-	@mkdir -p $@ && cd $@ && 7z x $(CURDIR)/$<
 
 src/llvm.tar.xz:
 	@$(DOWNLOAD) $(LLVM_SOURCES)/llvm-$(LLVM_VERSION).src.tar.xz -O $@
@@ -434,8 +427,7 @@ WSDK_INCPATH := src/msvc/kits/$(WSDK_RELEASE)/include/$(WSDK_VERSION)
 
 msvc: \
   msvc/prepare \
-  msvc/compiler-rt \
-  msvc/llvm-windows
+  msvc/compiler-rt
 
 msvc/prepare:
 	@echo "Installing MSVC Headers ..."
@@ -511,27 +503,6 @@ msvc/compiler-rt/configure:
 
 msvc/compiler-rt/install:
 	@ninja -C $(BUILD)/msvc/compiler-rt install
-
-msvc/llvm-windows:
-	@cp src/llvm-windows/bin/clang.exe $(LLVM)/bin/clang.exe
-	@cp src/llvm-windows/bin/clangd.exe $(LLVM)/bin/clangd.exe
-	@cp src/llvm-windows/bin/clang-format.exe $(LLVM)/bin/clang-format.exe
-	@cp src/llvm-windows/bin/clang-tidy.exe $(LLVM)/bin/clang-tidy.exe
-	@cp src/llvm-windows/bin/lld.exe $(LLVM)/bin/lld.exe
-	@cp src/llvm-windows/bin/lldb.exe $(LLVM)/bin/lldb.exe
-	@cp src/llvm-windows/bin/lldb-instr.exe $(LLVM)/bin/lldb-instr.exe
-	@cp src/llvm-windows/bin/lldb-server.exe $(LLVM)/bin/lldb-server.exe
-	@cp src/llvm-windows/bin/lldb-vscode.exe $(LLVM)/bin/lldb-vscode.exe
-	@cp src/llvm-windows/bin/llvm-ar.exe $(LLVM)/bin/llvm-ar.exe
-	@cp src/llvm-windows/bin/llvm-nm.exe $(LLVM)/bin/llvm-nm.exe
-	@cp src/llvm-windows/bin/llvm-rc.exe $(LLVM)/bin/llvm-rc.exe
-	@cp src/llvm-windows/bin/liblldb.dll $(LLVM)/bin/liblldb.dll
-	@ln -snf clang.exe $(LLVM)/bin/clang++.exe
-	@ln -snf llvm-ar.exe $(LLVM)/bin/llvm-lib.exe
-	@ln -snf llvm-ar.exe $(LLVM)/bin/llvm-ranlib.exe
-	@ln -snf lld.exe $(LLVM)/bin/ld64.lld.exe
-	@ln -snf lld.exe $(LLVM)/bin/lld-link.exe
-	@ln -snf lld.exe $(LLVM)/bin/ld.lld.exe
 
 # =============================================================================
 # toolchain

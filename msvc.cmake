@@ -20,12 +20,12 @@ find_program(CMAKE_NM llvm-nm PATHS ${LLVM}/bin)
 find_program(CMAKE_LINKER lld-link PATHS ${LLVM}/bin)
 find_program(CMAKE_RANLIB llvm-ranlib PATHS ${LLVM}/bin)
 
-find_program(LLVM_CCACHE ccache)
-if(LLVM_CCACHE)
-  set(CMAKE_C_COMPILER_LAUNCHER ${LLVM_CCACHE} CACHE PATH "")
-  set(CMAKE_CXX_COMPILER_LAUNCHER ${LLVM_CCACHE} CACHE PATH "")
+find_program(CCACHE ccache)
+if(CCACHE)
+  set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE} CACHE PATH "")
+  set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE} CACHE PATH "")
 endif()
-unset(LLVM_CCACHE)
+unset(CCACHE)
 
 # Include Directories
 set(LLVM_INCLUDE_DIRECTORIES ${LLVM}/lib/clang/12.0.0/include ${LLVM}/msvc/include)
