@@ -168,8 +168,9 @@ sudo chmod 0755 /etc/profile.d/cmake.sh
 . /etc/profile.d/cmake.sh
 
 # Install toolchain.
-sudo rm -rf /opt/ace; sudo mv ace /opt/ace
-cd /opt/ace && make install
+sudo rm -rf /opt/ace; sudo mkdir -p /opt/ace
+git clone git@github.com:qis/ace /opt/ace
+cp /opt/ace/ace-*.7z /opt/ace/ && cd /opt/ace && make install
 echo 'export ACE="/opt/ace"' | sudo tee /etc/profile.d/ace.sh >/dev/null
 sudo chmod 0755 /etc/profile.d/ace.sh
 . /etc/profile.d/ace.sh
