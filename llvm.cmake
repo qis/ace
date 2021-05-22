@@ -1,18 +1,22 @@
-# Toolchain
-set(ARCH x86-64-v3)
-set(LLVM ${CMAKE_CURRENT_LIST_DIR})
-set(ACE_TOOLCHAIN ON CACHE BOOL "")
-
 # Settings
+# x86-64: CMOV, CMPXCHG8B, FPU, FXSR, MMX, FXSR, SCE, SSE, SSE2
+# x86-64-v2: (close to Nehalem) CMPXCHG16B, LAHF-SAHF, POPCNT, SSE3, SSE4.1, SSE4.2, SSSE3
+# x86-64-v3: (close to Haswell) AVX, AVX2, BMI1, BMI2, F16C, FMA, LZCNT, MOVBE, XSAVE
+# x86-64-v4: AVX512F, AVX512BW, AVX512CD, AVX512DQ, AVX512VL
+
+set(ARCH x86-64-v3)
+set(LLVM ${CMAKE_CURRENT_LIST_DIR}/llvm)
 set(CMAKE_BUILD_RPATH ${LLVM}/lib CACHE PATH "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "")
 set(CMAKE_CONFIGURATION_TYPES Debug Release MinSizeRel RelWithDebInfo CACHE STRING "" FORCE)
 set_property(GLOBAL PROPERTY DEBUG_CONFIGURATIONS Debug MinSizeRel RelWithDebInfo)
 
 # Tools
-set(CMAKE_AR ${LLVM}/bin/llvm-ar CACHE PATH "")
-set(CMAKE_NM ${LLVM}/bin/llvm-nm CACHE PATH "")
-set(CMAKE_RANLIB ${LLVM}/bin/llvm-ranlib CACHE PATH "")
+find_program(CMAKE_C_COMPILER clang PATHS ${LLVM}/bin REQUIRED NO_DEFAULT_PATH)
+find_program(CMAKE_CXX_COMPILER clang++ PATHS ${LLVM}/bin REQUIRED NO_DEFAULT_PATH)
+find_program(CMAKE_AR llvm-ar PATHS ${LLVM}/bin REQUIRED NO_DEFAULT_PATH)
+find_program(CMAKE_NM llvm-nm PATHS ${LLVM}/bin REQUIRED NO_DEFAULT_PATH)
+find_program(CMAKE_RANLIB llvm-ranlib PATHS ${LLVM}/bin REQUIRED NO_DEFAULT_PATH)
 
 find_program(CCACHE ccache)
 if(CCACHE)
@@ -25,48 +29,46 @@ unset(CCACHE)
 set(CMAKE_C_STANDARD 11 CACHE STRING "")
 set(CMAKE_C_EXTENSIONS OFF CACHE BOOL "")
 set(CMAKE_C_STANDARD_REQUIRED ON CACHE BOOL "")
-set(CMAKE_C_COMPILER ${LLVM}/bin/clang CACHE PATH "")
 
 # C++ Compiler
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "")
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "")
-set(CMAKE_CXX_COMPILER ${LLVM}/bin/clang++ CACHE PATH "")
 
 # Compiler Flags
-set(LLVM_FLAGS "-march=${ARCH} -ffast-math -fmerge-all-constants")
-set(LLVM_FLAGS "${LLVM_FLAGS} -fdiagnostics-absolute-paths -fcolor-diagnostics")
+set(FLAGS "-march=${ARCH} -stdlib=libc++ -ffast-math -fmerge-all-constants")
+set(FLAGS "${FLAGS} -fdiagnostics-absolute-paths -fcolor-diagnostics")
 
-set(CMAKE_C_FLAGS ${LLVM_FLAGS} CACHE STRING "")
+set(CMAKE_C_FLAGS ${FLAGS} CACHE STRING "")
 set(CMAKE_C_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG -flto=full" CACHE STRING "")
 set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG" CACHE STRING "")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG" CACHE STRING "")
 
-set(LLVM_FLAGS "${LLVM_FLAGS} -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables")
-set(LLVM_FLAGS "${LLVM_FLAGS} -fno-rtti")
+set(FLAGS "${FLAGS} -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables")
+set(FLAGS "${FLAGS} -fno-rtti")
 
-set(CMAKE_CXX_FLAGS ${LLVM_FLAGS} CACHE STRING "")
+set(CMAKE_CXX_FLAGS ${FLAGS} CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -flto=full -fwhole-program-vtables" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG" CACHE STRING "")
 
-unset(LLVM_FLAGS)
+unset(FLAGS)
 
 # Linker Flags
 foreach(LINKER SHARED MODULE EXE)
-  set(CMAKE_${LINKER}_LINKER_FLAGS "-pthread -Wl,--as-needed" CACHE STRING "")
-  set(CMAKE_${LINKER}_LINKER_FLAGS_RELEASE "-s -static-libstdc++" CACHE STRING "")
-  set(CMAKE_${LINKER}_LINKER_FLAGS_MINSIZEREL "-s" CACHE STRING "")
+  set(CMAKE_${LINKER}_LINKER_FLAGS "-fuse-ld=lld -pthread -Wl,--as-needed" CACHE STRING "")
+  set(CMAKE_${LINKER}_LINKER_FLAGS_DEBUG "-lc++abi" CACHE STRING "")
+  set(CMAKE_${LINKER}_LINKER_FLAGS_RELEASE "-s -static-libstdc++ ${LLVM}/lib/libc++abi.a" CACHE STRING "")
+  set(CMAKE_${LINKER}_LINKER_FLAGS_MINSIZEREL "-s -lc++abi" CACHE STRING "")
+  set(CMAKE_${LINKER}_LINKER_FLAGS_RELWITHDEBINFO "-lc++abi" CACHE STRING "")
 endforeach()
 
 # Directories
-set(CMAKE_PREFIX_PATH ${LLVM} CACHE STRING "")
 set(CMAKE_FIND_ROOT_PATH ${LLVM} CACHE PATH "")
 set(CMAKE_SYSTEM_LIBRARY_PATH ${LLVM}/lib CACHE PATH "")
 set(CMAKE_SYSTEM_INCLUDE_PATH ${LLVM}/include CACHE PATH "")
-include_directories(SYSTEM ${LLVM}/include)
 
 unset(LLVM)
 unset(ARCH)

@@ -1,5 +1,0 @@
-macro(target_update_prefix target visibility binary source remap)
-  file(RELATIVE_PATH target_update_prefix_source ${binary} ${source})
-  target_compile_options(${target} ${visibility} -ffile-prefix-map=${target_update_prefix_source}=${remap})
-  unset(target_update_prefix_source)
-endmacro()

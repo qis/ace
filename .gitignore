@@ -2,10 +2,12 @@
 .*
 !/cmake/
 !/res/
+!/.gitattributes
 !/.gitignore
 !/docker.md
 !/format.cmake
 !/llvm.cmake
+!/make.cmd
 !/makefile
 !/msvc.cmake
 !/readme.md

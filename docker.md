@@ -25,10 +25,8 @@ apt update && apt upgrade -y
 
 # Install dependencies.
 apt install -y --no-install-recommends \
-  ca-certificates git make patch python tzdata wget xz-utils \
-  python{,-simplejson,-six} msitools libgcab-1.0-0 \
-  build-essential ninja-build patchelf python3{,-distutils} \
-  libedit-dev libpfm4-dev liblzma-dev libxml2-dev zlib1g-dev
+  ca-certificates git make p7zip-full tzdata wget xz-utils \
+  patchelf python{,-simplejson,-six} msitools libgcab-1.0-0
 
 # Install CMake.
 rm -rf /opt/cmake; mkdir -p /opt/cmake
@@ -49,10 +47,7 @@ git clone https://github.com/qis/ace /opt/ace
 cd /opt/ace
 
 # Build toolchain.
-make download stage llvm msvc libs
-
-# Create package.
-tar cJf ace.tar.xz bin include lib msvc
+make download llvm msvc package clean
 
 # Log out.
 exit
@@ -61,7 +56,7 @@ exit
 exit
 
 # Copy package.
-docker cp ace:/opt/ace/ace.tar.xz ace.tar.xz
+docker cp ace:/opt/ace ace
 
 # Remove container.
 docker rm ace
@@ -77,7 +72,7 @@ Test toolchain.
 docker create -it -h ace --name ace ubuntu:20.04
 
 # Copy package.
-docker cp . ace:/ace
+docker cp ace ace:/ace
 
 # Start container.
 docker start ace
@@ -94,11 +89,10 @@ apt update && apt upgrade -y
 
 # Install dependencies.
 apt install -y --no-install-recommends \
-  ca-certificates git make tzdata wget xz-utils \
-  libc6-dev libpfm4 libedit2 liblzma5 libxml2 zlib1g ninja-build wine wine64
+  ca-certificates git make p7zip-full tzdata wget xz-utils \
+  libstdc++6 libstdc++-10-dev ninja-build wine64
 
 update-alternatives --install /usr/bin/wine wine /usr/bin/wine64-stable 100
-update-alternatives --install /usr/bin/winedbg winedbg /usr/bin/winedbg-stable 100
 
 # Install CMake.
 rm -rf /opt/cmake; mkdir -p /opt/cmake
@@ -106,9 +100,10 @@ wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-Lin
 tar xf cmake-3.20.0-Linux-x86_64.tar.gz -C /opt/cmake --strip-components=1
 echo 'export PATH="/opt/cmake/bin:${PATH}"' > /etc/profile.d/cmake.sh
 chmod 0755 /etc/profile.d/cmake.sh
+. /etc/profile.d/cmake.sh
 
-# Extract package.
-tar xf /ace/ace.tar.xz -C /ace
+# Install Ace.
+cd /ace && make install
 echo 'export ACE="/ace"' > /etc/profile.d/ace.sh
 chmod 0755 /etc/profile.d/ace.sh
 
@@ -119,7 +114,7 @@ su - user
 git clone https://github.com/qis/ace-test ace-test
 
 # Run tests.
-cd ace-test && make check ace msvc
+cd ace-test && make check llvm msvc
 
 # Log out.
 exit
@@ -158,13 +153,11 @@ sudo apt update && sudo apt upgrade -y
 
 # Install dependencies.
 sudo apt install -y --no-install-recommends \
-  ca-certificates git make tzdata wget xz-utils \
-  libc6-dev libpfm4 libedit2 liblzma5 libxml2 zlib1g ninja-build wine64
+  ca-certificates git make p7zip-full tzdata wget xz-utils \
+  libstdc++6 libstdc++-10-dev ninja-build wine64
 
 sudo update-alternatives --remove-all wine
-sudo update-alternatives --remove-all winedbg
 sudo update-alternatives --install /usr/bin/wine wine /usr/bin/wine64-stable 100
-sudo update-alternatives --install /usr/bin/winedbg winedbg /usr/bin/winedbg-stable 100
 
 # Install CMake.
 sudo rm -rf /opt/cmake; sudo mkdir -p /opt/cmake
@@ -175,27 +168,9 @@ sudo chmod 0755 /etc/profile.d/cmake.sh
 . /etc/profile.d/cmake.sh
 
 # Install toolchain.
-sudo rm -rf /opt/ace; sudo mkdir -p /opt/ace
-sudo chown $(id -u):$(id -g) /opt/ace
-git clone . /opt/ace
-tar xf ace.tar.xz -C /opt/ace
+sudo rm -rf /opt/ace; sudo mv ace /opt/ace
+cd /opt/ace && make install
 echo 'export ACE="/opt/ace"' | sudo tee /etc/profile.d/ace.sh >/dev/null
 sudo chmod 0755 /etc/profile.d/ace.sh
 . /etc/profile.d/ace.sh
 ```
-
-<details>
-<summary><b>Benchmark</b></summary>
-
-Build and install third party libraries to an external location with a different toolchain.
-
-```sh
-make download/libs
-cmake -E copy_directory cmake /opt/llvm/cmake
-make LLVM=/opt/llvm LLVM_TOOLCHAIN=/opt/llvm/toolchain.cmake fmt/llvm lz4/llvm benchmark/llvm doctest/llvm
-make clean
-```
-
-The corresponding <https://github.com/qis/ace-test> make target is `llvm`.
-
-</details>

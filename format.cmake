@@ -1,4 +1,4 @@
-find_program(clang_format NAMES clang-format PATHS ${CMAKE_CURRENT_LIST_DIR}/bin)
+find_program(clang_format clang-format PATHS ${CMAKE_CURRENT_LIST_DIR}/llvm/bin REQUIRED NO_DEFAULT_PATH)
 if(NOT clang_format)
   message(FATAL_ERROR "error: could not find program: clang-format")
 endif()

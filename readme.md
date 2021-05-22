@@ -12,17 +12,21 @@ Configure [VS Code][code] to use the toolchain.
 
 Install required [VS Code][code] extensinos.
 
-```
+```sh
+# Linux & Windows
 xaver.clang-format
 llvm-vs-code-extensions.vscode-clangd
 twxs.cmake
 ms-vscode.cmake-tools
+
+# Linux
 vadimcn.vscode-lldb
 ```
 
 Install optional [VS Code][code] extensions.
 
-```
+```sh
+# Linux & Windows
 eamodio.gitlens
 marvhen.reflow-markdown
 alefragnani.rtf
@@ -137,9 +141,9 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   // ==========================================================================
   // Linux
   // ==========================================================================
-  //"lldb.library": "/opt/ace/lib/liblldb.so",
-  //"clangd.path": "/opt/ace/bin/clangd",
-  //"clang-format.executable": "/opt/ace/bin/clang-format",
+  //"lldb.library": "/opt/ace/llvm/lib/liblldb.so",
+  //"clangd.path": "/opt/ace/llvm/bin/clangd",
+  //"clang-format.executable": "/opt/ace/llvm/bin/clang-format",
   //"cmake.cmakePath": "/opt/cmake/bin/cmake",
   //"cmake.debugConfig": {
   //  "name": "LLDB",
@@ -153,9 +157,8 @@ Configure [VS Code][code] settings with `CTRL+P` and `Preferences: Open Settings
   // ==========================================================================
   // Windows
   // ==========================================================================
-  //"lldb.library": "C:/Ace/bin/liblldb.dll",
-  //"clangd.path": "C:/Ace/bin/clangd.exe",
-  //"clang-format.executable": "C:\\Ace\\bin\\clang-format.exe",
+  //"clangd.path": "C:/Ace/llvm/bin/clangd.exe",
+  //"clang-format.executable": "C:\\Ace\\llvm\\bin\\clang-format.exe",
   //"cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
   //"cmake.debugConfig": {
   //  "name": "MSVC",
@@ -330,7 +333,7 @@ libc6 (>= 2.31)
 See [ABI Laboratory][abi] for up to date info.
 
 ```sh
-ldd /opt/ace/lib/libc++.so.2.0 | grep libc.so
+ldd /opt/ace/llvm/lib/libc++.so.2.0 | grep libc.so
 apt-file search /lib/x86_64-linux-gnu/libc.so.6
 apt info libc6
 ```
