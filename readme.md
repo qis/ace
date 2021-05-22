@@ -1,8 +1,8 @@
 # ACE
 LLVM toolchain for Linux and Windows development on Ubuntu 20.04.
 
-## Build
-See [docker.md](docker.md) for build instructions.
+## Install
+See [docker.md](docker.md) for installation instructions.
 
 ## Usage
 Configure [VS Code][code] to use the toolchain.
