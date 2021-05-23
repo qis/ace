@@ -36,7 +36,7 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "")
 set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "")
 
 # Compiler Flags
-set(FLAGS "-march=${ARCH} -stdlib=libc++ -ffast-math -fmerge-all-constants")
+set(FLAGS "-march=${ARCH} -ffast-math -fmerge-all-constants")
 set(FLAGS "${FLAGS} -fdiagnostics-absolute-paths -fcolor-diagnostics")
 
 set(CMAKE_C_FLAGS ${FLAGS} CACHE STRING "")
@@ -46,7 +46,7 @@ set(CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG" CACHE STRING "")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG" CACHE STRING "")
 
 set(FLAGS "${FLAGS} -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables")
-set(FLAGS "${FLAGS} -fno-rtti")
+set(FLAGS "${FLAGS} -fno-rtti -stdlib=libc++")
 
 set(CMAKE_CXX_FLAGS ${FLAGS} CACHE STRING "")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g" CACHE STRING "")
