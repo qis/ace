@@ -224,6 +224,7 @@ install/linux: ace-linux.7z ace-common.7z
 	@cmake -E create_symlink libc++.so.1 llvm/lib/libc++.so
 	@cmake -E create_symlink libc++abi.so.1 llvm/lib/libc++abi.so
 	@cmake -E create_symlink libunwind.so.1 llvm/lib/libunwind.so
+	@cmake -E create_symlink liblldb.so.12 llvm/lib/liblldb.so
 	@find llvm msvc -type d -exec chmod 0755 '{}' ';'
 	@find llvm msvc -type f -exec chmod 0644 '{}' ';'
 	@chmod 0755 llvm/bin/clang
