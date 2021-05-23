@@ -69,6 +69,7 @@ endforeach()
 set(CMAKE_FIND_ROOT_PATH ${LLVM} CACHE PATH "")
 set(CMAKE_SYSTEM_LIBRARY_PATH ${LLVM}/lib CACHE PATH "")
 set(CMAKE_SYSTEM_INCLUDE_PATH ${LLVM}/include CACHE PATH "")
+include_directories(${CMAKE_CURRENT_LIST_DIR}/port)
 
 unset(LLVM)
 unset(ARCH)

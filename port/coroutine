@@ -1,0 +1,30 @@
+// -*- C++ -*-
+//===----------------------------- coroutine -----------------------------===//
+//
+// Part of the ACE Project, under the Boost License v1.0.
+// See https://www.boost.org/users/license.html for license information.
+// SPDX-License-Identifier: BSL-1.0
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _LIBCPP_COROUTINE
+#define _LIBCPP_COROUTINE
+
+#include <experimental/coroutine>
+
+#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#pragma GCC system_header
+#endif
+
+namespace std {
+inline namespace ace {
+
+using ::std::experimental::coroutine_handle;
+using ::std::experimental::coroutine_traits;
+using ::std::experimental::suspend_always;
+using ::std::experimental::suspend_never;
+
+}  // inline namespace ace
+}  // namespace std
+
+#endif  // _LIBCPP_COROUTINE
