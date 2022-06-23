@@ -445,6 +445,35 @@ make clean all config=MinSizeRel
 Use the [sys.cmake](sys.cmake), [web.cmake](web.cmake) and [win.cmake](win.cmake)
 toolchain files. See [src/test/cpp/makefile](src/test/cpp/makefile) for examples.
 
+## Vcpkg
+Use [Vcpkg][vcp] to install third party libraries.
+
+<details>
+<summary>Linux</summary>
+
+```sh
+# Enter project directory.
+cd /opt/llvm
+
+# Check out vcpkg.
+git clone --depth 1 https://github.com/microsoft/vcpkg
+```
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+```cmd
+rem Enter project directory.
+cd C:\LLVM
+
+rem Check out vcpkg.
+git clone --depth 1 https://github.com/microsoft/vcpkg
+```
+
+</details>
+
 ## Runtime Dependencies
 Linux runtime dependencies for binaries compiled with this toolchain in **Release** mode.
 
@@ -468,4 +497,5 @@ Windows runtime dependencies for binaries compiled with this toolchain in **Rele
 [con]: https://conan.io/downloads.html
 [py3]: https://www.python.org/downloads/windows/
 [vsc]: https://visualstudio.microsoft.com/downloads/
+[vcp]: https://github.com/microsoft/vcpkg
 [vcr]: https://aka.ms/vs/17/release/vc_redist.x64.exe
