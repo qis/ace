@@ -1,0 +1,16 @@
+/src/test/*/build/
+/src/*
+/*
+.*
+!/cmake/
+!/share/
+!/src/
+!/src/test/
+!/src/win.cmake
+!/.gitattributes
+!/.gitignore
+!/makefile
+!/readme.md
+!/sys.cmake
+!/web.cmake
+!/win.cmake
