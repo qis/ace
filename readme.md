@@ -174,7 +174,7 @@ apt update && apt upgrade -y && apt autoremove -y --purge
 
 # Install required packages.
 apt install -y --no-install-recommends ca-certificates curl git openssh-client tzdata wget \
-  automake build-essential ninja-build patchelf pax-utils python3{,-distutils,-lib2to3} xattr \
+  automake build-essential ninja-build patchelf pax-utils python3{,-distutils,-lib2to3} \
   libc6-dev-i386 lib{ncurses,readline,edit,icu,lzma,xml2}-dev zlib1g-dev
 
 # Install optional packages (for convenience).
