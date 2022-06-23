@@ -355,6 +355,25 @@ tar xf /path/to/sys-tools.tar.gz
 echo 'export PATH="/opt/llvm/bin:${PATH}"' | sudo tee /etc/profile.d/llvm.sh >/dev/null
 ```
 
+When cross-compilation for Windows is desired, the `/opt/llvm/win` directory must reside
+on a case-insensitive filesystem (or be a symlink to a Windows directory in WSL).
+
+```sh
+# Check if the kernel supports case-insensitive filesystems.
+cat /sys/fs/ext4/features/casefold
+cat /sys/fs/unicode/version
+
+# Create case-insensitive filesystem on a spare drive.
+# mkfs -t ext4 -O casefold /dev/<device>
+
+# Verify case-insensitive filesystem.
+# dumpe2fs -h /dev/<device> | grep 'Filesystem features'
+
+# Mount case-insensitive filesystem.
+# mkdir -p /opt/llvm/win
+# mount /dev/<device> /opt/llvm/win
+```
+
 </details>
 
 Extract sysroot archives.
