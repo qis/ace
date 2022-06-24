@@ -12,6 +12,7 @@ endif
 
 config ?= Debug
 params ?= 128
+shared ?= 0
 
 all: build/$(config)
 
@@ -49,9 +50,10 @@ test: build/Coverage
 configure: build/build.ninja
 
 build/build.ninja: CMakeLists.txt
-	@cmake --no-warn-unused-cli -G "Ninja Multi-Config" \
+	@cmake --no-warn-unused-cli --log-level=VERBOSE -G "Ninja Multi-Config" \
 	  -DCMAKE_CONFIGURATION_TYPES="Debug;Release;MinSizeRel;RelWithDebInfo;Coverage" \
 	  -DCMAKE_TOOLCHAIN_FILE="$(llvm)/$(root).cmake" \
+	  -DBUILD_SHARED_LIBS="$(shared)" \
 	  -B build
 
 clean:

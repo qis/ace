@@ -1,3 +1,4 @@
+#include "print.hpp"
 #include <oneapi/tbb.h>
 #include <algorithm>
 #include <charconv>
@@ -14,12 +15,6 @@ auto test(std::size_t size) {
     }
   });
   return std::chrono::steady_clock::now() - tp0;
-}
-
-template <class Duration>
-void print(Duration duration, std::string_view comment) {
-  const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
-  std::cout << ms.count() << " ms [" << comment << "]" << std::endl;
 }
 
 int main(int argc, char* argv[]) {

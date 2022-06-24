@@ -10,7 +10,7 @@ if(WIN32)
   target_compile_definitions(main PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
 
-target_include_directories(main PUBLIC
+target_include_directories(main PRIVATE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>)
 

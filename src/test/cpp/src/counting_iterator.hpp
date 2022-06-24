@@ -2,6 +2,7 @@
 // parallel algorithms. It's probably not necessary to have random access or overflow
 // checking. More testing needed, but useful as a snippet.
 
+#pragma once
 #include <compare>
 #include <concepts>
 #include <exception>
