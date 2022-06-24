@@ -66,7 +66,7 @@ find_program(CMAKE_ASM_COMPILER clang-cl PATHS ${LLVM_ROOT}/bin REQUIRED)
 set(CMAKE_ASM_COMPILER_TARGET x86_64-pc-windows-msvc CACHE STRING "")
 
 # Compiler Flags
-if(NOT BUILD_SHARED_LIBS)
+if(NOT BUILD_SHARED_LIBS AND (NOT "${VCPKG_CRT_LINKAGE}" STREQUAL "dynamic"))
   set(LLVM_CRT_FLAGS "/MT")
 else()
   set(LLVM_CRT_FLAGS "/MD")

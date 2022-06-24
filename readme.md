@@ -216,6 +216,7 @@ sudo chown `id -u`:`id -g` /opt/llvm
 
 # Link to project on a Windows host.
 mkdir /opt/llvm/src
+ln -s /mnt/c/LLVM/src/cmake /opt/llvm/src/
 ln -s /mnt/c/LLVM/src/test  /opt/llvm/src/
 ln -s /mnt/c/LLVM/sys.cmake /opt/llvm/
 ln -s /mnt/c/LLVM/web.cmake /opt/llvm/
@@ -322,6 +323,7 @@ Register toolchain.
 
 * Add `C:\LLVM\win\bin` to the `PATH` environment variable.
 * Add `C:\LLVM` to the `PATH` environment variable (optional, for [make.cmd](make.cmd)).
+* Set the `VSCMD_SKIP_SENDTELEMETRY` environment variable to `1`.
 
 </details>
 
@@ -331,7 +333,7 @@ Register toolchain.
 ```sh
 # Install dependencies.
 sudo apt install -y --no-install-recommends ca-certificates curl git tzdata wget \
-  automake binutils elfutils make ninja-build patchelf pax-utils
+  automake binutils elfutils make ninja-build patchelf pax-utils pkg-config zip unzip
 
 # Install CMake.
 sudo rm -rf /opt/cmake; sudo mkdir -p /opt/cmake
@@ -457,6 +459,38 @@ cd /opt/llvm
 
 # Check out vcpkg.
 git clone --depth 1 https://github.com/microsoft/vcpkg
+git clone --depth 1 https://github.com/microsoft/vcpkg-tool src/vcpkg
+
+# Configure vcpkg.
+cmake -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_TOOLCHAIN_FILE="/opt/llvm/sys.cmake" \
+  -DCMAKE_INSTALL_PREFIX="/opt/llvm/vcpkg" \
+  -DCMAKE_INSTALL_BINDIR="/opt/llvm/vcpkg" \
+  -DVCPKG_DEVELOPMENT_WARNINGS=OFF \
+  -DVCPKG_WARNINGS_AS_ERRORS=OFF \
+  -DVCPKG_BUILD_FUZZING=OFF \
+  -DVCPKG_BUILD_TLS12_DOWNLOADER=OFF \
+  -DBUILD_TESTING=OFF \
+  -B build/vcpkg src/vcpkg
+
+# Build and test vcpkg.
+ninja -C build/vcpkg install/strip
+touch vcpkg/vcpkg.disable_metrics
+vcpkg/vcpkg --version
+
+# Install zlib.
+vcpkg/vcpkg install zlib:sys-shared zlib:sys-static \
+  --overlay-triplets=/opt/llvm/cmake/Triplets \
+  --overlay-ports=/opt/llvm/cmake/Ports \
+  --host-triplet=sys-shared
+
+# Export installed libraries.
+vcpkg/vcpkg export --x-all-installed \
+  --raw --output=/opt/llvm/sys/vcpkg
+
+# Install custom CMake configs.
+ln -sf ../src/cmake/ZLIB cmake/
 ```
 
 </details>
@@ -470,6 +504,38 @@ cd C:\LLVM
 
 rem Check out vcpkg.
 git clone --depth 1 https://github.com/microsoft/vcpkg
+git clone --depth 1 https://github.com/microsoft/vcpkg-tool src/vcpkg
+
+rem Configure vcpkg.
+cmake -G Ninja ^
+  -DCMAKE_BUILD_TYPE=Release ^
+  -DCMAKE_TOOLCHAIN_FILE="C:/LLVM/win.cmake" ^
+  -DCMAKE_INSTALL_PREFIX="C:/LLVM/vcpkg" ^
+  -DCMAKE_INSTALL_BINDIR="C:/LLVM/vcpkg" ^
+  -DVCPKG_DEVELOPMENT_WARNINGS=OFF ^
+  -DVCPKG_WARNINGS_AS_ERRORS=OFF ^
+  -DVCPKG_BUILD_FUZZING=OFF ^
+  -DVCPKG_BUILD_TLS12_DOWNLOADER=OFF ^
+  -DBUILD_TESTING=OFF ^
+  -B build/vcpkg src/vcpkg
+
+rem Build and test vcpkg.
+ninja -C build/vcpkg install
+cmake -E touch vcpkg/vcpkg.disable_metrics
+vcpkg\vcpkg.exe --version
+
+rem Install zlib.
+vcpkg\vcpkg.exe install zlib:win-shared zlib:win-static ^
+  --overlay-triplets=C:/LLVM/cmake/Triplets ^
+  --overlay-ports=C:/LLVM/cmake/Ports ^
+  --host-triplet=win-shared
+
+rem Export installed libraries.
+vcpkg\vcpkg.exe export --x-all-installed ^
+  --raw --output=C:/LLVM/win/vcpkg
+
+rem Install custom CMake configs.
+mklink /D cmake\ZLIB ..\src\cmake\ZLIB
 ```
 
 </details>
