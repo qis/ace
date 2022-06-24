@@ -1,9 +1,12 @@
 MAKEFLAGS += --no-print-directory
 
 all:
-	@echo "usage: sys-tools sys"
-	@echo "usage: win-tools win"
-	@echo "usage: web"
+	@cmake -E echo "usage:"
+	@cmake -E echo ""
+	@cmake -E echo "  make sys-tools sys  - create Linux tools and sysroot archives"
+	@cmake -E echo "  make win-tools win  - create Windows tools and sysroot archives"
+	@cmake -E echo "  make web            - create WebAssembly sysroot archive"
+	@cmake -E echo ""
 
 # ___________  _   _  _____________________________________________________________________________
 #   ___  _ __ | |_(_) ___  _ __  ___
@@ -238,6 +241,7 @@ bin/clang: build/tools/build.ninja
 	  install-llvm-nm-stripped \
 	  install-llvm-mt-stripped \
 	  install-llvm-rc-stripped \
+	  install-llvm-lib-stripped \
 	  install-llvm-objcopy-stripped \
 	  install-llvm-objdump-stripped \
 	  install-llvm-ranlib-stripped \
@@ -273,6 +277,10 @@ bin/wasm-opt: src/binaryen
 bin/wasm-reduce: src/binaryen
 	@cp $</$@ $@
 
+# Runtime dependencies for sys-tools executables.
+#
+# WARNING: Do not include libraries provided by the libc6 package in this list!
+#
 lib/libxml2.so.2:
 	@cp $(shell readlink -f /lib/x86_64-linux-gnu/libgcc_s.so.1) lib/libgcc_s.so.1
 	@cp $(shell readlink -f /lib/x86_64-linux-gnu/liblzma.so.5) lib/liblzma.so.5
@@ -956,10 +964,16 @@ ifeq ($(OS),Windows_NT)
 # =================================================================================================
 
 win-tools: stage tools
-	@echo "Creating $@.tar.gz ..." 1>&2
+	@cmake -E echo "Creating $@.tar.gz ..." 1>&2
 	@tar czf $@.tar.gz bin lib
 
 .PHONY: win-tools
+
+win-build: stage tools
+	@cmake -E echo "Creating $@.tar.gz ..." 1>&2
+	@tar czf $@.tar.gz build/stage build/tools
+
+.PHONY: win-build
 
 # ___  _  _________________________________________________________________________________________
 #  ___| |_ __ _  __ _  ___
@@ -995,7 +1009,7 @@ stage: build/stage/bin/clang.exe
 #
 
 build/tools/build.ninja: build/stage/bin/clang.exe
-	@echo "Configuring tools ..." 1>&2
+	@cmake -E echo "Configuring tools ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 cmake -GNinja -Wno-dev \
 	  -DCMAKE_PREFIX_PATH="" \
@@ -1033,13 +1047,14 @@ build/tools/build.ninja: build/stage/bin/clang.exe
 	  -B build/tools src/llvm/llvm
 
 bin/clang.exe: build/tools/build.ninja
-	@echo "Installing tools ..." 1>&2
+	@cmake -E echo "Installing tools ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 bin/ninja.exe -C build/tools \
 	  install-LTO-stripped \
 	  install-lld-stripped \
 	  install-llvm-ar-stripped \
 	  install-llvm-nm-stripped \
+	  install-llvm-lib-stripped \
 	  install-llvm-objcopy-stripped \
 	  install-llvm-objdump-stripped \
 	  install-llvm-ranlib-stripped \
@@ -1099,8 +1114,8 @@ ifeq ($(OS),Windows_NT)
 # =================================================================================================
 
 win:	compiler-rt tbb
-	@echo "Creating $@.tar.gz ..." 1>&2
-	@tar czf $@.tar.gz $@
+	@cmake -E echo "Creating $@.tar.gz ..." 1>&2
+	@tar czf $@.tar.gz win/bin win/crt win/include win/lib win/sdk
 
 .PHONY: win
 
@@ -1116,7 +1131,7 @@ win:	compiler-rt tbb
 #
 
 build/compiler-rt/build.ninja:
-	@echo "Configuring compiler-rt ..." 1>&2
+	@cmake -E echo "Configuring compiler-rt ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 cmake -GNinja -Wno-dev \
 	  -DCMAKE_PREFIX_PATH="" \
@@ -1140,7 +1155,7 @@ build/compiler-rt/build.ninja:
 	  -B build/compiler-rt src/llvm/runtimes
 
 win/crt/lib/clang_rt.profile.lib: build/compiler-rt/build.ninja
-	@echo "Installing compiler-rt ..." 1>&2
+	@cmake -E echo "Installing compiler-rt ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 bin/ninja.exe -C build/compiler-rt \
 	  install-compiler-rt-headers \
@@ -1160,7 +1175,7 @@ compiler-rt: win/crt/lib/clang_rt.profile.lib
 #
 
 build/tbb/shared/build.ninja:
-	@echo "Configuring tbb (shared) ..." 1>&2
+	@cmake -E echo "Configuring tbb (shared) ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 cmake -GNinja -Wno-dev \
 	  -DCMAKE_BUILD_TYPE=Release \
@@ -1175,7 +1190,7 @@ build/tbb/shared/build.ninja:
 	  -B build/tbb/shared src/tbb
 
 win/lib/shared/tbb.lib: build/tbb/shared/build.ninja
-	@echo "Installing tbb (shared) ..." 1>&2
+	@cmake -E echo "Installing tbb (shared) ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 ninja -C build/tbb/shared install
 	@cmake -E remove -f win/bin/tbbmalloc_proxy.dll
@@ -1185,7 +1200,7 @@ win/lib/shared/tbb.lib: build/tbb/shared/build.ninja
 	@cmake -E remove_directory win/lib/shared/pkgconfig
 
 build/tbb/static/build.ninja:
-	@echo "Configuring tbb (static) ..." 1>&2
+	@cmake -E echo "Configuring tbb (static) ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 cmake -GNinja -Wno-dev \
 	  -DCMAKE_BUILD_TYPE=Release \
@@ -1200,7 +1215,7 @@ build/tbb/static/build.ninja:
 	  -B build/tbb/static src/tbb
 
 win/lib/static/tbb.lib: build/tbb/static/build.ninja
-	@echo "Installing tbb (static) ..." 1>&2
+	@cmake -E echo "Installing tbb (static) ..." 1>&2
 	@cmake -E env PATH="$(CURDIR)/bin;$(CURDIR)/build/stage/bin;$(PATH)" \
 	 ninja -C build/tbb/static install
 	@cmake -E remove -f win/lib/tbb.lib

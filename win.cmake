@@ -117,6 +117,7 @@ foreach(LANG C CXX RC)
 endforeach()
 
 # Linker
+find_program(CMAKE_AR llvm-lib PATHS ${LLVM_ROOT}/bin REQUIRED)
 find_program(CMAKE_LINKER lld-link PATHS ${LLVM_ROOT}/bin REQUIRED)
 
 # Linker Flags

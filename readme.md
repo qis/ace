@@ -94,6 +94,8 @@ Using a **Debian 11 (Bullseye)** sysroot should result in binary compatibility w
 - Red Hat Enterprise Linux 9
 - Альт Сервер 10
 
+Using another sysroot distribution will require careful adjustments to the [makefile](makefile).
+
 See [ABI Laboratory][abi] and the [Longterm Release Kernels][lts] list for more information.
 
 ## Build: Linux
@@ -283,11 +285,12 @@ rem Download make.exe from chocolatey and create Windows sysroot.
 cmake -P src/win.cmake
 
 rem Create Windows tools and sysroot archives.
-bin\make.exe win-tools win
+make win-tools win
 ```
 
 <!--
 ```cmd
+make win-build
 copy "\\wsl$\Debian\opt\llvm\sys-build.tar.gz" sys-build.tar.gz
 ```
 -->
@@ -312,13 +315,13 @@ rem Enter created directory.
 cd C:\LLVM
 
 rem Extract tools archive.
-tar xf /path/to/win-tools.tar.gz
+tar xf win-tools.tar.gz
 ```
 
 Register toolchain.
 
 * Add `C:\LLVM\win\bin` to the `PATH` environment variable.
-* Add `C:\LLVM\bin` to the `PATH` environment variable (optional).
+* Add `C:\LLVM` to the `PATH` environment variable (optional, for [make.cmd](make.cmd)).
 
 </details>
 
@@ -349,10 +352,7 @@ git clone https://github.com/qis/llvm /opt/llvm
 cd /opt/llvm
 
 # Extract tools archive.
-tar xf /path/to/sys-tools.tar.gz
-
-# Add /opt/llvm/bin to the PATH environment variable (optional).
-echo 'export PATH="/opt/llvm/bin:${PATH}"' | sudo tee /etc/profile.d/llvm.sh >/dev/null
+tar xf sys-tools.tar.gz
 ```
 
 When cross-compilation for Windows is desired, the `/opt/llvm/win` directory must reside
@@ -379,9 +379,9 @@ cat /sys/fs/unicode/version
 Extract sysroot archives.
 
 ```
-tar xf path/to/sys.tar.gz
-tar xf path/to/web.tar.gz
-tar xf path/to/win.tar.gz
+tar xf sys.tar.gz
+tar xf web.tar.gz
+tar xf win.tar.gz
 ```
 
 Compile test projects.
@@ -391,25 +391,25 @@ Compile test projects.
 
 ```cmd
 rem Enter one of the test project directories.
-cd C:\LLVM\src\test\tbb
+cd C:\LLVM\src\test\lib
 
 rem Configure project.
-C:\LLVM\bin\make.exe clean configure
+make clean configure shared=1
 
 rem Build with coverage support, execute and display the results.
-C:\LLVM\bin\make.exe test
+make test
 
 rem Configure project for Linux cross-compilation.
-C:\LLVM\bin\make.exe clean configure root=sys
+make clean configure shared=0 root=sys
 
 rem Build release.
-C:\LLVM\bin\make.exe config=Release
+make config=Release
 
 rem Enter WebAssembly test project directory.
 cd C:\LLVM\src\test\web
 
 rem Configure and build project.
-C:\LLVM\bin\make.exe clean all config=MinSizeRel
+make clean all config=MinSizeRel
 ```
 
 </details>
@@ -419,16 +419,16 @@ C:\LLVM\bin\make.exe clean all config=MinSizeRel
 
 ```sh
 # Enter one of the test project directories.
-cd /opt/llvm/src/test/tbb
+cd /opt/llvm/src/test/lib
 
 # Configure project.
-make clean configure
+make clean configure shared=1
 
 # Build with coverage support, execute and display the results.
 make test
 
 # Configure project for Windows cross-compilation.
-make clean configure root=win
+make clean configure shared=0 root=win
 
 # Build release.
 make config=Release
