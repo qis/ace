@@ -30,7 +30,7 @@ foreach(c tbb tbbmalloc)
   llvm_import_library(TBB ${c} CXX ${c} ${c} ${TBB_FIND_REQUIRED})
 
   if(TARGET TBB::${c})
-    set_target_properties(TBB::${c}_shared TBB::${c}_static PROPERTIES
+    set_target_properties(${TBB_${c}_TARGETS} PROPERTIES
       INTERFACE_COMPILE_DEFINITIONS "${TBB_DEFINITIONS}"
       INTERFACE_LINK_LIBRARIES "Threads::Threads")
 
