@@ -9,6 +9,7 @@
 !/src/win.cmake
 !/.gitattributes
 !/.gitignore
+!/make.cmd
 !/makefile
 !/readme.md
 !/sys.cmake
