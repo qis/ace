@@ -1,18 +1,11 @@
 get_filename_component(LLVM_ROOT ${CMAKE_CURRENT_LIST_DIR}/.. ABSOLUTE)
-
-if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-  set(CLANG_FORMAT_PROGRAM_PATH ${LLVM_ROOT}/win/bin)
-else()
-  set(CLANG_FORMAT_PROGRAM_PATH ${LLVM_ROOT}/bin)
-endif()
-
-find_program(clang_format clang-format PATHS ${CLANG_FORMAT_PROGRAM_PATH} REQUIRED NO_DEFAULT_PATH)
+find_program(clang_format clang-format PATHS ${LLVM_ROOT}/bin REQUIRED NO_DEFAULT_PATH)
 if(NOT clang_format)
   message(FATAL_ERROR "error: could not find program: clang-format")
 endif()
 
 if(CMAKE_ARGC LESS 4)
-  message(FATAL_ERROR "usage: cmake -P ${LLVM_ROOT}/cmake/format.cmake include src")
+  message(FATAL_ERROR "usage: cmake -P ${CMAKE_CURRENT_LIST_FILE} include src")
 endif()
 
 set(sources)
