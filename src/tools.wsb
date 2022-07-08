@@ -1,0 +1,12 @@
+<Configuration>
+<VGpu>Enable</VGpu>
+<Networking>Default</Networking>
+<MappedFolders>
+  <MappedFolder> 
+    <HostFolder>C:\Ace</HostFolder> 
+    <SandboxFolder>C:\Host</SandboxFolder>
+    <ReadOnly>false</ReadOnly> 
+  </MappedFolder>
+</MappedFolders>
+<MemoryInMB>24576</MemoryInMB>
+</Configuration>

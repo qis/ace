@@ -1,0 +1,48 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 17ee3fc..7e2032b 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -16,7 +16,6 @@ string(REGEX
+ message(STATUS "Opus project version: ${PROJECT_VERSION}")
+ 
+ project(Opus LANGUAGES C VERSION ${PROJECT_VERSION})
+-include(opus_buildtype.cmake)
+ 
+ option(OPUS_STACK_PROTECTOR "Use stack protection" ON)
+ option(OPUS_USE_ALLOCA "Use alloca for stack arrays (on non-C99 compilers)" OFF)
+@@ -166,11 +165,7 @@ set(Opus_PUBLIC_HEADER
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/opus_types.h)
+ 
+ set_target_properties(opus
+-                      PROPERTIES SOVERSION
+-                                 ${OPUS_LIBRARY_VERSION_MAJOR}
+-                                 VERSION
+-                                 ${OPUS_LIBRARY_VERSION}
+-                                 PUBLIC_HEADER
++                      PROPERTIES PUBLIC_HEADER
+                                  "${Opus_PUBLIC_HEADER}")
+ 
+ target_include_directories(
+@@ -304,10 +299,20 @@ if(COMPILER_SUPPORT_NEON AND OPUS_USE_NEON)
+   endif()
+ endif()
+ 
++if(BUILD_SHARED_LIBS)
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++  set_target_properties(opus PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++else()
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++  set_target_properties(opus PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreaded)
++endif()
++
+ install(TARGETS opus
+         EXPORT OpusTargets
+-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
++        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/opus)
+ 

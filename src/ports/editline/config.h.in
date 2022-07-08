@@ -1,0 +1,100 @@
+// config.h.in
+
+// Define to include ANSI arrow keys support.
+#define CONFIG_ANSI_ARROWS
+
+// Define to enable EOF (Ctrl-D) key.
+#define CONFIG_EOF
+
+// Define to enable SIGINT (Ctrl-C) key.
+#define CONFIG_SIGINT
+
+// Define to enable SIGQUIT (Ctrl-\) key.
+#define CONFIG_SIGQUIT 1
+
+// Define to enable SIGSTOP (Ctrl-Z) key.
+#define CONFIG_SIGSTOP 1
+
+// Define to skip duplicate lines in the scrollback history.
+#define CONFIG_UNIQUE_HISTORY
+
+// Define to 1 if `TIOCGWINSZ' requires <sys/ioctl.h>.
+#define GWINSZ_IN_SYS_IOCTL 1
+
+// Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+#define HAVE_DIRENT_H 1
+
+// Define to 1 if you have the <dlfcn.h> header file.
+#cmakedefine HAVE_DLFCN_H @HAVE_DLFCN_H@
+
+// Define to 1 if you have the `ncurses' library (-lncurses).
+#cmakedefine HAVE_LIBNCURSES @HAVE_LIBNCURSES@
+
+// Define to 1 if you have the <malloc.h> header file.
+#define HAVE_MALLOC_H 1
+
+// Define to 1 if you have the <memory.h> header file.
+#define HAVE_MEMORY_H 1
+
+// Define to 1 if you have the `perror' function.
+#define HAVE_PERROR 1
+
+// Define to 1 if you have the <sgtty.h> header file.
+#cmakedefine HAVE_SGTTY_H @HAVE_SGTTY_H@
+
+// Define to 1 if you have the <signal.h> header file.
+#define HAVE_SIGNAL_H 1
+
+// Define to 1 if you have the <stdint.h> header file.
+#define HAVE_STDINT_H 1
+
+// Define to 1 if you have the <stdlib.h> header file.
+#define HAVE_STDLIB_H 1
+
+// Define to 1 if you have the `strchr' function.
+#define HAVE_STRCHR 1
+
+// Define to 1 if you have the `strdup' function.
+#cmakedefine HAVE_STRDUP @HAVE_STRDUP@
+
+// Define to 1 if you have the <strings.h> header file.
+#cmakedefine HAVE_STRINGS_H @HAVE_STRINGS_H@
+
+// Define to 1 if you have the <string.h> header file.
+#define HAVE_STRING_H 1
+
+// Define to 1 if you have the `strrchr' function.
+#cmakedefine HAVE_STRRCHR @HAVE_STRRCHR@
+
+// Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+#cmakedefine HAVE_SYS_DIR_H @HAVE_SYS_DIR_H@
+
+// Define to 1 if you have the <sys/stat.h> header file.
+#cmakedefine HAVE_SYS_STAT_H @HAVE_SYS_STAT_H@
+
+// Define to 1 if you have the <sys/types.h> header file.
+#cmakedefine HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+
+// Define to 1 if you have the `tcgetattr' function.
+#cmakedefine HAVE_TCGETATTR @HAVE_TCGETATTR@
+
+// Define to 1 if you have the <termcap.h> header file.
+#cmakedefine HAVE_TERMCAP_H @HAVE_TERMCAP_H@
+
+// Define to 1 if you have the <termios.h> header file.
+#cmakedefine HAVE_TERMIOS_H @HAVE_TERMIOS_H@
+
+// Define to 1 if you have the <termio.h> header file.
+#cmakedefine HAVE_TERMIO_H @HAVE_TERMIO_H@
+
+// Define to 1 if you have the <unistd.h> header file.
+#cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
+
+// Define to 1 if `lstat' dereferences a symlink specified with a trailing slash.
+#define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
+
+// Define to 1 if you have the ANSI C header files.
+#define STDC_HEADERS 1
+
+// Default to UNIX backend, should be detected.
+#define SYS_UNIX 1

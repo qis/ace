@@ -1,0 +1,102 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index bf09316..a7fe88f 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -1,7 +1,7 @@
+ # SPDX-License-Identifier: BSD-3-Clause
+ # Copyright Contributors to the OpenEXR Project.
+ 
+-cmake_minimum_required(VERSION 3.12)
++cmake_minimum_required(VERSION 3.20)
+ 
+ if(POLICY CMP0074)
+   cmake_policy(SET CMP0074 NEW)
+diff --git i/cmake/clang-format.cmake w/cmake/clang-format.cmake
+index eaa5b84..074e341 100644
+--- i/cmake/clang-format.cmake
++++ w/cmake/clang-format.cmake
+@@ -12,6 +12,7 @@
+ # correct any deviations. If clang-format is found on the system, a
+ # "clang-format" build target will trigger a reformatting.
+ #
++return()
+ set (CLANG_FORMAT_ROOT "" CACHE PATH "clang-format executable's directory (will search if not specified")
+ set (CLANG_FORMAT_INCLUDES "*.h" "*.cpp"
+      CACHE STRING "Glob patterns to include for clang-format")
+diff --git i/config/CMakeLists.txt w/config/CMakeLists.txt
+index d51c25b..2445bec 100644
+--- i/config/CMakeLists.txt
++++ w/config/CMakeLists.txt
+@@ -68,14 +68,4 @@ write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
+   COMPATIBILITY SameMajorVersion
+ )
+ 
+-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+-              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+-)
+ 
+-install(EXPORT ${PROJECT_NAME}
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+-  FILE ${PROJECT_NAME}Targets.cmake
+-  NAMESPACE ${PROJECT_NAME}::
+-  EXPORT_LINK_INTERFACE_LIBRARIES
+-)
+diff --git i/config/ImathSetup.cmake w/config/ImathSetup.cmake
+index cbe4c13..84d43a5 100644
+--- i/config/ImathSetup.cmake
++++ w/config/ImathSetup.cmake
+@@ -80,7 +80,6 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+ 
+ # Add the automatically determined parts of the rpath which point to
+ # directories outside the build tree to the install RPATH
+-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ if(APPLE)
+   set(CMAKE_MACOSX_RPATH ON)
+ endif()
+diff --git i/config/LibraryDefine.cmake w/config/LibraryDefine.cmake
+index 4868954..33e625b 100644
+--- i/config/LibraryDefine.cmake
++++ w/config/LibraryDefine.cmake
+@@ -68,27 +68,32 @@ function(IMATH_DEFINE_LIBRARY libname)
+   endif()
+   set_property(TARGET ${objlib} PROPERTY PUBLIC_HEADER ${IMATH_CURLIB_HEADERS})
+ 
+-  if(BUILD_SHARED_LIBS)
+-    set_target_properties(${libname} PROPERTIES
+-      SOVERSION ${IMATH_LIB_SOVERSION}
+-      VERSION ${IMATH_LIB_VERSION}
+-    )
+-  endif()
+   if(IMATH_EXTRA_LIBS)
+     target_link_libraries(${libname} PUBLIC ${IMATH_EXTRA_LIBS})
+   endif()
+ 
++  string(TOLOWER "${libname}" proper_libname)
+   set_target_properties(${libname} PROPERTIES
+-      OUTPUT_NAME "${libname}${IMATH_LIB_SUFFIX}"
++      OUTPUT_NAME "${proper_libname}${IMATH_LIB_SUFFIX}"
+       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+   )
+   add_library(${PROJECT_NAME}::${libname} ALIAS ${libname})
+ 
++  if(BUILD_SHARED_LIBS)
++    set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++    set_target_properties(${libname} PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++  else()
++    set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++    set_target_properties(${libname} PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreaded)
++  endif()
++
+   install(TARGETS ${libname}
+     EXPORT ${PROJECT_NAME}
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+     PUBLIC_HEADER
+       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${IMATH_OUTPUT_SUBDIR}

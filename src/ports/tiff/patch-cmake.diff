@@ -1,0 +1,228 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 770b0fa..e333ef4 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -24,10 +24,7 @@
+ # LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ # OF THIS SOFTWARE.
+ 
+-cmake_minimum_required(VERSION 3.9.0)
+-
+-# Default policy is from 3.9.0
+-cmake_policy(VERSION 3.9.0)
++cmake_minimum_required(VERSION 3.20)
+ 
+ # Find CMake modules in cmake/
+ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+@@ -135,15 +132,6 @@ include(Release)
+ # Process subdirectories
+ add_subdirectory(port)
+ add_subdirectory(libtiff)
+-add_subdirectory(tools)
+-add_subdirectory(test)
+-add_subdirectory(contrib)
+-add_subdirectory(build)
+-add_subdirectory(man)
+-add_subdirectory(html)
+-
+-# pkg-config support
+-include(PkgConfig)
+ 
+ message(STATUS "")
+ message(STATUS "Libtiff is now configured for ${CMAKE_SYSTEM}")
+diff --git i/cmake/CompilerChecks.cmake w/cmake/CompilerChecks.cmake
+index 8ac5564..a967d96 100644
+--- i/cmake/CompilerChecks.cmake
++++ w/cmake/CompilerChecks.cmake
+@@ -23,7 +23,7 @@
+ # LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ # OF THIS SOFTWARE.
+ 
+-
++return()
+ include(CheckCCompilerFlag)
+ 
+ 
+diff --git i/cmake/FindCMath.cmake w/cmake/FindCMath.cmake
+index 2da3b7f..818355b 100644
+--- i/cmake/FindCMath.cmake
++++ w/cmake/FindCMath.cmake
+@@ -32,7 +32,7 @@ include(CheckLibraryExists)
+ 
+ check_symbol_exists(pow "math.h" CMath_HAVE_LIBC_POW)
+ if(NOT CMath_HAVE_LIBC_POW)
+-    find_library(CMath_LIBRARY NAMES m)
++    set(CMath_LIBRARY m)
+ 
+     set(CMAKE_REQUIRED_LIBRARIES_SAVE ${CMAKE_REQUIRED_LIBRARIES})
+     set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES} ${CMath_LIBRARY})
+@@ -62,9 +62,9 @@ if(CMath_FOUND)
+ 
+     if(NOT TARGET CMath::CMath)
+         if(CMath_LIBRARIES)
+-            add_library(CMath::CMath UNKNOWN IMPORTED)
++            add_library(CMath::CMath INTERFACE IMPORTED)
+             set_target_properties(CMath::CMath PROPERTIES
+-                  IMPORTED_LOCATION "${CMath_LIBRARY}")
++                  INTERFACE_LINK_LIBRARIES "${CMath_LIBRARY}")
+         else()
+             add_library(CMath::CMath INTERFACE IMPORTED)
+         endif()
+diff --git i/cmake/ZSTDCodec.cmake w/cmake/ZSTDCodec.cmake
+index d3d2de8..859bc22 100644
+--- i/cmake/ZSTDCodec.cmake
++++ w/cmake/ZSTDCodec.cmake
+@@ -28,7 +28,7 @@
+ set(ZSTD_SUPPORT FALSE)
+ set(ZSTD_USABLE FALSE)
+ 
+-find_package(ZSTD)
++find_package(zstd)
+ 
+ if(ZSTD_FOUND)
+     set(CMAKE_REQUIRED_INCLUDES_SAVE ${CMAKE_REQUIRED_INCLUDES})
+diff --git i/libtiff/CMakeLists.txt w/libtiff/CMakeLists.txt
+index b6b3167..0ca9bff 100644
+--- i/libtiff/CMakeLists.txt
++++ w/libtiff/CMakeLists.txt
+@@ -141,7 +141,7 @@ if(LZMA_SUPPORT)
+   string(APPEND tiff_requires_private " liblzma")
+ endif()
+ if(ZSTD_SUPPORT)
+-  target_link_libraries(tiff PRIVATE ZSTD::ZSTD)
++  target_link_libraries(tiff PRIVATE zstd::zstd)
+   string(APPEND tiff_requires_private " libzstd")
+ endif()
+ if(WEBP_SUPPORT)
+@@ -156,35 +156,36 @@ endif()
+ set(tiff_libs_private_list "${tiff_libs_private_list}" PARENT_SCOPE)
+ set(tiff_requires_private "${tiff_requires_private}" PARENT_SCOPE)
+ 
+-set_target_properties(tiff PROPERTIES SOVERSION ${SO_COMPATVERSION})
+ if(NOT CYGWIN)
+     # This property causes shared libraries on Linux to have the full version
+     # encoded into their final filename.  We disable this on Cygwin because
+     # it causes cygz-${TIFF_FULL_VERSION}.dll to be created when cygz.dll
+     # seems to be the default.
+-    set_target_properties(tiff PROPERTIES VERSION ${SO_VERSION})
+ endif()
+ if(HAVE_LD_VERSION_SCRIPT)
+   set_target_properties(tiff PROPERTIES LINK_FLAGS
+                         "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/libtiff.map")
+ endif()
+ 
++if(BUILD_SHARED_LIBS)
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++  set_target_properties(tiff PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++else()
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++  set_target_properties(tiff PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreaded)
++endif()
++
+ export(TARGETS tiff NAMESPACE TIFF:: FILE "${CMAKE_CURRENT_BINARY_DIR}/libtiffTargets.cmake")
+ install(TARGETS tiff EXPORT TiffTargets
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
++        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX})
+ 
+ install(FILES ${tiff_public_HEADERS}
+         DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+ 
+-set(TIFF_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/tiff)
+-install(EXPORT TiffTargets
+-        FILE TiffTargets.cmake
+-        NAMESPACE TIFF::
+-        DESTINATION ${TIFF_CONFIGDIR}
+-)
+-
+ if(CXX_SUPPORT)
+   set(tiffxx_HEADERS
+           tiffio.hxx)
+@@ -193,24 +194,31 @@ if(CXX_SUPPORT)
+   target_sources(tiffxx PRIVATE
+           ${tiffxx_HEADERS}
+           tif_stream.cxx)
+-  target_link_libraries(tiffxx tiff)
+-  set_target_properties(tiffxx PROPERTIES SOVERSION ${SO_COMPATVERSION})
++  target_link_libraries(tiffxx PRIVATE tiff)
+   if(NOT CYGWIN)
+     # This property causes shared libraries on Linux to have the full version
+     # encoded into their final filename.  We disable this on Cygwin because
+     # it causes cygz-${TIFF_FULL_VERSION}.dll to be created when cygz.dll
+     # seems to be the default.
+-    set_target_properties(tiffxx PROPERTIES VERSION ${SO_VERSION})
+   endif()
+   if(HAVE_LD_VERSION_SCRIPT)
+     set_target_properties(tiffxx PROPERTIES LINK_FLAGS
+                           "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/libtiffxx.map")
+   endif()
+ 
++  if(BUILD_SHARED_LIBS)
++    target_compile_definitions(tiffxx PRIVATE TIFF_EXPORT)
++    set_target_properties(tiffxx PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++  else()
++    set_target_properties(tiffxx PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreaded)
++  endif()
++
+   install(TARGETS tiffxx
+           RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
++          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
++          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX})
+ 
+   install(FILES ${tiffxx_HEADERS}
+           DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+diff --git i/libtiff/tif_stream.cxx w/libtiff/tif_stream.cxx
+index ea22416..5945d10 100644
+--- i/libtiff/tif_stream.cxx
++++ w/libtiff/tif_stream.cxx
+@@ -26,7 +26,7 @@
+  * TIFF Library UNIX-specific Routines.
+  */
+ #include "tiffiop.h"
+-#include <iostream>
++#include "tiffio.hxx"
+ 
+ using namespace std;
+ 
+diff --git i/libtiff/tiffio.hxx w/libtiff/tiffio.hxx
+index df2cbbc..e78a322 100644
+--- i/libtiff/tiffio.hxx
++++ w/libtiff/tiffio.hxx
+@@ -29,12 +29,25 @@
+  * TIFF I/O library definitions which provide C++ streams API.
+  */
+ 
+-#include <iostream>
+-#include "tiff.h"
+ #include "tiffio.h"
++#include <iostream>
++
++#ifndef TIFF_API
++#  ifdef _WIN32
++#    if defined(TIFF_EXPORT)
++#      define TIFF_API __declspec(dllexport)
++#    elif defined(TIFF_IMPORT)
++#      define TIFF_API __declspec(dllimport)
++#    else
++#      define TIFF_API extern
++#    endif
++#  else
++#      define TIFF_API extern
++#  endif
++#endif
+ 
+-extern TIFF* TIFFStreamOpen(const char*, std::ostream *);
+-extern TIFF* TIFFStreamOpen(const char*, std::istream *);
++TIFF_API TIFF* TIFFStreamOpen(const char*, std::ostream *);
++TIFF_API TIFF* TIFFStreamOpen(const char*, std::istream *);
+ 
+ #endif /* _TIFFIO_HXX_ */
+ 

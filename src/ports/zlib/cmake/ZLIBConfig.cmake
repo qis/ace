@@ -1,0 +1,29 @@
+# Zlib
+# https://cmake.org/cmake/help/latest/module/FindZLIB.html
+#
+#   find_package(ZLIB REQUIRED)
+#   target_link_libraries(main PRIVATE ZLIB::ZLIB)
+#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.20)
+set(CMAKE_IMPORT_FILE_VERSION 1)
+
+set(ZLIB_VERSION_STRING ${ZLIB_VERSION})
+set(ZLIB_INCLUDE_DIRS)
+
+set(ZLIB_LIBRARIES ZLIB::ZLIB)
+
+include(AceImportLibrary)
+ace_import_library(ZLIB::ZLIB C NAMES z zlib HEADERS zlib.h
+  COMPILE_DEFINITIONS_SHARED ZLIB_DLL)
+
+set(ZLIB_MAJOR_VERSION ${ZLIB_VERSION_MAJOR})
+set(ZLIB_MINOR_VERSION ${ZLIB_VERSION_MINOR})
+set(ZLIB_PATCH_VERSION ${ZLIB_VERSION_PATCH})
+
+set(ZLIB_INCLUDE_DIR "${ZLIB_INCLUDE_DIRS}" CACHE STRING "")
+set(ZLIB_LIBRARY "${ZLIB_LIBRARIES}" CACHE STRING "")
+set(ZLIB_FOUND 1)
+
+set(CMAKE_IMPORT_FILE_VERSION)
+cmake_policy(POP)

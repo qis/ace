@@ -1,0 +1,158 @@
+diff --git i/ASTCEncoder/CMakeLists.txt w/ASTCEncoder/CMakeLists.txt
+index c7e978f..1816e20 100644
+--- i/ASTCEncoder/CMakeLists.txt
++++ w/ASTCEncoder/CMakeLists.txt
+@@ -81,7 +81,7 @@ ADD_LIBRARY( ASTCEncoder
+ INSTALL(
+   TARGETS ASTCEncoder
+   EXPORT FasTCTargets
+-  ARCHIVE DESTINATION lib COMPONENT lib)
++  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+ INSTALL(
+   FILES ${LIBRARY_HEADERS}
+   DESTINATION ${INCLUDE_INSTALL_DIR}/FasTC COMPONENT dev)
+diff --git i/BPTCEncoder/CMakeLists.txt w/BPTCEncoder/CMakeLists.txt
+index bf390af..acf3431 100644
+--- i/BPTCEncoder/CMakeLists.txt
++++ w/BPTCEncoder/CMakeLists.txt
+@@ -149,7 +149,7 @@ ADD_LIBRARY( BPTCEncoder
+   ${SOURCES}
+ )
+ 
+-INSTALL(TARGETS BPTCEncoder EXPORT FasTCTargets ARCHIVE DESTINATION lib COMPONENT lib)
++INSTALL(TARGETS BPTCEncoder EXPORT FasTCTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+ INSTALL(
+   FILES ${LIBRARY_HEADERS} "${BPTC_INCLUDES_DIR}/BPTCConfig.h"
+   DESTINATION ${INCLUDE_INSTALL_DIR}/FasTC
+diff --git i/Base/CMakeLists.txt w/Base/CMakeLists.txt
+index 3b7569a..fe92dd2 100644
+--- i/Base/CMakeLists.txt
++++ w/Base/CMakeLists.txt
+@@ -83,7 +83,7 @@ ADD_LIBRARY( FasTCBase
+ INSTALL(
+   TARGETS FasTCBase
+   EXPORT FasTCTargets
+-  ARCHIVE DESTINATION lib COMPONENT lib)
++  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+ 
+ INSTALL(
+   FILES ${LIBRARY_HEADERS} "${FasTC_BINARY_DIR}/Base/include/FasTC/BaseConfig.h"
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index d0dd1a8..180fe6a 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -15,7 +15,7 @@
+ # Please send all BUG REPORTS to <pavel@cs.unc.edu>.
+ # <http://gamma.cs.unc.edu/FasTC/>
+ 
+-CMAKE_MINIMUM_REQUIRED(VERSION 3.1 FATAL_ERROR)
++CMAKE_MINIMUM_REQUIRED(VERSION 3.20 FATAL_ERROR)
+ PROJECT(FasTC CXX C)
+ 
+ SET(FasTC_MAJOR_VERSION 0)
+@@ -95,7 +95,6 @@ SET(FASTC_DIRECTORIES
+ FOREACH(DIR ${FASTC_DIRECTORIES})
+   ADD_SUBDIRECTORY(${DIR})
+ ENDFOREACH()
+-ADD_SUBDIRECTORY(CLTool)
+ 
+ SET(FasTC_LIBRARIES FasTCBase FasTCIO FasTCCore BPTCEncoder PVRTCEncoder DXTEncoder ETCEncoder ASTCEncoder)
+ SET(FasTC_EXECUTABLES tc compare decomp)
+@@ -118,20 +117,7 @@ WRITE_BASIC_PACKAGE_VERSION_FILE(
+   VERSION ${FasTC_VERSION}
+   COMPATIBILITY SameMajorVersion)
+ 
+-INSTALL(
+-  FILES "${CMAKE_CURRENT_BINARY_DIR}/FasTCConfigVersion.cmake" "${CMAKE_CURRENT_BINARY_DIR}/FasTCConfig.cmake"
+-  DESTINATION ${LIB_INSTALL_DIR}/cmake/FasTC
+-  COMPONENT dev)
+ 
+-EXPORT(
+-  TARGETS ${FasTC_LIBRARIES} ${FasTC_EXECUTABLES}
+-  FILE "${CMAKE_CURRENT_BINARY_DIR}/FasTCTargets.cmake")
+-EXPORT(PACKAGE FasTC)
+-
+-INSTALL(
+-  EXPORT FasTCTargets
+-  FILE FasTCTargets.cmake
+-  DESTINATION ${LIB_INSTALL_DIR}/cmake/FasTC)
+ 
+ ######################################################################
+ ##
+diff --git i/Core/CMakeLists.txt w/Core/CMakeLists.txt
+index b570c33..60a43c1 100644
+--- i/Core/CMakeLists.txt
++++ w/Core/CMakeLists.txt
+@@ -94,7 +94,7 @@ ADD_LIBRARY( FasTCCore
+ INSTALL(
+   TARGETS FasTCCore
+   EXPORT FasTCTargets
+-  ARCHIVE DESTINATION lib COMPONENT lib
++  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib
+ )
+ 
+ INSTALL(
+diff --git i/DXTEncoder/CMakeLists.txt w/DXTEncoder/CMakeLists.txt
+index 320bf64..6b3db94 100644
+--- i/DXTEncoder/CMakeLists.txt
++++ w/DXTEncoder/CMakeLists.txt
+@@ -34,7 +34,7 @@ ADD_LIBRARY( DXTEncoder
+   ${SOURCES}
+ )
+ 
+-INSTALL(TARGETS DXTEncoder EXPORT FasTCTargets ARCHIVE DESTINATION lib COMPONENT lib)
++INSTALL(TARGETS DXTEncoder EXPORT FasTCTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+ INSTALL(
+   FILES ${LIBRARY_HEADERS}
+   DESTINATION ${INCLUDE_INSTALL_DIR}/FasTC
+diff --git i/ETCEncoder/CMakeLists.txt w/ETCEncoder/CMakeLists.txt
+index ac5cce4..bb5e7c9 100644
+--- i/ETCEncoder/CMakeLists.txt
++++ w/ETCEncoder/CMakeLists.txt
+@@ -40,7 +40,7 @@ ADD_LIBRARY( ETCEncoder
+   ${SOURCES}
+ )
+ 
+-INSTALL(TARGETS ETCEncoder EXPORT FasTCTargets ARCHIVE DESTINATION lib COMPONENT lib)
++INSTALL(TARGETS ETCEncoder EXPORT FasTCTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+ INSTALL(
+   FILES ${LIBRARY_HEADERS}
+   DESTINATION ${INCLUDE_INSTALL_DIR}/FasTC
+diff --git i/IO/CMakeLists.txt w/IO/CMakeLists.txt
+index 0043c35..bc3e555 100644
+--- i/IO/CMakeLists.txt
++++ w/IO/CMakeLists.txt
+@@ -77,10 +77,7 @@ SET( HEADERS ${HEADERS} "src/ImageWriterKTX.h" )
+ SET( SOURCES ${SOURCES} "src/ImageLoaderASTC.cpp" )
+ SET( HEADERS ${HEADERS} "src/ImageLoaderASTC.h" )
+ 
+-FIND_PACKAGE( OpenGL )
+-IF(OPENGL_FOUND)
+-  INCLUDE_DIRECTORIES( ${OPENGL_INCLUDE_DIRS} )
+-ENDIF(OPENGL_FOUND)
++set(OPENGL_FOUND 1)
+ 
+ CONFIGURE_FILE(
+ 	"config/ImageLoader.h.in"
+@@ -101,7 +98,7 @@ INCLUDE_DIRECTORIES( ${FasTC_BINARY_DIR}/IO/include )
+ 
+ ADD_LIBRARY(FasTCIO ${SOURCES} ${HEADERS})
+ 
+-INSTALL(TARGETS FasTCIO EXPORT FasTCTargets ARCHIVE DESTINATION lib COMPONENT lib)
++INSTALL(TARGETS FasTCIO EXPORT FasTCTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+ SET(EXPORT_HEADERS
+   ${LIBRARY_HEADERS}
+   "${FasTC_BINARY_DIR}/IO/include/FasTC/ImageWriter.h"
+diff --git i/PVRTCEncoder/CMakeLists.txt w/PVRTCEncoder/CMakeLists.txt
+index 0cfc7a9..3a104ea 100644
+--- i/PVRTCEncoder/CMakeLists.txt
++++ w/PVRTCEncoder/CMakeLists.txt
+@@ -58,7 +58,7 @@ ADD_LIBRARY( PVRTCEncoder
+   ${SOURCES}
+ )
+ 
+-INSTALL(TARGETS PVRTCEncoder EXPORT FasTCTargets ARCHIVE DESTINATION lib COMPONENT lib)
++INSTALL(TARGETS PVRTCEncoder EXPORT FasTCTargets ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+ INSTALL(
+   FILES ${LIBRARY_HEADERS} "${FasTC_BINARY_DIR}/PVRTCEncoder/include/FasTC/PVRTCDefines.h"
+   DESTINATION ${INCLUDE_INSTALL_DIR}/FasTC

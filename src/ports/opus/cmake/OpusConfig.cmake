@@ -1,0 +1,30 @@
+# Opus
+#
+#   find_package(Opus REQUIRED)
+#   target_link_libraries(main PRIVATE Opus::opus)
+#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.20)
+set(CMAKE_IMPORT_FILE_VERSION 1)
+
+set(OPUS_VERSION_STRING ${Opus_VERSION})
+set(OPUS_VERSION ${OPUS_VERSION_STRING})
+set(OPUS_INCLUDE_DIRS)
+
+set(OPUS_LIBRARIES Opus::opus)
+
+include(AceImportLibrary)
+ace_import_library(Opus::opus C NAMES opus HEADERS opus/opus.h)
+
+string(REPLACE "." ";" OPUS_VERSION_LIST ${OPUS_VERSION})
+list(GET OPUS_VERSION_LIST 0 OPUS_VERSION_MAJOR)
+list(GET OPUS_VERSION_LIST 1 OPUS_VERSION_MINOR)
+list(GET OPUS_VERSION_LIST 2 OPUS_VERSION_PATCH)
+set(OPUS_VERSION_TWEAK 0)
+
+set(OPUS_INCLUDE_DIR "${OPUS_INCLUDE_DIRS}" CACHE STRING "")
+set(OPUS_LIBRARY "${OPUS_LIBRARIES}" CACHE STRING "")
+set(OPUS_FOUND 1)
+
+set(CMAKE_IMPORT_FILE_VERSION)
+cmake_policy(POP)

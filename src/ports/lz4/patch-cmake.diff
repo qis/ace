@@ -1,0 +1,60 @@
+diff --git i/build/cmake/CMakeLists.txt w/build/cmake/CMakeLists.txt
+index 57501ee..434b239 100644
+--- i/build/cmake/CMakeLists.txt
++++ w/build/cmake/CMakeLists.txt
+@@ -104,9 +104,9 @@ set(LZ4_LIBRARIES_BUILT)
+ if(BUILD_SHARED_LIBS)
+   add_library(lz4_shared SHARED ${LZ4_SOURCES})
+   set_target_properties(lz4_shared PROPERTIES
+-    OUTPUT_NAME lz4
+-    SOVERSION "${LZ4_VERSION_MAJOR}"
+-    VERSION "${LZ4_VERSION_STRING}")
++    MSVC_RUNTIME_LIBRARY MultiThreadedDLL
++    ARCHIVE_OUTPUT_DIRECTORY shared
++    OUTPUT_NAME lz4)
+   if(MSVC)
+     target_compile_definitions(lz4_shared PRIVATE
+       LZ4_DLL_EXPORT=1)
+@@ -116,8 +116,9 @@ endif()
+ if(BUILD_STATIC_LIBS)
+   add_library(lz4_static STATIC ${LZ4_SOURCES})
+   set_target_properties(lz4_static PROPERTIES
+-    OUTPUT_NAME lz4
+-    POSITION_INDEPENDENT_CODE ${LZ4_POSITION_INDEPENDENT_LIB})
++    MSVC_RUNTIME_LIBRARY MultiThreaded
++    ARCHIVE_OUTPUT_DIRECTORY static
++    OUTPUT_NAME lz4)
+   list(APPEND LZ4_LIBRARIES_BUILT lz4_static)
+ endif()
+ 
+@@ -181,19 +182,22 @@ if(NOT LZ4_BUNDLED_MODE)
+   install(TARGETS ${LZ4_PROGRAMS_BUILT}
+     BUNDLE	DESTINATION "${CMAKE_INSTALL_BINDIR}"
+     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
+-  install(TARGETS ${LZ4_LIBRARIES_BUILT}
+-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
++
++  install(TARGETS lz4_shared
++    RUNTIME DESTINATION bin
++    ARCHIVE DESTINATION lib$<$<PLATFORM_ID:Windows>:/shared>
++    LIBRARY DESTINATION lib$<$<PLATFORM_ID:Windows>:/shared>)
++
++  install(TARGETS lz4_static
++    RUNTIME DESTINATION bin
++    ARCHIVE DESTINATION lib$<$<PLATFORM_ID:Windows>:/static>
++    LIBRARY DESTINATION lib$<$<PLATFORM_ID:Windows>:/static>)
++
+   install(FILES
+     "${LZ4_LIB_SOURCE_DIR}/lz4.h"
+     "${LZ4_LIB_SOURCE_DIR}/lz4frame.h"
+     "${LZ4_LIB_SOURCE_DIR}/lz4hc.h"
+     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+-  install(FILES "${LZ4_PROG_SOURCE_DIR}/lz4.1"
+-    DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/liblz4.pc"
+-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+ 
+   # install lz4cat and unlz4 symlinks on *nix
+   if(UNIX AND LZ4_BUILD_CLI)

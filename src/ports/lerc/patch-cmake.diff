@@ -1,0 +1,53 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index eff3d95..94a07be 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -23,12 +23,27 @@ set_target_properties(Lerc
+ 
+ if(BUILD_SHARED_LIBS)
+     set_target_properties(Lerc PROPERTIES DEFINE_SYMBOL LERC_EXPORTS)
++    set_target_properties(Lerc PROPERTIES
++      C_VISIBILITY_PRESET hidden
++      CXX_VISIBILITY_PRESET hidden)
++endif()
++
++if(BUILD_SHARED_LIBS)
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++  set_target_properties(Lerc PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreadedDLL
++    OUTPUT_NAME lerc)
++else()
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++  set_target_properties(Lerc PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreaded
++    OUTPUT_NAME lerc)
+ endif()
+ 
+ install(
+     TARGETS Lerc
+-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+ )
+diff --git i/src/LercLib/include/Lerc_c_api.h w/src/LercLib/include/Lerc_c_api.h
+index f9ab0b0..b88d12f 100644
+--- i/src/LercLib/include/Lerc_c_api.h
++++ w/src/LercLib/include/Lerc_c_api.h
+@@ -46,10 +46,12 @@ extern "C" {
+     (LERC_VERSION_NUMBER >= LERC_COMPUTE_VERSION(maj,min,patch))
+ 
+ #if defined _WIN32 || defined __CYGWIN__
+-#  ifdef LERC_EXPORTS
++#  if defined(LERC_EXPORTS)
+ #    define LERCDLL_API __declspec(dllexport)
+-#  else
++#  elif defined(LERC_IMPORTS)
+ #    define LERCDLL_API __declspec(dllimport)
++#  else
++#    define LERCDLL_API extern
+ #  endif
+ #elif __GNUC__ >= 4
+   #define LERCDLL_API __attribute__((visibility("default")))

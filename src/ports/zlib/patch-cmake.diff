@@ -1,0 +1,67 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index e6fbb37..5c8d687 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -129,7 +129,7 @@ if(NOT MINGW)
+     )
+ endif()
+ 
+-if(CMAKE_COMPILER_IS_GNUCC)
++if(TRUE)
+     if(ASM686)
+         set(ZLIB_ASMS contrib/asm686/match.S)
+     elseif (AMD64)
+@@ -142,7 +142,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
+ 	endif()
+ endif()
+ 
+-if(MSVC)
++if(FALSE)
+     if(ASM686)
+ 		ENABLE_LANGUAGE(ASM_MASM)
+         set(ZLIB_ASMS
+@@ -186,9 +186,8 @@ endif(MINGW)
+ add_library(zlib SHARED ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_DLL_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+ add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_ASMS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+ set_target_properties(zlib PROPERTIES DEFINE_SYMBOL ZLIB_DLL)
+-set_target_properties(zlib PROPERTIES SOVERSION 1)
+ 
+-if(NOT CYGWIN)
++if(FALSE)
+     # This property causes shared libraries on Linux to have the full version
+     # encoded into their final filename.  We disable this on Cygwin because
+     # it causes cygz-${ZLIB_FULL_VERSION}.dll to be created when cygz.dll
+@@ -202,19 +201,25 @@ endif()
+ if(UNIX)
+     # On unix-like platforms the library is almost always called libz
+    set_target_properties(zlib zlibstatic PROPERTIES OUTPUT_NAME z)
+-   if(NOT APPLE)
+-     set_target_properties(zlib PROPERTIES LINK_FLAGS "-Wl,--version-script,\"${CMAKE_CURRENT_SOURCE_DIR}/zlib.map\"")
+-   endif()
+ elseif(BUILD_SHARED_LIBS AND WIN32)
+-    # Creates zlib1.dll when building shared library version
+-    set_target_properties(zlib PROPERTIES SUFFIX "1.dll")
++    set_target_properties(zlib PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreadedDLL
++      ARCHIVE_OUTPUT_DIRECTORY shared)
++    set_target_properties(zlibstatic PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreaded
++      ARCHIVE_OUTPUT_DIRECTORY static
++      OUTPUT_NAME zlib)
+ endif()
+ 
+ if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
+-    install(TARGETS zlib zlibstatic
++    install(TARGETS zlib
++        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
++        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}$<$<PLATFORM_ID:Windows>:/shared>"
++        LIBRARY DESTINATION "${INSTALL_LIB_DIR}$<$<PLATFORM_ID:Windows>:/shared>" )
++    install(TARGETS zlibstatic
+         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+-        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+-        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
++        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}$<$<PLATFORM_ID:Windows>:/static>"
++        LIBRARY DESTINATION "${INSTALL_LIB_DIR}$<$<PLATFORM_ID:Windows>:/static>" )
+ endif()
+ if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
+     install(FILES ${ZLIB_PUBLIC_HDRS} DESTINATION "${INSTALL_INC_DIR}")

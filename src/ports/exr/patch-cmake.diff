@@ -1,0 +1,148 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 58546dd..724193b 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -2,7 +2,7 @@
+ # Copyright (c) Contributors to the OpenEXR Project.
+ 
+ # We require this to get object library link library support
+-cmake_minimum_required(VERSION 3.12)
++cmake_minimum_required(VERSION 3.20)
+ 
+ if(POLICY CMP0074)
+   # enable find_package(<Package>) to use <Package>_ROOT as a hint
+diff --git i/cmake/CMakeLists.txt w/cmake/CMakeLists.txt
+index b11f41b..6af8915 100644
+--- i/cmake/CMakeLists.txt
++++ w/cmake/CMakeLists.txt
+@@ -163,7 +163,6 @@ target_include_directories(IexConfig INTERFACE
+ if(OPENEXR_INSTALL)
+   install(TARGETS IexConfig EXPORT ${PROJECT_NAME})
+ endif()
+-add_library(${PROJECT_NAME}::Config ALIAS IexConfig)
+ 
+ add_library(IlmThreadConfig INTERFACE)
+ target_include_directories(IlmThreadConfig INTERFACE
+@@ -174,7 +173,6 @@ target_include_directories(IlmThreadConfig INTERFACE
+ if(OPENEXR_INSTALL)
+   install(TARGETS IlmThreadConfig EXPORT ${PROJECT_NAME})
+ endif()
+-add_library(${PROJECT_NAME}::Config ALIAS IlmThreadConfig)
+ 
+ ###################################################
+ ####### Install pkg-config files if requested
+@@ -226,24 +224,4 @@ endif()
+ include(CMakePackageConfigHelpers)
+ 
+ if(OPENEXR_INSTALL)
+-configure_package_config_file(${PROJECT_NAME}Config.cmake.in
+-  ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+-)
+-write_basic_package_version_file("${PROJECT_NAME}ConfigVersion.cmake"
+-  VERSION ${PROJECT_VERSION}
+-  COMPATIBILITY SameMajorVersion
+-)
+-
+-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+-              ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+-)
+-
+-install(EXPORT ${PROJECT_NAME}
+-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+-  FILE ${PROJECT_NAME}Targets.cmake
+-  NAMESPACE ${PROJECT_NAME}::
+-  EXPORT_LINK_INTERFACE_LIBRARIES
+-)
+ endif()
+diff --git i/cmake/LibraryDefine.cmake w/cmake/LibraryDefine.cmake
+index 5696f3f..f5708d4 100644
+--- i/cmake/LibraryDefine.cmake
++++ w/cmake/LibraryDefine.cmake
+@@ -25,7 +25,7 @@ function(OPENEXR_DEFINE_LIBRARY libname)
+   # also use C++14.
+   target_compile_features(${objlib}
+                           PRIVATE cxx_std_${OPENEXR_CXX_STANDARD}
+-                          INTERFACE cxx_std_11 )
++                          c_std_11)
+ 
+   if(OPENEXR_CURLIB_PRIV_EXPORT AND BUILD_SHARED_LIBS)
+     target_compile_definitions(${objlib} PRIVATE ${OPENEXR_CURLIB_PRIV_EXPORT})
+@@ -63,24 +63,30 @@ function(OPENEXR_DEFINE_LIBRARY libname)
+   endif()
+   set_property(TARGET ${objlib} PROPERTY PUBLIC_HEADER ${OPENEXR_CURLIB_HEADERS})
+ 
+-  if(BUILD_SHARED_LIBS)
+-    set_target_properties(${libname} PROPERTIES
+-      SOVERSION ${OPENEXR_LIB_SOVERSION}
+-      VERSION ${OPENEXR_LIB_VERSION}
+-    )
+-  endif()
++  string(TOLOWER "${libname}" proper_libname)
++  string(REPLACE "openexr" "exr" proper_libname "${proper_libname}")
+   set_target_properties(${libname} PROPERTIES
+-      OUTPUT_NAME "${libname}${OPENEXR_LIB_SUFFIX}"
++      OUTPUT_NAME "${proper_libname}${OPENEXR_LIB_SUFFIX}"
+       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+   )
+   add_library(${PROJECT_NAME}::${libname} ALIAS ${libname})
+ 
++  if(BUILD_SHARED_LIBS)
++    set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++    set_target_properties(${libname} PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++  else()
++    set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++    set_target_properties(${libname} PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreaded)
++  endif()
++
+   if(OPENEXR_INSTALL)
+     install(TARGETS ${libname}
+       EXPORT ${PROJECT_NAME}
+-      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++      RUNTIME DESTINATION bin
++      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
++      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+       INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+       PUBLIC_HEADER
+         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${OPENEXR_OUTPUT_SUBDIR}
+diff --git i/cmake/OpenEXRLibraryDefine.cmake w/cmake/OpenEXRLibraryDefine.cmake
+index 3ecde28..e9adf80 100644
+--- i/cmake/OpenEXRLibraryDefine.cmake
++++ w/cmake/OpenEXRLibraryDefine.cmake
+@@ -3,6 +3,7 @@
+ 
+ # NB: This function has a number of specific names / variables
+ # in it, so be careful copying...
++message(FATAL_ERROR "This file was previously never included and needs to be patched.")
+ function(OPENEXR_DEFINE_LIBRARY libname)
+   set(options)
+   set(oneValueArgs PRIV_EXPORT CURDIR CURBINDIR)
+diff --git i/cmake/OpenEXRSetup.cmake w/cmake/OpenEXRSetup.cmake
+index 8d7b301..7e5e3bb 100644
+--- i/cmake/OpenEXRSetup.cmake
++++ w/cmake/OpenEXRSetup.cmake
+@@ -91,7 +91,6 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
+ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+ # adds the automatically determined parts of the rpath
+ # which point to directories outside the build tree to the install RPATH
+-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ if(APPLE)
+   set(CMAKE_MACOSX_RPATH ON)
+ endif()
+diff --git i/cmake/clang-format.cmake w/cmake/clang-format.cmake
+index 6ba008e..43e00b3 100644
+--- i/cmake/clang-format.cmake
++++ w/cmake/clang-format.cmake
+@@ -12,6 +12,7 @@
+ # correct any deviations. If clang-format is found on the system, a
+ # "clang-format" build target will trigger a reformatting.
+ #
++return()
+ set (CLANG_FORMAT_ROOT "" CACHE PATH "clang-format executable's directory (will search if not specified")
+ set (CLANG_FORMAT_INCLUDES "*.h" "*.cpp"
+      CACHE STRING "Glob patterns to include for clang-format")

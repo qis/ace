@@ -1,0 +1,135 @@
+diff --git i/build/cmake/CMakeLists.txt w/build/cmake/CMakeLists.txt
+index 93a167c..068d01c 100644
+--- i/build/cmake/CMakeLists.txt
++++ w/build/cmake/CMakeLists.txt
+@@ -184,26 +184,3 @@ write_basic_package_version_file(
+     VERSION ${zstd_VERSION}
+     COMPATIBILITY SameMajorVersion
+     )
+-
+-# A Package Config file that works from the build directory
+-export(EXPORT zstdExports
+-    FILE "${CMAKE_CURRENT_BINARY_DIR}/zstdTargets.cmake"
+-    NAMESPACE zstd::
+-    )
+-configure_file(zstdConfig.cmake
+-    "${CMAKE_CURRENT_BINARY_DIR}/zstdConfig.cmake"
+-    COPYONLY
+-    )
+-
+-# A Package Config file that works from the installation directory
+-set(ConfigPackageLocation ${CMAKE_INSTALL_LIBDIR}/cmake/zstd)
+-install(EXPORT zstdExports
+-    FILE zstdTargets.cmake
+-    NAMESPACE zstd::
+-    DESTINATION ${ConfigPackageLocation}
+-    )
+-install(FILES
+-    zstdConfig.cmake
+-    "${CMAKE_CURRENT_BINARY_DIR}/zstdConfigVersion.cmake"
+-    DESTINATION ${ConfigPackageLocation}
+-    )
+diff --git i/build/cmake/CMakeModules/AddZstdCompilationFlags.cmake w/build/cmake/CMakeModules/AddZstdCompilationFlags.cmake
+index e23b9d6..11da413 100644
+--- i/build/cmake/CMakeModules/AddZstdCompilationFlags.cmake
++++ w/build/cmake/CMakeModules/AddZstdCompilationFlags.cmake
+@@ -26,18 +26,7 @@ macro(ADD_ZSTD_COMPILATION_FLAGS)
+         EnableCompilerFlag("-std=c++11" false true)
+         #Set c99 by default
+         EnableCompilerFlag("-std=c99" true false)
+-        if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND MSVC)
+-            # clang-cl normally maps -Wall to -Weverything.
+-            EnableCompilerFlag("/clang:-Wall" true true)
+-        else ()
+-            EnableCompilerFlag("-Wall" true true)
+-        endif ()
+-        EnableCompilerFlag("-Wextra" true true)
+-        EnableCompilerFlag("-Wundef" true true)
+-        EnableCompilerFlag("-Wshadow" true true)
+-        EnableCompilerFlag("-Wcast-align" true true)
+-        EnableCompilerFlag("-Wcast-qual" true true)
+-        EnableCompilerFlag("-Wstrict-prototypes" true false)
++        EnableCompilerFlag("-Wno-unused-function" true true)
+         # Enable asserts in Debug mode
+         if (CMAKE_BUILD_TYPE MATCHES "Debug")
+             EnableCompilerFlag("-DDEBUGLEVEL=1" true true)
+diff --git i/build/cmake/lib/CMakeLists.txt w/build/cmake/lib/CMakeLists.txt
+index 4905bd9..0b0aaaf 100644
+--- i/build/cmake/lib/CMakeLists.txt
++++ w/build/cmake/lib/CMakeLists.txt
+@@ -81,6 +81,9 @@ endif ()
+ set(library_targets)
+ if (ZSTD_BUILD_SHARED)
+     add_library(libzstd_shared SHARED ${Sources} ${Headers} ${PlatformDependResources})
++    set_target_properties(libzstd_shared PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreadedDLL
++      ARCHIVE_OUTPUT_DIRECTORY shared)
+     list(APPEND library_targets libzstd_shared)
+     if (ZSTD_MULTITHREAD_SUPPORT)
+         set_property(TARGET libzstd_shared APPEND PROPERTY COMPILE_DEFINITIONS "ZSTD_MULTITHREAD")
+@@ -91,6 +94,9 @@ if (ZSTD_BUILD_SHARED)
+ endif ()
+ if (ZSTD_BUILD_STATIC)
+     add_library(libzstd_static STATIC ${Sources} ${Headers})
++    set_target_properties(libzstd_static PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreaded
++      ARCHIVE_OUTPUT_DIRECTORY static)
+     list(APPEND library_targets libzstd_static)
+     if (ZSTD_MULTITHREAD_SUPPORT)
+         set_property(TARGET libzstd_static APPEND PROPERTY COMPILE_DEFINITIONS "ZSTD_MULTITHREAD")
+@@ -122,9 +128,7 @@ if (ZSTD_BUILD_SHARED)
+     set_target_properties(
+             libzstd_shared
+             PROPERTIES
+-            OUTPUT_NAME zstd
+-            VERSION ${zstd_VERSION_MAJOR}.${zstd_VERSION_MINOR}.${zstd_VERSION_PATCH}
+-            SOVERSION ${zstd_VERSION_MAJOR})
++            OUTPUT_NAME zstd)
+ endif ()
+ 
+ if (ZSTD_BUILD_STATIC)
+@@ -132,7 +136,7 @@ if (ZSTD_BUILD_STATIC)
+             libzstd_static
+             PROPERTIES
+             POSITION_INDEPENDENT_CODE On
+-            OUTPUT_NAME ${STATIC_LIBRARY_BASE_NAME})
++            OUTPUT_NAME zstd)
+ endif ()
+ 
+ if (UNIX OR MINGW)
+@@ -155,9 +159,6 @@ if (UNIX OR MINGW)
+     if ("${LIBDIR_PREFIX}" STREQUAL "${PREFIX}")
+         set(LIBDIR "\${exec_prefix}${LIBDIR_SUFFIX}")
+     endif()
+-
+-    configure_file("${LIBRARY_DIR}/libzstd.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/libzstd.pc" @ONLY)
+-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libzstd.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+ endif ()
+ 
+ # install target
+@@ -167,14 +168,17 @@ install(FILES
+     "${LIBRARY_DIR}/zstd_errors.h"
+     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+ 
+-install(TARGETS ${library_targets}
+-    EXPORT zstdExports
+-    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-    BUNDLE DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-    )
++install(TARGETS libzstd_shared
++    INCLUDES DESTINATION include
++    RUNTIME DESTINATION bin
++    ARCHIVE DESTINATION lib$<$<PLATFORM_ID:Windows>:/shared>
++    LIBRARY DESTINATION lib$<$<PLATFORM_ID:Windows>:/shared>)
++
++install(TARGETS libzstd_static
++    INCLUDES DESTINATION include
++    RUNTIME DESTINATION bin
++    ARCHIVE DESTINATION lib$<$<PLATFORM_ID:Windows>:/static>
++    LIBRARY DESTINATION lib$<$<PLATFORM_ID:Windows>:/static>)
+ 
+ # uninstall target
+ if (NOT TARGET uninstall)

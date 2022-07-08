@@ -1,0 +1,65 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 92bae7d..f502a4c 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -292,8 +292,6 @@ if(BUILD_SHARED_LIBS)
+     # libaom.so.SOVERSION -> libaom.so.VERSION
+     # libaom.so.VERSION
+     # cmake-format: on
+-    set_target_properties(aom PROPERTIES SOVERSION ${SO_VERSION})
+-    set_target_properties(aom PROPERTIES VERSION ${SO_FILE_VERSION})
+   endif()
+ endif()
+ 
+diff --git i/build/cmake/aom_configure.cmake w/build/cmake/aom_configure.cmake
+index 1279ad3..c23fce8 100644
+--- i/build/cmake/aom_configure.cmake
++++ w/build/cmake/aom_configure.cmake
+@@ -225,7 +225,6 @@ endif()
+ if(AOM_TARGET_SYSTEM STREQUAL "Windows")
+   # The default _WIN32_WINNT value in MinGW is 0x0502 (Windows XP with SP2). Set
+   # it to 0x0601 (Windows 7).
+-  add_compiler_flag_if_supported("-D_WIN32_WINNT=0x0601")
+   # Prevent windows.h from defining the min and max macros. This allows us to
+   # use std::min and std::max.
+   add_compiler_flag_if_supported("-DNOMINMAX")
+diff --git i/build/cmake/aom_install.cmake w/build/cmake/aom_install.cmake
+index 3b52a68..cbe45e6 100644
+--- i/build/cmake/aom_install.cmake
++++ w/build/cmake/aom_install.cmake
+@@ -83,15 +83,29 @@ macro(setup_aom_install_targets)
+       set(AOM_INSTALL_LIBS aom)
+     endif()
+ 
++    set_target_properties(aom PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreadedDLL
++      ARCHIVE_OUTPUT_DIRECTORY shared
++      OUTPUT_NAME aom)
++
++    set_target_properties(aom_static PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreaded
++      ARCHIVE_OUTPUT_DIRECTORY static
++      OUTPUT_NAME aom)
++
++    install(TARGETS aom
++      RUNTIME DESTINATION bin
++      ARCHIVE DESTINATION lib$<$<PLATFORM_ID:Windows>:/shared>
++      LIBRARY DESTINATION lib$<$<PLATFORM_ID:Windows>:/shared>)
++
++    install(TARGETS aom_static
++      RUNTIME DESTINATION bin
++      ARCHIVE DESTINATION lib$<$<PLATFORM_ID:Windows>:/static>
++      LIBRARY DESTINATION lib$<$<PLATFORM_ID:Windows>:/static>)
++
+     # Setup the install rules. install() will automatically prepend
+     # CMAKE_INSTALL_PREFIX to relative paths
+     install(FILES ${AOM_INSTALL_INCS}
+             DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/aom")
+-    install(FILES "${AOM_PKG_CONFIG_FILE}"
+-            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+-    install(TARGETS ${AOM_INSTALL_LIBS};${AOM_INSTALL_BINS}
+-            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+   endif()
+ endmacro()

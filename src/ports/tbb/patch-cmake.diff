@@ -1,0 +1,154 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 2ad5f7a..3d4bcfd 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -200,7 +200,6 @@ else()
+     if (NOT "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "mips")
+         if (TBBMALLOC_BUILD)
+             add_subdirectory(src/tbbmalloc)
+-            add_subdirectory(src/tbbmalloc_proxy)
+         endif()
+         if (APPLE)
+             message(STATUS "TBBBind build targets are disabled due to unsupported environment")
+@@ -217,24 +216,6 @@ else()
+             DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+             COMPONENT devel)
+ 
+-    install(EXPORT ${PROJECT_NAME}Targets
+-            NAMESPACE TBB::
+-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+-            COMPONENT devel)
+-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+-               "include(\${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}Targets.cmake)\n")
+-
+-    write_basic_package_version_file("${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+-                                     COMPATIBILITY AnyNewerVersion)
+-
+-    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+-                  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+-            COMPONENT devel)
+-
+-    install(FILES "README.md"
+-            DESTINATION ${CMAKE_INSTALL_DOCDIR}
+-            COMPONENT devel)
+     # -------------------------------------------------------------------
+ endif()
+ 
+diff --git i/cmake/compilers/Clang.cmake w/cmake/compilers/Clang.cmake
+index bb7401e..35ee3fc 100644
+--- i/cmake/compilers/Clang.cmake
++++ w/cmake/compilers/Clang.cmake
+@@ -61,8 +61,6 @@ endif()
+ # Enabling LTO on Android causes the NDK bug.
+ # NDK throws the warning: "argument unused during compilation: '-Wa,--noexecstack'"
+ if (NOT ANDROID_PLATFORM AND BUILD_SHARED_LIBS)
+-    set(TBB_IPO_COMPILE_FLAGS $<$<NOT:$<CONFIG:Debug>>:-flto>)
+-    set(TBB_IPO_LINK_FLAGS $<$<NOT:$<CONFIG:Debug>>:-flto>)
+ endif()
+ 
+ # TBB malloc settings
+diff --git i/cmake/utils.cmake w/cmake/utils.cmake
+index 06d3a9a..aaf1b73 100644
+--- i/cmake/utils.cmake
++++ w/cmake/utils.cmake
+@@ -23,23 +23,28 @@ macro(tbb_remove_compile_flag flag)
+ endmacro()
+ 
+ macro(tbb_install_target target)
++    if(BUILD_SHARED_LIBS)
++      set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++    else()
++      set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++    endif()
+     install(TARGETS ${target}
+         EXPORT TBBTargets
+         LIBRARY
+-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
++            DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+             NAMELINK_SKIP
+             COMPONENT runtime
+         RUNTIME
+             DESTINATION ${CMAKE_INSTALL_BINDIR}
+             COMPONENT runtime
+         ARCHIVE
+-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
++            DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+             COMPONENT devel)
+ 
+     if (BUILD_SHARED_LIBS)
+         install(TARGETS ${target}
+             LIBRARY
+-                DESTINATION ${CMAKE_INSTALL_LIBDIR}
++                DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+                 NAMELINK_ONLY
+                 COMPONENT devel)
+     endif()
+diff --git i/src/tbb/CMakeLists.txt w/src/tbb/CMakeLists.txt
+index 80fdcdc..e442941 100644
+--- i/src/tbb/CMakeLists.txt
++++ w/src/tbb/CMakeLists.txt
+@@ -45,7 +45,6 @@ add_library(tbb
+ add_library(TBB::tbb ALIAS tbb)
+ 
+ if (WIN32)
+-    set_target_properties(tbb PROPERTIES OUTPUT_NAME "tbb${TBB_BINARY_VERSION}")
+ endif()
+ 
+ # TODO: Add statistics.cpp
+@@ -85,8 +84,6 @@ target_compile_options(tbb
+ # Avoid use of target_link_libraries here as it changes /DEF option to \DEF on Windows.
+ set_target_properties(tbb PROPERTIES
+     DEFINE_SYMBOL ""
+-    VERSION ${TBB_BINARY_VERSION}.${TBB_BINARY_MINOR_VERSION}
+-    SOVERSION ${TBB_BINARY_VERSION}
+ )
+ 
+ if (TBB_DEF_FILE_PREFIX) # If there's no prefix, assume we're using export directives
+@@ -126,21 +123,6 @@ tbb_install_target(tbb)
+ if (WIN32)
+     # Create a copy of target linker file (tbb<ver>[_debug].lib) with legacy name (tbb[_debug].lib)
+     # to support previous user experience for linkage.
+-    install(FILES
+-            $<TARGET_LINKER_FILE:tbb>
+-            DESTINATION lib
+-            CONFIGURATIONS RelWithDebInfo Release MinSizeRel
+-            RENAME tbb.lib
+-            COMPONENT devel
+-    )
+-
+-    install(FILES
+-            $<TARGET_LINKER_FILE:tbb>
+-            DESTINATION lib
+-            CONFIGURATIONS Debug
+-            RENAME tbb_debug.lib
+-            COMPONENT devel
+-    )
+ endif()
+ 
+ set(_tbb_pc_lib_name tbb)
+@@ -169,11 +151,6 @@ else()
+     set(_includedir_for_pc_file "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+ endif()
+ 
+-configure_file(${PROJECT_SOURCE_DIR}/integration/pkg-config/tbb.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc @ONLY)
+-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TBB_PC_NAME}.pc
+-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
+-        COMPONENT devel)
+-
+ if (COMMAND tbb_gen_vars)
+     tbb_gen_vars(tbb)
+ endif()
+diff --git i/src/tbbmalloc/CMakeLists.txt w/src/tbbmalloc/CMakeLists.txt
+index f77bc8f..f788569 100644
+--- i/src/tbbmalloc/CMakeLists.txt
++++ w/src/tbbmalloc/CMakeLists.txt
+@@ -67,8 +67,6 @@ enable_language(C)
+ # Avoid use of target_link_libraries here as it changes /DEF option to \DEF on Windows.
+ set_target_properties(tbbmalloc PROPERTIES
+     DEFINE_SYMBOL ""
+-    VERSION ${TBBMALLOC_BINARY_VERSION}.${TBB_BINARY_MINOR_VERSION}
+-    SOVERSION ${TBBMALLOC_BINARY_VERSION}
+     LINKER_LANGUAGE C
+ )
+ 

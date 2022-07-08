@@ -1,0 +1,30 @@
+# AV1 Codec
+#
+#   find_package(aom REQUIRED)
+#   target_link_libraries(main PRIVATE aom::aom)
+#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.20)
+set(CMAKE_IMPORT_FILE_VERSION 1)
+
+set(AOM_VERSION_STRING ${aom_VERSION})
+set(AOM_VERSION ${AOM_VERSION_STRING})
+set(AOM_INCLUDE_DIRS)
+
+set(AOM_LIBRARIES aom::aom)
+
+include(AceImportLibrary)
+ace_import_library(aom::aom CXX NAMES aom HEADERS aom/aom.h)
+
+string(REPLACE "." ";" AOM_VERSION_LIST ${AOM_VERSION})
+list(GET AOM_VERSION_LIST 0 AOM_VERSION_MAJOR)
+list(GET AOM_VERSION_LIST 1 AOM_VERSION_MINOR)
+list(GET AOM_VERSION_LIST 2 AOM_VERSION_PATCH)
+set(AOM_VERSION_TWEAK 0)
+
+set(AOM_INCLUDE_DIR "${AOM_INCLUDE_DIRS}" CACHE STRING "")
+set(AOM_LIBRARY "${AOM_LIBRARIES}" CACHE STRING "")
+set(AOM_FOUND 1)
+
+set(CMAKE_IMPORT_FILE_VERSION)
+cmake_policy(POP)

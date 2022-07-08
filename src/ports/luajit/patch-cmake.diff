@@ -1,0 +1,100 @@
+diff --git i/src/lib_package.c w/src/lib_package.c
+index 01b63d6..b1481f2 100644
+--- i/src/lib_package.c
++++ w/src/lib_package.c
+@@ -34,6 +34,24 @@
+ 
+ #if LJ_TARGET_DLOPEN
+ 
++#undef setprogdir
++
++static void setprogdir(lua_State *L)
++{
++  char* buff;
++  char* last;
++  if ((buff = realpath("/proc/self/exe", 0))) {
++    if((last = strrchr(buff, '/'))) {
++      buff[last - buff] = '\0';
++    }
++    luaL_gsub(L, lua_tostring(L, -1), LUA_EXECDIR, buff);
++    lua_remove(L, -2);  /* remove original string */
++    free(buff);
++  } else {
++    luaL_error(L, "unable to read /proc/self/exe");
++  }
++}
++
+ #include <dlfcn.h>
+ 
+ static void ll_unloadlib(void *lib)
+diff --git i/src/lj_def.h w/src/lj_def.h
+index 21cc59a..eb72115 100644
+--- i/src/lj_def.h
++++ w/src/lj_def.h
+@@ -254,19 +254,18 @@ static LJ_AINLINE uint32_t lj_fls(uint32_t x)
+   return _CountLeadingZeros(x) ^ 31;
+ }
+ #else
+-unsigned char _BitScanForward(uint32_t *, unsigned long);
+-unsigned char _BitScanReverse(uint32_t *, unsigned long);
++#include <intrin.h>
+ #pragma intrinsic(_BitScanForward)
+ #pragma intrinsic(_BitScanReverse)
+ 
+ static LJ_AINLINE uint32_t lj_ffs(uint32_t x)
+ {
+-  uint32_t r; _BitScanForward(&r, x); return r;
++  unsigned long r; _BitScanForward(&r, x); return r;
+ }
+ 
+ static LJ_AINLINE uint32_t lj_fls(uint32_t x)
+ {
+-  uint32_t r; _BitScanReverse(&r, x); return r;
++  unsigned long r; _BitScanReverse(&r, x); return r;
+ }
+ #endif
+ 
+diff --git i/src/luaconf.h w/src/luaconf.h
+index b33e91b..b085788 100644
+--- i/src/luaconf.h
++++ w/src/luaconf.h
+@@ -18,12 +18,35 @@
+ ** In Windows, any exclamation mark ('!') in the path is replaced by the
+ ** path of the directory of the executable file of the current process.
+ */
+-#define LUA_LDIR	"!\\lua\\"
+-#define LUA_CDIR	"!\\"
++
++#define LUA_PATH_DEFAULT \
++  ".\\?.lua;" \
++  ".\\lua\\?.lua;" \
++  ".\\lua\\?\\init.lua;" \
++  "!\\lua\\?.lua;" \
++  "!\\lua\\?\\init.lua;" \
++  "!\\..\\lua\\?.lua;" \
++  "!\\..\\lua\\?\\init.lua;"
++
++#define LUA_CPATH_DEFAULT \
++  ".\\?.dll;" \
++  "!\\?.dll;"
++
++#elif 1
++
+ #define LUA_PATH_DEFAULT \
+-  ".\\?.lua;" LUA_LDIR"?.lua;" LUA_LDIR"?\\init.lua;"
++  "./?.lua;" \
++  "./lua/?.lua;" \
++  "./lua/?/init.lua;" \
++  "!/lua/?.lua;" \
++  "!/lua/?/init.lua;" \
++  "!/../lua/?.lua;" \
++  "!/../lua/?/init.lua;"
++
+ #define LUA_CPATH_DEFAULT \
+-  ".\\?.dll;" LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
++  "./?.so;" \
++  "!/?.so;"
++
+ #else
+ /*
+ ** Note to distribution maintainers: do NOT patch the following lines!

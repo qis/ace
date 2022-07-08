@@ -1,0 +1,30 @@
+# Ogg
+#
+#   find_package(Ogg REQUIRED)
+#   target_link_libraries(main PRIVATE Ogg::ogg)
+#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.20)
+set(CMAKE_IMPORT_FILE_VERSION 1)
+
+set(OGG_VERSION_STRING ${Ogg_VERSION})
+set(OGG_VERSION ${OGG_VERSION_STRING})
+set(OGG_INCLUDE_DIRS)
+
+set(OGG_LIBRARIES Ogg::ogg)
+
+include(AceImportLibrary)
+ace_import_library(Ogg::ogg C NAMES ogg HEADERS ogg/ogg.h)
+
+string(REPLACE "." ";" OGG_VERSION_LIST ${OGG_VERSION})
+list(GET OGG_VERSION_LIST 0 OGG_VERSION_MAJOR)
+list(GET OGG_VERSION_LIST 1 OGG_VERSION_MINOR)
+list(GET OGG_VERSION_LIST 2 OGG_VERSION_PATCH)
+set(OGG_VERSION_TWEAK 0)
+
+set(OGG_INCLUDE_DIR "${OGG_INCLUDE_DIRS}" CACHE STRING "")
+set(OGG_LIBRARY "${OGG_LIBRARIES}" CACHE STRING "")
+set(OGG_FOUND 1)
+
+set(CMAKE_IMPORT_FILE_VERSION)
+cmake_policy(POP)

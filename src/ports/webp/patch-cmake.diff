@@ -1,0 +1,230 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 3761965..fd6bd03 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -6,7 +6,7 @@
+ #  in the file PATENTS.  All contributing project authors may
+ #  be found in the AUTHORS file in the root of the source tree.
+ 
+-cmake_minimum_required(VERSION 3.7)
++cmake_minimum_required(VERSION 3.20)
+ 
+ if(POLICY CMP0072)
+   cmake_policy(SET CMP0072 NEW)
+@@ -43,6 +43,9 @@ set_property(CACHE WEBP_BITTRACE PROPERTY STRINGS 0 1 2)
+ # Option needed for handling Unicode file names on Windows.
+ if(WIN32)
+   option(WEBP_UNICODE "Build Unicode executables." ON)
++  if(BUILD_SHARED_LIBS)
++    add_definitions(-DWEBP_BUILD)
++  endif()
+ endif()
+ 
+ if(WEBP_BUILD_WEBP_JS)
+@@ -124,11 +127,6 @@ function(configure_pkg_config FILE)
+     string(REPLACE "-lm" "" data ${data})
+     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${FILE} ${data})
+   endif()
+-
+-  install(
+-    FILES "${CMAKE_CURRENT_BINARY_DIR}/${FILE}"
+-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+-  )
+ endfunction()
+ 
+ # ##############################################################################
+@@ -233,25 +231,6 @@ add_library(webputilsdecode
+ target_include_directories(webputilsdecode
+                            PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+                                    ${CMAKE_CURRENT_SOURCE_DIR})
+-add_library(webpdecoder
+-            $<TARGET_OBJECTS:webpdecode>
+-            $<TARGET_OBJECTS:webpdspdecode>
+-            $<TARGET_OBJECTS:webputilsdecode>)
+-if(XCODE)
+-  libwebp_add_stub_file(webpdecoder)
+-endif()
+-target_link_libraries(webpdecoder ${WEBP_DEP_LIBRARIES})
+-target_include_directories(
+-  webpdecoder
+-  PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+-  INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+-set_target_properties(
+-  webpdecoder
+-  PROPERTIES PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/src/webp/decode.h;\
+-${CMAKE_CURRENT_SOURCE_DIR}/src/webp/types.h")
+-
+-configure_pkg_config("src/libwebpdecoder.pc")
+ 
+ # Build the webp library.
+ add_library(webpencode OBJECT ${WEBP_ENC_SRCS})
+@@ -353,17 +332,7 @@ macro(set_version FILE TARGET_NAME NAME_IN_MAKEFILE)
+   list(GET LT_VERSION 1 LT_REVISION)
+   list(GET LT_VERSION 2 LT_AGE)
+   math(EXPR LT_CURRENT_MINUS_AGE "${LT_CURRENT} - ${LT_AGE}")
+-
+-  set_target_properties(
+-    ${TARGET_NAME}
+-    PROPERTIES VERSION
+-               ${LT_CURRENT_MINUS_AGE}.${LT_AGE}.${LT_REVISION}
+-               SOVERSION
+-               ${LT_CURRENT_MINUS_AGE})
+ endmacro()
+-set_version(Makefile.am webp webp)
+-set_version(Makefile.am webpdecoder webpdecoder)
+-set_version(demux/Makefile.am webpdemux webpdemux)
+ file(READ ${CMAKE_CURRENT_SOURCE_DIR}/configure.ac CONFIGURE_FILE)
+ string(REGEX MATCH
+              "AC_INIT\\([^\n]*\\[[0-9\\.]+\\]"
+@@ -375,7 +344,7 @@ string(REGEX MATCH
+              ${TMP})
+ 
+ # Define the libraries to install.
+-list(APPEND INSTALLED_LIBRARIES webpdecoder webp webpdemux)
++list(APPEND INSTALLED_LIBRARIES webp)
+ 
+ # Deal with SIMD. Change the compile flags for SIMD files we use.
+ list(LENGTH WEBP_SIMD_FILES_TO_INCLUDE WEBP_SIMD_FILES_TO_INCLUDE_LENGTH)
+@@ -667,66 +636,21 @@ if(WEBP_BUILD_ANIM_UTILS)
+   target_include_directories(anim_dump PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
+ endif()
+ 
++if(BUILD_SHARED_LIBS)
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++  set_target_properties(webp PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++else()
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++  set_target_properties(webp PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreaded)
++endif()
++
+ # Install the different headers and libraries.
+-install(TARGETS ${INSTALLED_LIBRARIES}
+-        EXPORT ${PROJECT_NAME}Targets
++install(TARGETS webp
+         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/webp
+         INCLUDES
+         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
++        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+-set(ConfigPackageLocation ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake/)
+-install(EXPORT ${PROJECT_NAME}Targets
+-        NAMESPACE ${PROJECT_NAME}::
+-        DESTINATION ${ConfigPackageLocation})
+-
+-# Create the CMake version file.
+-include(CMakePackageConfigHelpers)
+-write_basic_package_version_file(
+-  "${CMAKE_CURRENT_BINARY_DIR}/WebPConfigVersion.cmake"
+-  VERSION ${PACKAGE_VERSION}
+-  COMPATIBILITY AnyNewerVersion)
+-
+-# Create the Config file.
+-include(CMakePackageConfigHelpers)
+-configure_package_config_file(
+-  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/WebPConfig.cmake.in
+-  ${CMAKE_CURRENT_BINARY_DIR}/WebPConfig.cmake
+-  INSTALL_DESTINATION
+-  ${ConfigPackageLocation})
+-
+-# Install the generated CMake files.
+-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/WebPConfigVersion.cmake"
+-              "${CMAKE_CURRENT_BINARY_DIR}/WebPConfig.cmake"
+-        DESTINATION ${ConfigPackageLocation})
+-
+-# Install the man pages.
+-set(MAN_PAGES
+-    cwebp.1
+-    dwebp.1
+-    gif2webp.1
+-    img2webp.1
+-    vwebp.1
+-    webpmux.1
+-    webpinfo.1)
+-set(EXEC_BUILDS
+-    "CWEBP"
+-    "DWEBP"
+-    "GIF2WEBP"
+-    "IMG2WEBP"
+-    "VWEBP"
+-    "WEBPMUX"
+-    "WEBPINFO")
+-list(LENGTH MAN_PAGES MAN_PAGES_LENGTH)
+-math(EXPR MAN_PAGES_RANGE "${MAN_PAGES_LENGTH} - 1")
+-
+-foreach(I_MAN RANGE ${MAN_PAGES_RANGE})
+-  list(GET EXEC_BUILDS ${I_MAN} EXEC_BUILD)
+-  if(WEBP_BUILD_${EXEC_BUILD})
+-    list(GET MAN_PAGES ${I_MAN} MAN_PAGE)
+-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/man/${MAN_PAGE}
+-            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1
+-            COMPONENT doc)
+-  endif()
+-endforeach()
+diff --git i/cmake/deps.cmake w/cmake/deps.cmake
+index e00611f..3a4378e 100644
+--- i/cmake/deps.cmake
++++ w/cmake/deps.cmake
+@@ -54,8 +54,7 @@ endif()
+ set(LT_OBJDIR ".libs/")
+ 
+ # Only useful for vwebp, so useless for now.
+-find_package(OpenGL)
+-set(WEBP_HAVE_GL ${OPENGL_FOUND})
++set(WEBP_HAVE_GL OFF)
+ 
+ # Check if we need to link to the C math library. We do not look for it as it is
+ # not found when cross-compiling, while it is here.
+@@ -74,8 +73,7 @@ endif()
+ set(WEBP_DEP_IMG_LIBRARIES)
+ set(WEBP_DEP_IMG_INCLUDE_DIRS)
+ foreach(I_LIB PNG JPEG TIFF)
+-  find_package(${I_LIB})
+-  set(WEBP_HAVE_${I_LIB} ${${I_LIB}_FOUND})
++  set(WEBP_HAVE_${I_LIB} OFF)
+   if(${I_LIB}_FOUND)
+     list(APPEND WEBP_DEP_IMG_LIBRARIES ${${I_LIB}_LIBRARIES})
+     list(APPEND WEBP_DEP_IMG_INCLUDE_DIRS ${${I_LIB}_INCLUDE_DIR}
+@@ -90,9 +88,8 @@ endif()
+ include(CMakePushCheckState)
+ set(WEBP_DEP_GIF_LIBRARIES)
+ set(WEBP_DEP_GIF_INCLUDE_DIRS)
+-find_package(GIF)
+-set(WEBP_HAVE_GIF ${GIF_FOUND})
+-if(GIF_FOUND)
++set(WEBP_HAVE_GIF OFF)
++if(WEBP_HAVE_GIF)
+   # GIF find_package only locates the header and library, it doesn't fail
+   # compile tests when detecting the version, but falls back to 3 (as of at
+   # least cmake 3.7.2). Make sure the library links to avoid incorrect detection
+diff --git i/src/dsp/dsp.h w/src/dsp/dsp.h
+index c4f57e4..ee9868c 100644
+--- i/src/dsp/dsp.h
++++ w/src/dsp/dsp.h
+@@ -261,7 +261,7 @@ typedef enum {
+ } CPUFeature;
+ // returns true if the CPU supports the feature.
+ typedef int (*VP8CPUInfo)(CPUFeature feature);
+-WEBP_EXTERN VP8CPUInfo VP8GetCPUInfo;
++extern VP8CPUInfo VP8GetCPUInfo;
+ 
+ //------------------------------------------------------------------------------
+ // Init stub generator
+diff --git i/src/webp/types.h w/src/webp/types.h
+index 47f7f2b..386e109 100644
+--- i/src/webp/types.h
++++ w/src/webp/types.h
+@@ -41,6 +41,8 @@ typedef long long int int64_t;
+ // signature for e.g., Windows DLL builds.
+ # if defined(__GNUC__) && __GNUC__ >= 4
+ #  define WEBP_EXTERN extern __attribute__ ((visibility ("default")))
++# elif defined(_MSC_VER) && defined(WEBP_BUILD)
++#  define WEBP_EXTERN __declspec(dllexport)
+ # else
+ #  define WEBP_EXTERN extern
+ # endif  /* __GNUC__ >= 4 */

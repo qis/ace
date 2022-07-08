@@ -1,0 +1,42 @@
+# LZMA
+# https://cmake.org/cmake/help/latest/module/FindLibLZMA.html
+#
+#   find_package(LibLZMA REQUIRED)
+#   target_link_libraries(main PRIVATE LibLZMA::LibLZMA)
+#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.20)
+set(CMAKE_IMPORT_FILE_VERSION 1)
+
+set(LIBLZMA_VERSION_STRING ${LibLZMA_VERSION})
+set(LIBLZMA_VERSION ${LIBLZMA_VERSION_STRING})
+set(LIBLZMA_INCLUDE_DIRS)
+
+set(LIBLZMA_LIBRARIES LibLZMA::LibLZMA)
+
+include(AceImportLibrary)
+ace_import_library(LibLZMA::LibLZMA C NAMES lzma HEADERS lzma.h
+  COMPILE_DEFINITIONS_STATIC LZMA_API_STATIC
+  FOUND LZMA_FOUND)
+
+# Symbol: lzma_auto_decoder in lzma/container.h
+set(LIBLZMA_HAS_AUTO_DECODER ON)
+
+# Symbol: lzma_easy_encoder in lzma/container.h
+set(LIBLZMA_HAS_EASY_ENCODER ON)
+
+# Symbol: lzma_lzma_preset in lzma/lzma12.h
+set(LIBLZMA_HAS_LZMA_PRESET ON)
+
+string(REPLACE "." ";" LIBLZMA_VERSION_LIST ${LIBLZMA_VERSION})
+list(GET LIBLZMA_VERSION_LIST 0 LIBLZMA_VERSION_MAJOR)
+list(GET LIBLZMA_VERSION_LIST 1 LIBLZMA_VERSION_MINOR)
+list(GET LIBLZMA_VERSION_LIST 2 LIBLZMA_VERSION_PATCH)
+set(LIBLZMA_VERSION_TWEAK 0)
+
+set(LIBLZMA_INCLUDE_DIR "${LIBLZMA_INCLUDE_DIRS}" CACHE STRING "")
+set(LIBLZMA_LIBRARY "${LIBLZMA_LIBRARIES}" CACHE STRING "")
+set(LIBLZMA_FOUND 1)
+
+set(CMAKE_IMPORT_FILE_VERSION)
+cmake_policy(POP)

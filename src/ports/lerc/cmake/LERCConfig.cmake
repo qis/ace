@@ -1,0 +1,24 @@
+# LERC
+#
+#   find_package(LERC REQUIRED)
+#   target_link_libraries(main PRIVATE LERC::LERC)
+#
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.20)
+set(CMAKE_IMPORT_FILE_VERSION 1)
+
+set(LERC_VERSION_STRING ${LERC_VERSION})
+set(LERC_INCLUDE_DIRS)
+
+set(LERC_LIBRARIES LERC::LERC)
+
+include(AceImportLibrary)
+ace_import_library(LERC::LERC CXX NAMES lerc HEADERS Lerc_types.h
+  COMPILE_DEFINITIONS_SHARED LERC_IMPORTS)
+
+set(LERC_INCLUDE_DIR "${LERC_INCLUDE_DIRS}" CACHE STRING "")
+set(LERC_LIBRARY "${LERC_LIBRARIES}" CACHE STRING "")
+set(LERC_FOUND 1)
+
+set(CMAKE_IMPORT_FILE_VERSION)
+cmake_policy(POP)

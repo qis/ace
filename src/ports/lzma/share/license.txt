@@ -1,0 +1,16 @@
+============================================================================
+LZMA
+============================================================================
+
+The LZMA library is in the public domain.
+
+The LZMA library is part of the XZ Utils project, which is developed and
+maintained by Lasse Collin <lasse.collin@tukaani.org>.
+
+Major parts of the LZMA library are based on code written by Igor Pavlov,
+specifically the LZMA SDK <http://7-zip.org/sdk.html>.
+
+The SHA-256 implementation in the LZMA library is based on the code found
+in 7-Zip <http://7-zip.org/>, which has a modified version of the SHA-256
+code found from Crypto++ <http://www.cryptopp.com/>. The SHA-256 code
+in Crypto++ was written by Kevin Springle and Wei Dai.

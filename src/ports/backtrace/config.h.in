@@ -1,0 +1,91 @@
+#pragma once
+
+// ELF size: 32 or 64
+#define BACKTRACE_ELF_SIZE @BACKTRACE_ELF_SIZE@
+
+// XCOFF size: 32 or 64
+#define BACKTRACE_XCOFF_SIZE @BACKTRACE_XCOFF_SIZE@
+
+// Define to 1 if you have the __atomic functions.
+#cmakedefine HAVE_ATOMIC_FUNCTIONS @HAVE_ATOMIC_FUNCTIONS@
+
+// Define to 1 if you have the `clock_gettime' function.
+#cmakedefine HAVE_CLOCK_GETTIME @HAVE_CLOCK_GETTIME@
+
+// Define to 1 if you have the declaration of `getpagesize', and to 0 if you don't.
+#cmakedefine HAVE_DECL_GETPAGESIZE @HAVE_DECL_GETPAGESIZE@
+
+// Define to 1 if you have the declaration of `strnlen', and to 0 if you don't.
+#cmakedefine HAVE_DECL_STRNLEN @HAVE_DECL_STRNLEN@
+
+// Define to 1 if you have the <dlfcn.h> header file.
+#cmakedefine HAVE_DLFCN_H @HAVE_DLFCN_H@
+
+// Define if dl_iterate_phdr is available.
+#cmakedefine HAVE_DL_ITERATE_PHDR
+
+// Define to 1 if you have the fcntl function.
+#cmakedefine HAVE_FCNTL @HAVE_FCNTL@
+
+// Define if _Unwind_GetIPInfo is available.
+#cmakedefine HAVE_GETIPINFO
+
+// Define to 1 if you have the <inttypes.h> header file.
+#cmakedefine HAVE_INTTYPES_H @HAVE_INTTYPES_H@
+
+// Define to 1 if you have KERN_PROC and KERN_PROC_PATHNAME in <sys/sysctl.h>.
+#cmakedefine HAVE_KERN_PROC @HAVE_KERN_PROC@
+
+// Define if -llzma is available (replaced with 'lzma' port).
+#cmakedefine HAVE_LIBLZMA
+
+// Define to 1 if you have the <link.h> header file.
+#cmakedefine HAVE_LINK_H @HAVE_LINK_H@
+
+// Define to 1 if you have the `lstat' function.
+#cmakedefine HAVE_LSTAT @HAVE_LSTAT@
+
+// Define to 1 if you have the <memory.h> header file.
+#cmakedefine HAVE_MEMORY_H @HAVE_MEMORY_H@
+
+// Define to 1 if you have the `readlink' function.
+#cmakedefine HAVE_READLINK @HAVE_READLINK@
+
+// Define to 1 if you have the <stdint.h> header file.
+#cmakedefine HAVE_STDINT_H @HAVE_STDINT_H@
+
+// Define to 1 if you have the <stdlib.h> header file.
+#cmakedefine HAVE_STDLIB_H @HAVE_STDLIB_H@
+
+// Define to 1 if you have the <strings.h> header file.
+#cmakedefine HAVE_STRINGS_H @HAVE_STRINGS_H@
+
+// Define to 1 if you have the <string.h> header file.
+#cmakedefine HAVE_STRING_H @HAVE_STRING_H@
+
+// Define to 1 if you have the __sync functions
+#cmakedefine HAVE_SYNC_FUNCTIONS @HAVE_SYNC_FUNCTIONS@
+
+// Define to 1 if you have the <sys/ldr.h> header file.
+#cmakedefine HAVE_SYS_LDR_H @HAVE_SYS_LDR_H@
+
+// Define to 1 if you have the <sys/mman.h> header file.
+#cmakedefine HAVE_SYS_MMAN_H @HAVE_SYS_MMAN_H@
+
+// Define to 1 if you have the <sys/stat.h> header file.
+#cmakedefine HAVE_SYS_STAT_H @HAVE_SYS_STAT_H@
+
+// Define to 1 if you have the <sys/types.h> header file.
+#cmakedefine HAVE_SYS_TYPES_H @HAVE_SYS_TYPES_H@
+
+// Define to 1 if you have the <unistd.h> header file.
+#cmakedefine HAVE_UNISTD_H @HAVE_UNISTD_H@
+
+// Define if -lz is available (replaced with 'zlib' port).
+#cmakedefine HAVE_ZLIB
+
+// Define to 1 if you have the ANSI C header files.
+#cmakedefine STDC_HEADERS @STDC_HEADERS@
+
+// Number of bits in a file offset, on hosts where this is settable.
+#cmakedefine _FILE_OFFSET_BITS @_FILE_OFFSET_BITS@

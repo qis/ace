@@ -1,0 +1,13 @@
+diff --git i/include/editline.h w/include/editline.h
+index 7ae8810..b32e2df 100644
+--- i/include/editline.h
++++ w/include/editline.h
+@@ -21,6 +21,8 @@
+ #ifndef EDITLINE_H_
+ #define EDITLINE_H_
+ 
++#include <stdio.h>
++
+ /* Handy macros when binding keys. */
+ #define CTL(x)          ((x) & 0x1F)
+ #define ISCTL(x)        ((x) && (x) < ' ')

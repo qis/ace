@@ -1,0 +1,37 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index fe20f2d..ba31286 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -100,8 +100,6 @@ target_include_directories(ogg PUBLIC
+ 
+ set_target_properties(
+     ogg PROPERTIES
+-    SOVERSION ${LIB_SOVERSION}
+-    VERSION ${LIB_VERSION}
+     PUBLIC_HEADER "${OGG_HEADERS}"
+ )
+ 
+@@ -119,11 +117,21 @@ endif()
+ 
+ configure_pkg_config_file(ogg.pc.in)
+ 
++if(BUILD_SHARED_LIBS)
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++  set_target_properties(ogg PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++else()
++  set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++  set_target_properties(ogg PROPERTIES
++    MSVC_RUNTIME_LIBRARY MultiThreaded)
++endif()
++
+ install(TARGETS ogg
+     EXPORT OggTargets
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}
+     FRAMEWORK DESTINATION ${CMAKE_INSTALL_PREFIX}
+     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ogg
+ )

@@ -1,0 +1,84 @@
+diff --git i/asmjit/CMakeLists.txt w/asmjit/CMakeLists.txt
+index 5d4648e..20588c4 100644
+--- i/asmjit/CMakeLists.txt
++++ w/asmjit/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
++cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+ 
+ cmake_policy(PUSH)
+ 
+@@ -203,7 +203,7 @@ if (NOT ASMJIT_NO_CUSTOM_FLAGS)
+       -Zc:inline               # [+] Remove unreferenced COMDAT.
+       -Zc:strictStrings        # [+] Strict const qualification of string literals.
+       -Zc:threadSafeInit-      # [-] Thread-safe statics.
+-      -W4)                     # [+] Warning level 4.
++      )  #-W4)                 # [+] Warning level 4.
+ 
+     list(APPEND ASMJIT_PRIVATE_CFLAGS_DBG
+       -GS)                     # [+] Buffer security-check.
+@@ -213,7 +213,6 @@ if (NOT ASMJIT_NO_CUSTOM_FLAGS)
+       -O2                      # [+] Favor speed over size.
+       -Oi)                     # [+] Generate intrinsic functions.
+   elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
+-    list(APPEND ASMJIT_PRIVATE_CFLAGS -Wall -Wextra -Wconversion)
+     list(APPEND ASMJIT_PRIVATE_CFLAGS -fno-math-errno)
+     list(APPEND ASMJIT_PRIVATE_CFLAGS_REL -O2)
+ 
+diff --git i/blend2d/CMakeLists.txt w/blend2d/CMakeLists.txt
+index 3cb7c8b..9134843 100644
+--- i/blend2d/CMakeLists.txt
++++ w/blend2d/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
++cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+ 
+ cmake_policy(PUSH)
+ 
+@@ -174,7 +174,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" ST
+     -Zc:strictStrings        # [+] Strict const qualification of string literals.
+     -Zc:threadSafeInit-      # [-] Thread-safe statics.
+     -volatile:iso            # [+] Volatile loads and stores have standard semantics.
+-    -W4)                     # [+] Warning level 4.
++    )  #-W4)                 # [+] Warning level 4.
+ 
+   list(APPEND BLEND2D_PRIVATE_CFLAGS_DBG
+     -GS)                     # [+] Buffer security-check.
+@@ -188,7 +188,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" ST
+     list(APPEND BLEND2D_PRIVATE_CFLAGS -clang:-fno-rtti -clang:-fno-math-errno -clang:-fno-trapping-math)
+   endif()
+ elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
+-  list(APPEND BLEND2D_PRIVATE_CFLAGS -Wall -Wextra)
+   list(APPEND BLEND2D_PRIVATE_CFLAGS -fno-exceptions -fno-rtti -fno-math-errno)
+   list(APPEND BLEND2D_PRIVATE_CFLAGS_REL -O2)
+ 
+@@ -780,17 +779,24 @@ if (NOT BLEND2D_EMBED)
+   # TODO: [CMAKE] Deprecated alias - we use projectname::libraryname convention now.
+   add_library(Blend2D::Blend2D ALIAS blend2d)
+ 
++  if(BUILD_SHARED_LIBS)
++    set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/shared>)
++    set_target_properties(blend2d PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
++  else()
++    set(INSTALL_LIBDIR_SUFFIX $<$<PLATFORM_ID:Windows>:/static>)
++    set_target_properties(blend2d PROPERTIES
++      MSVC_RUNTIME_LIBRARY MultiThreaded)
++  endif()
++
+   # Add Blend2D install instructions (library and public headers).
+   if (NOT BLEND2D_NO_INSTALL)
+     install(TARGETS blend2d
+             EXPORT blend2d-config
+             RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+-            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+-            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
++            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}"
++            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}${INSTALL_LIBDIR_SUFFIX}"
+             INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+-    install(EXPORT blend2d-config
+-            NAMESPACE blend2d::
+-            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/blend2d")
+ 
+     foreach(_src_file ${BLEND2D_SRC_LIST})
+       if ("${_src_file}" MATCHES "\\.h$" AND NOT "${_src_file}" MATCHES "_p\\.h$")

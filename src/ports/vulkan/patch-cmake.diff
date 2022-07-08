@@ -1,0 +1,30 @@
+diff --git i/shaderc/libshaderc/CMakeLists.txt w/shaderc/libshaderc/CMakeLists.txt
+index 3ada419..6bf3cd7 100644
+--- i/shaderc/libshaderc/CMakeLists.txt
++++ w/shaderc/libshaderc/CMakeLists.txt
+@@ -93,8 +93,6 @@ shaderc_add_tests(
+     shaderc_cpp
+     shaderc_private)
+ 
+-shaderc_combine_static_lib(shaderc_combined shaderc)
+-
+ if(SHADERC_ENABLE_INSTALL)
+   # Since shaderc_combined is defined as an imported library, we cannot use the
+   # install() directive to install it. Install it like a normal file.
+@@ -112,16 +110,6 @@ if(SHADERC_ENABLE_INSTALL)
+   endif()
+ endif(SHADERC_ENABLE_INSTALL)
+ 
+-shaderc_add_tests(
+-  TEST_PREFIX shaderc_combined
+-  LINK_LIBS shaderc_combined ${CMAKE_THREAD_LIBS_INIT}
+-  INCLUDE_DIRS include ${shaderc_SOURCE_DIR}/libshaderc_util/include ${glslang_SOURCE_DIR}
+-               ${spirv-tools_SOURCE_DIR}/include
+-               ${SPIRV-Headers_SOURCE_DIR}/include
+-  TEST_NAMES
+-    shaderc
+-    shaderc_cpp)
+-
+ if(${SHADERC_ENABLE_TESTS})
+   add_executable(shaderc_c_smoke_test ./src/shaderc_c_smoke_test.c)
+   shaderc_default_c_compile_options(shaderc_c_smoke_test)
