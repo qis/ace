@@ -1,4 +1,8 @@
 # Ace
+if(ACE_TOOLCHAIN_LOADED)
+  return()
+endif()
+set(ACE_TOOLCHAIN_LOADED ON CACHE STRING "")
 get_filename_component(ACE "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE CACHE)
 
 # Target
@@ -51,7 +55,14 @@ set(CMAKE_CXX_COMPILER_WORKS ON CACHE BOOL "")
 set(CMAKE_ASM_COMPILER_WORKS ON CACHE BOOL "")
 
 # Target Toolchain
-include("${ACE}/sys/${ACE_TARGET}.cmake")
+if(ACE_USE_VISUAL_STUDIO AND ACE_TARGET STREQUAL "x86_64-pc-windows-msvc")
+  set(ACE_SYSTEM_TOOLCHAIN_FILE "${ACE}/sys/x86_64-pc-windows-msvc-vs.cmake" CACHE PATH "")
+else()
+  set(ACE_SYSTEM_TOOLCHAIN_FILE "${ACE}/sys/${ACE_TARGET}.cmake" CACHE PATH "")
+endif()
+
+message(STATUS "System toolchain file: ${ACE_SYSTEM_TOOLCHAIN_FILE}")
+include(${ACE_SYSTEM_TOOLCHAIN_FILE})
 
 # Cache
 if(ACE_ENABLE_CCACHE)
