@@ -14,7 +14,7 @@ set(EDITLINE_LIBRARIES Editline::Editline)
 
 find_library(EDITLINE_LIBRARY
   NAMES libedit.a
-  PATHS ${ACE_SYSTEM_ROOT}/lib
+  PATHS ${ACE_TARGET_ROOT}/lib
   NO_DEFAULT_PATH NO_CACHE REQUIRED)
 
 add_library(Editline::Editline STATIC IMPORTED)
