@@ -22,8 +22,9 @@ endif
 
 PARALLEL_LINK_JOBS ?= 2
 
-LLVM_VER := 14.0.4
-LLVM_URL := https://github.com/llvm/llvm-project/releases/download/llvmorg-$(LLVM_VER)
+LLVM_VER := 14.0.6
+LLVM_GIT := https://github.com/llvm/llvm-project
+LLVM_URL := $(LLVM_GIT)/releases/download/llvmorg-$(LLVM_VER)
 LLVM_SRC := $(LLVM_URL)/llvm-project-$(LLVM_VER).src.tar.xz
 
 YASM_VER := 1.3.0
@@ -129,7 +130,7 @@ reset/bin:
 endif
 
 reset: clean/src
-	@cmake -E remove_directory build lib src/llvm sys/wasm32-wasi \
+	@cmake -E remove_directory build lib sys/wasm32-wasi \
 	  sys/x86_64-pc-linux-gnu sys/x86_64-pc-windows-msvc
 	@$(MAKE) reset/bin
 

@@ -35,7 +35,7 @@ build/llvm.tar.xz:
 	@wget -c -nc -q --show-progress --no-use-server-timestamps \
 	  "$(LLVM_SRC)" -O $@ || (rm -f $@; false)
 
-src/llvm: build/llvm.tar.xz
+build/llvm: build/llvm.tar.xz
 	@mkdir -p $@
 	@tar xf $< -C $@ -m --strip-components=1 || (rm -rf $@; false)
 
@@ -70,7 +70,7 @@ dev: build/vlls.tar.gz build/nvim.tar.gz
 #  \__\___/ \___/|_|___/ _______________________________________________________________________
 #
 
-build/stage/build.ninja: src/llvm
+build/stage/build.ninja: build/llvm
 	@echo "Configuring stage ..." 1>&2
 	@cmake -GNinja -Wno-dev \
 	  -DCMAKE_BUILD_TYPE=Release \
@@ -116,7 +116,7 @@ build/stage/build.ninja: src/llvm
 	  -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
 	  -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
 	  -DLIBCXX_USE_COMPILER_RT=ON \
-	  -B build/stage src/llvm/llvm
+	  -B build/stage build/llvm/llvm
 
 build/stage/bin/clang: build/stage/build.ninja
 	@echo "Building stage ..." 1>&2
@@ -201,7 +201,7 @@ build/tools/build.ninja:
 	  -DLUA_INCLUDE_DIR="$(CURDIR)/build/usr/include/lua" \
 	  -DLUA_LIBRARIES="$(CURDIR)/build/usr/lib/liblua.a" \
 	  -DDEFAULT_SYSROOT="../sys/$(TARGET)" \
-	  -B build/tools src/llvm/llvm
+	  -B build/tools build/llvm/llvm
 
 bin/clang: build/tools/build.ninja
 	@echo "Installing tools ..." 1>&2
@@ -412,7 +412,7 @@ build/builtins/build.ninja:
 	  -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
 	  -DCOMPILER_RT_EXCLUDE_ATOMIC_BUILTIN=OFF \
 	  -DCOMPILER_RT_INCLUDE_TESTS=OFF \
-	  -B build/builtins src/llvm/compiler-rt/lib/builtins
+	  -B build/builtins build/llvm/compiler-rt/lib/builtins
 
 lib/clang/$(LLVM_VER)/lib/$(TARGET)/libclang_rt.builtins.a: build/builtins/build.ninja
 	@echo "Installing builtins ..." 1>&2
@@ -428,7 +428,7 @@ builtins: lib/clang/$(LLVM_VER)/lib/$(TARGET)/libclang_rt.builtins.a
 
 build/runtimes/build.ninja:
 	@echo "Patching runtimes ..." 1>&2
-	@sed -E 's/$(LIBCXX_CMAKE_MATCH)/$(LIBCXX_CMAKE_SUBST)/g' -i src/llvm/libcxx/CMakeLists.txt
+	@sed -E 's/$(LIBCXX_CMAKE_MATCH)/$(LIBCXX_CMAKE_SUBST)/g' -i build/llvm/libcxx/CMakeLists.txt
 	@echo "Configuring runtimes ..." 1>&2
 	@cmake -GNinja -Wno-dev \
 	  -DCMAKE_BUILD_TYPE=Release \
@@ -462,7 +462,7 @@ build/runtimes/build.ninja:
 	  -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
 	  -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
 	  -DLIBCXX_USE_COMPILER_RT=ON \
-	  -B build/runtimes src/llvm/runtimes
+	  -B build/runtimes build/llvm/runtimes
 
 sys/$(TARGET)/usr/include/c++: build/runtimes/build.ninja
 	@echo "Building runtimes ..." 1>&2
@@ -512,7 +512,7 @@ build/compiler-rt/build.ninja:
 	  -DCOMPILER_RT_BUILD_XRAY=ON \
 	  -DCOMPILER_RT_HAS_NODEFAULTLIBS_FLAG=OFF \
 	  -DCOMPILER_RT_HAS_NOSTDLIBXX_FLAG=OFF \
-	  -B build/compiler-rt src/llvm/runtimes
+	  -B build/compiler-rt build/llvm/runtimes
 
 lib/clang/$(LLVM_VER)/lib/$(TARGET)/libclang_rt.profile.a: build/compiler-rt/build.ninja
 	@echo "Installing compiler-rt ..." 1>&2
@@ -543,7 +543,7 @@ build/pstl/build.ninja:
 	  -DLLVM_INCLUDE_TESTS=OFF \
 	  -DLLVM_INCLUDE_DOCS=OFF \
 	  -DPSTL_PARALLEL_BACKEND="serial" \
-	  -B build/pstl src/llvm/runtimes
+	  -B build/pstl build/llvm/runtimes
 
 sys/$(TARGET)/usr/include/c++/v1/pstl: build/pstl/build.ninja
 	@echo "Installing pstl ..." 1>&2

@@ -45,7 +45,7 @@ build/llvm.tar.xz:
 build/llvm.tar: build/llvm.tar.xz
 	@7z -obuild x $<
 
-src/llvm: build/llvm.tar
+build/llvm: build/llvm.tar
 	@cmake -E make_directory $@
 	@tar xf $< -C $@ -m --strip-components=1
 
@@ -152,7 +152,7 @@ lua: build/usr/include/lua/lua.h
 
 # CMAKE_RC_FLAGS - disables duplicated /nologo flag
 
-build/tools/build.ninja: src/llvm
+build/tools/build.ninja: build/llvm
 	@cmake -E echo "Configuring tools ..." 1>&2
 	@cmake -E env \
 	 PATH="$(SYSTEM);$(PATH)" \
@@ -193,7 +193,7 @@ build/tools/build.ninja: src/llvm
 	  -DLUA_INCLUDE_DIR="$(CURDIR)/build/usr/include/lua" \
 	  -DLUA_LIBRARIES="$(CURDIR)/build/usr/lib/static/lua.lib" \
 	  -DDEFAULT_SYSROOT="../sys/$(TARGET)" \
-	  -B build/tools src/llvm/llvm
+	  -B build/tools build/llvm/llvm
 
 bin/clang.exe: build/tools/build.ninja
 	@cmake -E echo "Installing tools ..." 1>&2
@@ -288,7 +288,7 @@ build/compiler-rt/build.ninja:
 	  -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
 	  -DCOMPILER_RT_BUILD_PROFILE=ON \
 	  -DCOMPILER_RT_BUILD_XRAY=ON \
-	  -B build/compiler-rt src/llvm/runtimes
+	  -B build/compiler-rt build/llvm/runtimes
 
 win/crt/lib/clang_rt.profile.lib: build/compiler-rt/build.ninja
 	@cmake -E echo "Installing compiler-rt ..." 1>&2

@@ -215,7 +215,7 @@ apt update && apt upgrade -y && apt autoremove -y --purge
 # Install system packages.
 apt install -y --no-install-recommends \
   ca-certificates curl git openssh-client p7zip-full tzdata \
-  apt-file figlet file man-db manpages-dev strace tree vim wget \
+  apt-file figlet file man-db manpages-dev strace tree vim wget xz-utils \
   automake build-essential ninja-build patchelf pax-utils swig yasm \
   lib{ncurses,readline,edit,icu,lzma,xml2}-dev zlib1g-dev \
   libc6-dev-i386 python3{,-distutils,-lib2to3}
@@ -402,7 +402,7 @@ Install toolchain and runtime dependencies using the generated archives.
 # Install system packages.
 sudo apt install -y --no-install-recommends \
   ca-certificates curl dosfstools git openssh-client tzdata \
-  apt-file file man-db manpages-dev p7zip-full tree vim wget \
+  apt-file file man-db manpages-dev p7zip-full tree vim wget xz-utils \
   binutils elfutils make ninja-build patchelf pax-utils strace yasm
 
 # Update file database.
