@@ -68,7 +68,7 @@ build/builtins/wasm32-wasi/build.ninja:
 	  -DCOMPILER_RT_HAS_FPIC_FLAG=OFF \
 	  -DCOMPILER_RT_INCLUDE_TESTS=OFF \
 	  -DCOMPILER_RT_OS_DIR="wasi" \
-	  -B build/builtins/wasm32-wasi src/llvm/compiler-rt/lib/builtins
+	  -B build/builtins/wasm32-wasi build/llvm/compiler-rt/lib/builtins
 
 lib/clang/$(LLVM_VER)/lib/wasi/libclang_rt.builtins-wasm32.a: build/builtins/wasm32-wasi/build.ninja
 	@echo "Installing builtins ..." 1>&2
@@ -90,10 +90,10 @@ WASM_RTTI_SOURCES += cxa_exception.cpp
 
 build/web/runtimes/build.ninja:
 	@echo "Patching runtimes ..." 1>&2
-	@grep -q -- -frtti src/llvm/libcxxabi/src/CMakeLists.txt || \
+	@grep -q -- -frtti build/llvm/libcxxabi/src/CMakeLists.txt || \
 	  echo 'set_source_files_properties($(WASM_RTTI_SOURCES) PROPERTIES COMPILE_FLAGS -frtti)' >> \
-	  src/llvm/libcxxabi/src/CMakeLists.txt
-	@sed -E 's/$(LIBCXX_CMAKE_MATCH)/$(LIBCXX_CMAKE_SUBST)/g' -i src/llvm/libcxx/CMakeLists.txt
+	  build/llvm/libcxxabi/src/CMakeLists.txt
+	@sed -E 's/$(LIBCXX_CMAKE_MATCH)/$(LIBCXX_CMAKE_SUBST)/g' -i build/llvm/libcxx/CMakeLists.txt
 	@echo "Configuring runtimes ..." 1>&2
 	@cmake -GNinja -Wno-dev \
 	  -DACE_TARGET="$(TARGET)" \
@@ -145,7 +145,7 @@ build/web/runtimes/build.ninja:
 	  -DLIBCXX_LIBDIR_SUFFIX="/wasm32-wasi" \
 	  -DLIBCXX_USE_COMPILER_RT=ON \
 	  -DUNIX=ON \
-	  -B build/web/runtimes src/llvm/runtimes
+	  -B build/web/runtimes build/llvm/runtimes
 
 sys/$(TARGET)/lib/wasm32-wasi/libc++.a: build/web/runtimes/build.ninja
 	@echo "Building runtimes ..." 1>&2
@@ -172,7 +172,7 @@ build/web/pstl/build.ninja:
 	  -DLLVM_INCLUDE_DOCS=OFF \
 	  -DPSTL_PARALLEL_BACKEND="serial" \
 	  -DUNIX=ON \
-	  -B build/web/pstl src/llvm/runtimes
+	  -B build/web/pstl build/llvm/runtimes
 
 sys/$(TARGET)/include/c++/v1/pstl: build/web/pstl/build.ninja
 	@echo "Building pstl ..." 1>&2
