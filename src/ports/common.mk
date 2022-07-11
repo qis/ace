@@ -77,12 +77,16 @@ build/debug/build.ninja:
 
 ifneq ($(OS),Windows_NT)
 
+ifneq ($(DISABLE_CHECK),1)
+
 check: prepare
 	build/static/Debug/main
 	build/static/Release/main
 	build/static/MinSizeRel/main
 	build/static/RelWithDebInfo/main
 	build/shared/Release/main
+
+endif
 
 debug: build/debug/build.ninja
 	@cmake --build build/debug -v
