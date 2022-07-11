@@ -22,7 +22,7 @@ COMMON_CMAKE_OPTIONS := \
 	  -DCMAKE_BUILD_TYPE=Release \
 	  -DCMAKE_TOOLCHAIN_FILE="$(TOOLCHAIN)" \
 	  -DCMAKE_INSTALL_PREFIX="$(PREFIX)" \
-	  -DCMAKE_INSTALL_RPATH="\$$ORIGIN" \
+	  -DCMAKE_INSTALL_RPATH="\$$ORIGIN"
 
 build/shared/build.ninja: src/asmjit src/blend2d src/patch-cmake.diff
 	@cmake -E env \
