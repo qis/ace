@@ -113,6 +113,28 @@ clean/src: clean
 
 .PHONY: clean clean/src
 
+# __________________  _  __________________________________________________________________________
+#  _ __ ___  ___  ___| |_
+# | '__/ _ \/ __|/ _ \ __|
+# | | |  __/\__ \  __/ |_
+# |_|  \___||___/\___|\__| ________________________________________________________________________
+#
+
+ifneq ($(OS),Windows_NT)
+reset/bin:
+	@cmake -E remove_directory bin
+else
+reset/bin:
+	@cmd /C start /B cmd /C "cmake -E sleep 1 && cmake -E remove_directory bin"
+endif
+
+reset: clean/src
+	@cmake -E remove_directory build lib src/llvm sys/wasm32-wasi \
+	  sys/x86_64-pc-linux-gnu sys/x86_64-pc-windows-msvc
+	@$(MAKE) reset/bin
+
+.PHONY: reset
+
 # _____  _  _______________________________________________________________________________________
 #  _ __ | |__   ___  _ __  _   _
 # | '_ \| '_ \ / _ \| '_ \| | | |
