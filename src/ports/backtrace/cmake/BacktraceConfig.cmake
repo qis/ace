@@ -21,7 +21,7 @@ find_dependency(LibLZMA REQUIRED)
 
 find_library(Backtrace_LIBRARY
   NAMES libbacktrace.a
-  PATHS ${ACE_SYSTEM_ROOT}/lib
+  PATHS ${ACE_TARGET_ROOT}/lib
   NO_DEFAULT_PATH NO_CACHE REQUIRED)
 
 add_library(Backtrace::Backtrace STATIC IMPORTED)
