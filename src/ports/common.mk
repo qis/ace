@@ -100,12 +100,16 @@ run: build/debug/build.ninja
 
 else
 
+ifneq ($(DISABLE_CHECK),1)
+
 check: prepare
 	build\static\Debug\main.exe
 	build\static\Release\main.exe
 	build\static\MinSizeRel\main.exe
 	build\static\RelWithDebInfo\main.exe
 	build\shared\Release\main.exe
+
+endif
 
 debug: build/debug/build.ninja
 	@cmake --build build/debug -v
