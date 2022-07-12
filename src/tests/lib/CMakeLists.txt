@@ -33,10 +33,13 @@ target_link_libraries(main PRIVATE print)
 find_package(TBB REQUIRED)
 target_link_libraries(main PRIVATE TBB::tbb)
 
-set(PORTS tbb zlib bzip2 lz4 lzma brotli zstd icu xml2 ssl boost)
+set(PORTS lua luajit tbb benchmark gtest zlib bzip2 lz4 lzma brotli zstd icu xml2
+  ssl boost imath exr png jpeg webp lerc tiff ogg flac opus aom vulkan blend2d)
 
 if(UNIX)
-  list(APPEND PORTS backtrace)
+  list(APPEND PORTS editline backtrace)
+else()
+  list(APPEND PORTS wineditline)
 endif()
 
 include(AceCreateLicense)
