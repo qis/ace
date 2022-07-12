@@ -24,6 +24,10 @@ DIRECTORIES += tbb
 # https://github.com/google/benchmark
 DIRECTORIES += benchmark
 
+# Google Test
+# https://github.com/google/googletest
+DIRECTORIES += gtest
+
 # Zlib
 # https://zlib.net/
 DIRECTORIES += zlib
