@@ -17,6 +17,8 @@
 !/src/tests/.clang-tidy
 !/src/arch.cmake
 !/src/bash.sh
+!/src/build.cmd
+!/src/build.sh
 !/src/build.wsb
 !/src/stage.cmake
 !/src/*.mk

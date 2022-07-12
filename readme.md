@@ -276,28 +276,8 @@ git clone https://github.com/qis/ace /opt/ace
 # Enter project directory.
 cd /opt/ace
 
-# Create tools archive.
-make tools
-
-# Create clang-format archive.
-make clang-format
-
-# Create sysroot archive.
-make sys
-
-# Install ports.
-# make -C src/ports PORTS="tbb zlib ..." install
-make -C src/ports install
-
-# Check ports linkage.
-# make -C src/ports PORTS="tbb zlib ..." check
-make -C src/ports check
-
-# Create ports archive.
-make ports
-
-# Create WebAssembly sysroot archive.
-make TARGET=wasm32-wasi sys
+# Create archives.
+sh src/build.sh
 ```
 
 Copy generated archives to the host system.
@@ -377,31 +357,8 @@ git clone https://github.com/qis/ace C:\Ace
 rem Enter project directory.
 cd C:\Ace
 
-rem Bootstrap sysroot.
-cmake -P src/stage.cmake
-
-rem Create tools archive.
-make tools
-
-rem Create clang-format archive.
-make clang-format
-
-rem Create sysroot archive.
-make sys
-
-rem Register toolchain.
-set PATH=C:\Ace\sys\x86_64-pc-windows-msvc\bin;%PATH%
-
-rem Install ports.
-rem make -C src/ports PORTS="tbb zlib ..." install
-make -C src/ports install
-
-rem Check ports linkage.
-rem make -C src/ports PORTS="tbb zlib ..." check
-make -C src/ports check
-
-rem Create ports archive.
-make ports
+rem Create archives.
+src\build.cmd
 ```
 
 </details>
