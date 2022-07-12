@@ -318,7 +318,7 @@ copy "\\wsl$\Debian\opt\ace\sys-wasm32-wasi.tar.gz" sys-wasm32-wasi.tar.gz
 </details>
 
 ## Build: Windows
-Create a Windows VM or adjust the [src/tools.wsb](src/tools.wsb) file to build in a [Windows Sandbox][wsb].
+Create a Windows VM or adjust the [src/build.wsb](src/build.wsb) file to build in a [Windows Sandbox][wsb].
 
 Install tools and make sure that they are added to the `PATH` environment variable.
 
@@ -367,7 +367,7 @@ rem Enter project directory.
 cd C:\Ace
 
 rem Bootstrap sysroot.
-cmake -P src/tools.cmake
+cmake -P src/stage.cmake
 
 rem Create tools archive.
 make tools
