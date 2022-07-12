@@ -20,6 +20,10 @@ DIRECTORIES += luajit
 # https://oneapi-src.github.io/oneTBB/
 DIRECTORIES += tbb
 
+# Google Benchmark
+# https://github.com/google/benchmark
+DIRECTORIES += benchmark
+
 # Zlib
 # https://zlib.net/
 DIRECTORIES += zlib
@@ -143,7 +147,7 @@ DIRECTORIES += blend2d
 
 # ==========================================================================
 # Options
-# ========================================================================== 
+# ==========================================================================
 
 PORT ?= $(DIRECTORIES)
 PORTS ?= $(PORT)

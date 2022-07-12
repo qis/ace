@@ -1,0 +1,24 @@
+diff --git i/src/CMakeLists.txt w/src/CMakeLists.txt
+index e814a4e..72d60e1 100644
+--- i/src/CMakeLists.txt
++++ w/src/CMakeLists.txt
+@@ -109,19 +109,6 @@ if (BENCHMARK_ENABLE_INSTALL)
+     DIRECTORY "${PROJECT_SOURCE_DIR}/include/benchmark"
+     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+     FILES_MATCHING PATTERN "*.*h")
+-
+-  install(
+-      FILES "${project_config}" "${version_config}"
+-      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+-
+-  install(
+-      FILES "${pkg_config}"
+-      DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+-
+-  install(
+-      EXPORT "${targets_export_name}"
+-      NAMESPACE "${namespace}"
+-      DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+ endif()
+ 
+ if (BENCHMARK_ENABLE_DOXYGEN)
