@@ -49,6 +49,11 @@ LIBCXX_CMAKE_SUBST := set\(LIBCXX_COMPILE_FLAGS "$${LIBCXX_COMPILE_FLAGS_INIT}"\
 LIBCXX_CONFIG_MATCH := ^\s*\/\*\s*\#undef\s+_LIBCPP_HAS_PARALLEL_ALGORITHMS.*
 LIBCXX_CONFIG_SUBST := \#define _LIBCPP_HAS_PARALLEL_ALGORITHMS
 
+src/llvm:
+	@git clone -c advice.detachedHead=false \
+	  --depth 1 --recurse-submodules --shallow-submodules \
+	  $(LLVM_GIT) src/llvm
+
 include src/$(TARGET).mk
 
 #  _  ________  _  ________________________________________________________________________________

@@ -254,6 +254,58 @@ tools: stage yasm lua bin/clang.exe bin/wasm2js.exe bin/wasm-opt.exe bin/wasm-re
 
 .PHONY: tools
 
+# ____  _  ______________________  __  ________________________  _  _______________________________
+#   ___| | __ _ _ __   __ _       / _| ___  _ __ _ __ ___   __ _| |_
+#  / __| |/ _` | '_ \ / _` |_____| |_ / _ \| '__| '_ ` _ \ / _` | __|
+# | (__| | (_| | | | | (_| |_____|  _| (_) | |  | | | | | | (_| | |_
+#  \___|_|\__,_|_| |_|\__, |     |_|  \___/|_|  |_| |_| |_|\__,_|\__| _____________________________
+#                     |___/
+
+build/clang-format/build.ninja: src/llvm
+	@cmake -E echo "Configuring clang-format ..." 1>&2
+	@cmake -E env \
+	 PATH="$(SYSTEM);$(PATH)" \
+	 INCLUDE="$(INCLUDE)" \
+	 LIBPATH="$(LIBPATH)" \
+	 CFLAGS="/DLIBXML_STATIC /DLZMA_API_STATIC /DLIBCHARSET_DLL_EXPORTED=" \
+	 CXXFLAGS="/DLIBXML_STATIC /DLZMA_API_STATIC /DLIBCHARSET_DLL_EXPORTED=" \
+	 cmake -GNinja -Wno-dev \
+	  -DCMAKE_BUILD_TYPE=Release \
+	  -DCMAKE_RC_FLAGS="-DWIN32" \
+	  -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
+	  -DCMAKE_SYSTEM_PROGRAM_PATH="$(SYSTEM)" \
+	  -DCMAKE_SYSTEM_INCLUDE_PATH="$(INCLUDE)" \
+	  -DCMAKE_SYSTEM_LIBRARY_PATH="$(LIBPATH)" \
+	  -DCMAKE_TOOLCHAIN_FILE="$(CURDIR)/toolchain.cmake" \
+	  -DCMAKE_INSTALL_PREFIX="$(CURDIR)" \
+	  -DCMAKE_INSTALL_DATAROOTDIR="$(CURDIR)/build/share" \
+	  -DLLVM_ENABLE_PROJECTS="clang" \
+	  -DLLVM_ENABLE_BINDINGS=OFF \
+	  -DLLVM_ENABLE_DOXYGEN=OFF \
+	  -DLLVM_ENABLE_WARNINGS=OFF \
+	  -DLLVM_INCLUDE_BENCHMARKS=OFF \
+	  -DLLVM_INCLUDE_EXAMPLES=OFF \
+	  -DLLVM_INCLUDE_TESTS=OFF \
+	  -DLLVM_INCLUDE_DOCS=OFF \
+	  -DLLVM_TARGETS_TO_BUILD="X86" \
+	  -DCLANG_DEFAULT_STD_C="c11" \
+	  -DCLANG_DEFAULT_STD_CXX="cxx20" \
+	  -B build/clang-format src/llvm/llvm
+
+clang-format: build/clang-format/build.ninja
+	@cmake -E echo "Installing clang-format ..." 1>&2
+	@cmake -E env \
+	 PATH="$(SYSTEM);$(PATH)" \
+	 INCLUDE="$(INCLUDE)" \
+	 LIBPATH="$(LIBPATH)" \
+	 ninja -C build/clang-format \
+	  install-clang-format-stripped
+	@cmake -E remove -f bin/git-clang-format
+	@cmake -E echo "Creating clang-format-windows.tar.gz ..." 1>&2
+	@tar czf clang-format-windows.tar.gz bin/clang-format.exe
+
+.PHONY: clang-format
+
 #  ___ _   _ ___  _________________________________________________________________________________
 # / __| | | / __|
 # \__ \ |_| \__ \
