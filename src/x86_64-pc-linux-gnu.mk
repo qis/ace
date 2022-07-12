@@ -314,8 +314,8 @@ clang-format: build/clang-format/build.ninja
 	@ninja -C build/clang-format \
 	  install-clang-format-stripped
 	@rm -f bin/git-clang-format
-	@echo "Creating clang-format-linux.tar.gz ..." 1>&2
-	@tar czf clang-format-linux.tar.gz bin/clang-format
+	@echo "Creating tools-linux-clang-format.tar.gz ..." 1>&2
+	@tar czf tools-linux-clang-format.tar.gz bin/clang-format
 
 .PHONY: clang-format
 

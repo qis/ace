@@ -301,8 +301,8 @@ clang-format: build/clang-format/build.ninja
 	 ninja -C build/clang-format \
 	  install-clang-format-stripped
 	@cmake -E remove -f bin/git-clang-format
-	@cmake -E echo "Creating clang-format-windows.tar.gz ..." 1>&2
-	@tar czf clang-format-windows.tar.gz bin/clang-format.exe
+	@cmake -E echo "Creating tools-windows-clang-format.tar.gz ..." 1>&2
+	@tar czf tools-windows-clang-format.tar.gz bin/clang-format.exe
 
 .PHONY: clang-format
 
