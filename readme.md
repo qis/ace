@@ -31,8 +31,11 @@ This project aims to provide the following benefits:
    be disabled by configuring a project with `-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF`.
 
    All libraries and user projects are compiled with `-march=x86-64-v3`. This can be changed
-   by editing [sys/x86_64-pc-linux-gnu.cmake][lcm] and [sys/x86_64-pc-windows-msvc.cmake][wcm]
-   before building any ports or sysroot libraries.
+   by editing the target toolchain files before building any sysroot or ports libraries.
+
+   - [sys/x86_64-pc-linux-gnu.cmake](sys/x86_64-pc-linux-gnu.cmake)
+   - [sys/x86_64-pc-windows-msvc.cmake](sys/x86_64-pc-windows-msvc.cmake)
+   - [sys/x86_64-pc-windows-msvc-vs.cmake](sys/x86_64-pc-windows-msvc-vs.cmake)
 
 4. **Portability**
 
@@ -662,8 +665,6 @@ Project configuration file of Visual Studio.
 </details>
 
 [lto]: https://clang.llvm.org/docs/ThinLTO.html
-[lcm]: sys/x86_64-pc-linux-gnu.cmake
-[wcm]: sys/x86_64-pc-windows-msvc.cmake
 [abi]: https://abi-laboratory.pro/?view=timeline&l=glibc
 [lts]: https://www.kernel.org/category/releases.html
 [wsl]: https://docs.microsoft.com/en-us/windows/wsl/
