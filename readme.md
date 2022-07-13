@@ -377,9 +377,10 @@ Install toolchain and runtime dependencies using the generated archives.
 ```sh
 # Install system packages.
 sudo apt install -y --no-install-recommends \
-  ca-certificates curl dosfstools git openssh-client tzdata xz-utils \
-  apt-file file man-db manpages-dev nodejs npm p7zip-full tree vim wget \
-  binutils elfutils make ninja-build patchelf pax-utils strace yasm
+  ca-certificates curl dosfstools git openssh-client tzdata \
+  apt-file file man-db manpages-dev p7zip-full tree vim wget xz-utils \
+  binutils elfutils make ninja-build patchelf pax-utils strace yasm \
+  nodejs npm python3 python3-pip
 
 # Update file database.
 sudo apt-file update
@@ -418,6 +419,10 @@ sudo chmod 0755 /etc/profile.d/npm.sh
 npm install -g typescript typescript-language-server eslint prettier terser
 npm install -g rollup @rollup/plugin-typescript rollup-plugin-terser
 npm install -g rollup-plugin-serve rollup-plugin-livereload
+
+# Install neovim packages (optional).
+npm install -g neovim
+pip install neovim
 
 # Configure git (optional).
 git config --global core.eol lf
@@ -486,6 +491,7 @@ Install tools and make sure that they are added to the `PATH` environment variab
 * [7-Zip][p7z]
 * [CMake][cmk]
 * [Node.js][njs]
+* [Python 3][py3]
 * [Microsoft Visual C++ Redistributable][vcr]
 
 Install [Git][git] and select the following options during setup:
@@ -510,6 +516,10 @@ rem Install npm packages (optional).
 npm install -g typescript typescript-language-server eslint prettier terser
 npm install -g rollup @rollup/plugin-typescript rollup-plugin-terser
 npm install -g rollup-plugin-serve rollup-plugin-livereload
+
+rem Install neovim packages (optional).
+npm install -g neovim
+pip install neovim
 
 rem Configure git (optional).
 git config --global core.eol lf
