@@ -561,137 +561,11 @@ Windows runtime dependencies for binaries compiled with this toolchain in **Rele
 
 Ports libraries are only required if `BUILD_SHARED_LIBS` was enabled during configuration.
 
-## Visual Studio
-Project configuration file of Visual Studio.
+## Usage
+Use a [CMakePresets.json](cmp) file to configure projects in Visual Studio and VS Code.
 
-<details>
-<summary>CMakePresets.json</summary>
-
-```json
-{
-  "version": 3,
-  "configurePresets": [
-    {
-      "name": "base",
-      "hidden": true,
-      "generator": "Ninja",
-      "installDir": "${sourceDir}/install",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      }
-    },
-    {
-      "name": "llvm",
-      "hidden": true,
-      "inherits": "base",
-      "binaryDir": "${sourceDir}/build/vs/${presetName}",
-      "cmakeExecutable": "C:/Program Files/CMake/bin/cmake.exe",
-      "toolchainFile": "C:/Ace/toolchain.cmake",
-      "cacheVariables": {
-        "CMAKE_MAKE_PROGRAM": "C:/Ace/bin/ninja.exe"
-      },
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Windows"
-      }
-    },
-    {
-      "name": "msvc",
-      "hidden": true,
-      "inherits": "llvm",
-      "cacheVariables": {
-        "ACE_USE_VISUAL_STUDIO": true
-      }
-    },
-    {
-      "name": "msvc-debug",
-      "inherits": "msvc",
-      "displayName": "MSVC Debug",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "msvc-release",
-      "inherits": "msvc",
-      "displayName": "MSVC Release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "msvc-release-shared",
-      "inherits": "msvc",
-      "displayName": "MSVC Release (Shared)",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_SHARED_LIBS": true
-      }
-    },
-    {
-      "name": "msvc-minsizerel",
-      "inherits": "msvc",
-      "displayName": "MSVC MinSizeRel",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "MinSizeRel"
-      }
-    },
-    {
-      "name": "msvc-relwithdebinfo",
-      "inherits": "msvc",
-      "displayName": "MSVC RelWithDebInfo",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    },
-    {
-      "name": "llvm-debug",
-      "inherits": "llvm",
-      "displayName": "LLVM Debug",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
-      }
-    },
-    {
-      "name": "llvm-release",
-      "inherits": "llvm",
-      "displayName": "LLVM Release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "llvm-release-shared",
-      "inherits": "llvm",
-      "displayName": "LLVM Release (Shared)",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_SHARED_LIBS": true
-      }
-    },
-    {
-      "name": "llvm-minsizerel",
-      "inherits": "llvm",
-      "displayName": "LLVM MinSizeRel",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "MinSizeRel"
-      }
-    },
-    {
-      "name": "llvm-relwithdebinfo",
-      "inherits": "llvm",
-      "displayName": "LLVM RelWithDebInfo",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-      }
-    }
-  ]
-}
-```
-
-</details>
+* [`src/tests/lib/CMakePresets.json`](src/tests/lib/CMakePresets.json) (Linux and Windows)
+* [`src/tests/web/CMakePresets.json`](src/tests/web/CMakePresets.json) (WebAssembly)
 
 [lto]: https://clang.llvm.org/docs/ThinLTO.html
 [abi]: https://abi-laboratory.pro/?view=timeline&l=glibc
@@ -706,3 +580,4 @@ Project configuration file of Visual Studio.
 [git]: https://git-scm.com/download/win
 [vsc]: https://visualstudio.microsoft.com/downloads/
 [vcr]: https://aka.ms/vs/17/release/vc_redist.x64.exe
+[cmp]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
