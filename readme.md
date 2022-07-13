@@ -562,7 +562,7 @@ Windows runtime dependencies for binaries compiled with this toolchain in **Rele
 Ports libraries are only required if `BUILD_SHARED_LIBS` was enabled during configuration.
 
 ## Usage
-Use a [CMakePresets.json](cmp) file to configure projects in Visual Studio and VS Code.
+Use a [CMakePresets.json][cmp] file to configure projects in Visual Studio and VS Code.
 
 * [`src/tests/lib/CMakePresets.json`](src/tests/lib/CMakePresets.json) (Linux and Windows)
 * [`src/tests/web/CMakePresets.json`](src/tests/web/CMakePresets.json) (WebAssembly)
