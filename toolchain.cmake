@@ -1,7 +1,4 @@
 # Ace
-if(ACE_TOOLCHAIN_LOADED)
-  return()
-endif()
 get_filename_component(ACE "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE CACHE)
 
 # Target
@@ -70,6 +67,3 @@ if(ACE_ENABLE_CCACHE)
   set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE} CACHE PATH "")
   unset(CCACHE)
 endif()
-
-# Visual Studio Include Guard
-set(ACE_TOOLCHAIN_LOADED ON CACHE STRING "")
