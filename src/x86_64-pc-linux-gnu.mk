@@ -621,6 +621,10 @@ sys: sysroot builtins runtimes compiler-rt pstl
 # |_|
 
 ports:
+	@cmake -E echo "Installing ports ..." 1>&2
+	@make -C src/ports install
+	@cmake -E echo "Checking ports likage ..." 1>&2
+	@make -C src/ports check
 	@cmake -E echo "Creating sys-$(TARGET)-ports.tar.gz ..." 1>&2
 	@cmake -E make_directory \
 	  sys/$(TARGET)/cmake \

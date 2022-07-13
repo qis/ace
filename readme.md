@@ -363,26 +363,8 @@ cd C:\Ace
 rem Bootstrap sysroot.
 cmake -P src/stage.cmake
 
-rem Create tools archive.
-make tools
-
-rem Create clang-format archive.
-make clang-format
-
-rem Create sysroot archive.
-make sys
-
-rem Register toolchain.
-set PATH=C:\Ace\sys\x86_64-pc-windows-msvc\bin;%PATH%
-
-rem Install ports.
-make -C src/ports install
-
-rem Check ports linkage.
-make -C src/ports check
-
-rem Create ports archive.
-make ports
+rem Create archives.
+src\build.cmd
 ```
 
 Copy generated archives to the host system.

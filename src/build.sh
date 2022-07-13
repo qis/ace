@@ -11,12 +11,6 @@ make clang-format
 make sys
 
 # Install ports.
-make -C src/ports install
-
-# Check ports linkage.
-make -C src/ports check
-
-# Create ports archive.
 make ports
 
 # Create WebAssembly sysroot archive.
