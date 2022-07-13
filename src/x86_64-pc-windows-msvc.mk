@@ -327,7 +327,7 @@ build/compiler-rt/build.ninja:
 	  -DCMAKE_C_COMPILER_TARGET="$(TARGET)" \
 	  -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
 	  -DCMAKE_TOOLCHAIN_FILE="$(CURDIR)/toolchain.cmake" \
-	  -DCMAKE_INSTALL_PREFIX="$(CURDIR)/sys/$(TARGET)/crt" \
+	  -DCMAKE_INSTALL_PREFIX="$(CURDIR)/lib/clang/$(LLVM_VER)" \
 	  -DLLVM_CONFIG_PATH="$(CURDIR)/build/tools/bin/llvm-config" \
 	  -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
 	  -DLLVM_ENABLE_WARNINGS=OFF \
@@ -349,14 +349,14 @@ win/crt/lib/clang_rt.profile.lib: build/compiler-rt/build.ninja
 	 bin/ninja.exe -C build/compiler-rt \
 	  install-compiler-rt-headers \
 	  install-compiler-rt-stripped
-	@cmake -E copy_directory sys/$(TARGET)/crt/lib/windows lib/clang/$(LLVM_VER)/lib
-	@move sys\$(TARGET)\crt\lib\windows\* sys\$(TARGET)\crt\lib
-	@rd /q /s sys\$(TARGET)\crt\lib\windows
 
 sys:	win/crt/lib/clang_rt.profile.lib
 	@cmake -E echo "Creating sys-$(TARGET).tar.gz ..." 1>&2
 	@tar czf sys-$(TARGET).tar.gz \
-	  sys/$(TARGET)
+	  lib/clang/$(LLVM_VER)/lib/windows \
+	  lib/clang/$(LLVM_VER)/share \
+	  sys/$(TARGET)/crt \
+	  sys/$(TARGET)/sdk
 
 .PHONY: sys
 
