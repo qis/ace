@@ -531,6 +531,13 @@ tar xf sys-x86_64-pc-windows-msvc-ports.tar.gz
 tar xf sys-wasm32-wasi.tar.gz
 ```
 
+Verify toolchain.
+
+```
+make test
+make -C src/ports check
+```
+
 ## Ports
 The [src/ports/readme.md](src/ports/readme.md) file describes how to add new ports.
 
