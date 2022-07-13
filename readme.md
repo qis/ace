@@ -30,12 +30,9 @@ This project aims to provide the following benefits:
    All libraries and user projects are compiled with [ThinLTO][lto] if possible. This can
    be disabled by configuring a project with `-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF`.
 
-   All libraries and user projects are compiled with `-march=x86-64-v3`. This can be changed
-   by editing the target toolchain files before building any sysroot or ports libraries.
-
-   - [sys/x86_64-pc-linux-gnu.cmake](sys/x86_64-pc-linux-gnu.cmake)
-   - [sys/x86_64-pc-windows-msvc.cmake](sys/x86_64-pc-windows-msvc.cmake)
-   - [sys/x86_64-pc-windows-msvc-vs.cmake](sys/x86_64-pc-windows-msvc-vs.cmake)
+   All libraries and user projects are compiled with `-march=x86-64-v3`. This can be
+   changed by editing the [sys/arch.cmake](sys/arch.cmake) file before building a native
+   sysroot or ports libraries.
 
 4. **Portability**
 
