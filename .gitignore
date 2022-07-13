@@ -30,5 +30,6 @@
 !/format.cmake
 !/make.cmd
 !/makefile
+!/nvim.cmd
 !/readme.md
 !/toolchain.cmake

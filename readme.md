@@ -402,7 +402,7 @@ rm -f ~/.bashrc
 # Register toolchain.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
 export ACE="/opt/ace"
-export PATH="/opt/ace/bin:${PATH}"
+export PATH="/opt/ace/bin:/opt/ace/dev/bin:${PATH}"
 EOF
 sudo chmod 0755 /etc/profile.d/ace.sh
 . /etc/profile.d/ace.sh
