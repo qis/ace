@@ -419,6 +419,11 @@ sudo chmod 0755 /etc/profile.d/bash.sh
 sudo rm -f /root/.bashrc
 rm -f ~/.bashrc
 
+# Register toolchain.
+echo 'export ACE="/opt/ace"' | sudo tee /etc/profile.d/ace.sh >/dev/null
+sudo chmod 0755 /etc/profile.d/ace.sh
+. /etc/profile.d/ace.sh
+
 # Configure git (optional).
 git config --global core.eol lf
 git config --global core.autocrlf false
@@ -522,9 +527,10 @@ tar xf tools-windows.tar.gz
 
 Register toolchain.
 
-* Add `C:\Ace\sys\x86_64-pc-windows-msvc\bin` to `PATH` environment variable.
+* Set the `ACE` environment variable to `C:\Ace`.
 * Add `C:\Ace` to `PATH` environment variable (for [make.cmd](make.cmd)).
-* Set `VSCMD_SKIP_SENDTELEMETRY` environment variable to `1`.
+* Add `C:\Ace\sys\x86_64-pc-windows-msvc\bin` to `PATH` environment variable.
+* Set the `VSCMD_SKIP_SENDTELEMETRY` environment variable to `1`.
 
 </details>
 
