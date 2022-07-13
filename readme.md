@@ -541,7 +541,7 @@ tar xf tools-windows-clang-format.tar.gz
 Register toolchain.
 
 * Add `C:\Ace\sys\x86_64-pc-windows-msvc\bin` to the `PATH` environment variable.
-* Add `C:\Ace\bin` to the `PATH` environment variable.
+* Add `C:\Ace\bin` and `C:\Ace` to the `PATH` environment variable.
 * Set the `ACE` environment variable to `C:\Ace`.
 * Set the `VSCMD_SKIP_SENDTELEMETRY` environment variable to `1`.
 
