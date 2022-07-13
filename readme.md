@@ -225,7 +225,7 @@ apt update && apt upgrade -y && apt autoremove -y --purge
 apt install -y --no-install-recommends \
   ca-certificates curl git openssh-client p7zip-full tzdata \
   apt-file figlet file man-db manpages-dev strace tree vim wget xz-utils \
-  automake build-essential ninja-build patchelf pax-utils swig yasm \
+  automake build-essential ninja-build patchelf pax-utils perl swig yasm \
   lib{ncurses,readline,edit,icu,lzma,xml2}-dev zlib1g-dev \
   libc6-dev-i386 python3{,-distutils,-lib2to3}
 
