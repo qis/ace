@@ -7,9 +7,7 @@ add_library(print src/print.hpp src/print.cpp)
 target_compile_features(print PUBLIC cxx_std_23)
 
 if(BUILD_SHARED_LIBS)
-  target_compile_definitions(print
-    PRIVATE PRINT_EXPORT
-    PUBLIC PRINT_IMPORT)
+  target_compile_definitions(print PRIVATE PRINT_EXPORTS PUBLIC PRINT_SHARED)
 endif()
 
 if(WIN32)
@@ -30,16 +28,17 @@ target_include_directories(main PRIVATE
 
 target_link_libraries(main PRIVATE print)
 
+find_package(Boost REQUIRED COMPONENTS headers)
+target_link_libraries(main PRIVATE Boost::headers)
+
 find_package(TBB REQUIRED)
 target_link_libraries(main PRIVATE TBB::tbb)
 
-set(PORTS lua luajit tbb benchmark gtest zlib bzip2 lz4 lzma brotli zstd icu xml2
-  ssl boost imath exr png jpeg webp lerc tiff ogg flac opus aom vulkan blend2d)
+set(PORTS editline lua luajit tbb benchmark gtest zlib bzip2 lz4 lzma brotli zstd icu
+  xml2 ssl boost imath exr png jpeg webp lerc tiff ogg flac opus aom vulkan blend2d)
 
 if(UNIX)
-  list(APPEND PORTS editline backtrace)
-else()
-  list(APPEND PORTS wineditline)
+  list(APPEND PORTS backtrace)
 endif()
 
 include(AceCreateLicense)

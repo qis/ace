@@ -5,6 +5,7 @@
 /src/ports/*/src.tar.gz
 /src/ports/*/src.tar.xz
 /src/tests/*/build/
+/src/tests/*/install/
 /src/*
 /sys/*
 /*

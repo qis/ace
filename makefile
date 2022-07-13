@@ -63,24 +63,26 @@ include src/$(TARGET).mk
 #  \__\___||___/\__| ______________________________________________________________________________
 #
 
-TESTS ?= c cxx lib
-TESTS_TARGETS := $(patsubst %,src/tests/%, $(TESTS))
+test/lib:
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" preset=shared clean configure
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" preset=shared config=release run
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" clean configure
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" config=debug run
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" config=release run
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" config=minsizerel run
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" config=relwithdebinfo run
+	$(MAKE) -C src/tests/lib ACE="$(CURDIR)" coverage
 
-src/tests/%: phony
-	$(MAKE) -C src/tests/$* ACE="$(CURDIR)" TARGET=$(TARGET) SHARED=1 clean configure
-	$(MAKE) -C src/tests/$* ACE="$(CURDIR)" TARGET=$(TARGET) CONFIG=Release all
-	$(MAKE) -C src/tests/$* ACE="$(CURDIR)" TARGET=$(TARGET) clean configure
-	$(MAKE) -C src/tests/$* ACE="$(CURDIR)" TARGET=$(TARGET) CONFIG=Debug all
-	$(MAKE) -C src/tests/$* ACE="$(CURDIR)" TARGET=$(TARGET) CONFIG=Release all
-	$(MAKE) -C src/tests/$* ACE="$(CURDIR)" TARGET=$(TARGET) CONFIG=MinSizeRel all
-	$(MAKE) -C src/tests/$* ACE="$(CURDIR)" TARGET=$(TARGET) CONFIG=RelWithDebInfo all
+test/web:
+	$(MAKE) -C src/tests/web ACE="$(CURDIR)" clean configure
+	$(MAKE) -C src/tests/web ACE="$(CURDIR)" config=debug build
+	$(MAKE) -C src/tests/web ACE="$(CURDIR)" config=release build
+	$(MAKE) -C src/tests/web ACE="$(CURDIR)" config=minsizerel build
+	$(MAKE) -C src/tests/web ACE="$(CURDIR)" config=relwithdebinfo build
 
-test: $(TESTS_TARGETS)
-	$(MAKE) -C src/tests/web ACE="$(CURDIR)" TARGET=wasm32-wasi clean configure
-	$(MAKE) -C src/tests/web ACE="$(CURDIR)" TARGET=wasm32-wasi CONFIG=Debug all
-	$(MAKE) -C src/tests/web ACE="$(CURDIR)" TARGET=wasm32-wasi CONFIG=Release all
-	$(MAKE) -C src/tests/web ACE="$(CURDIR)" TARGET=wasm32-wasi CONFIG=MinSizeRel all
-	$(MAKE) -C src/tests/web ACE="$(CURDIR)" TARGET=wasm32-wasi CONFIG=RelWithDebInfo all
+test: test/lib test/web
+
+.PHONY: test test/lib test/web
 
 # ____  _  ________________________________________________________________________________________
 #   ___| | ___  __ _ _ __

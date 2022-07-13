@@ -2,19 +2,19 @@
 #include <chrono>
 #include <string_view>
 
-#ifdef PRINT_IMPORT
-#  ifdef PRINT_EXPORT
-#    ifdef _WIN32
-#      define PRINT_API __declspec(dllexport)
-#    else
-#      define PRINT_API __attribute__((visibility("default")))
-#    endif
+#ifdef _WIN32
+#  define PRINT_EXPORT __declspec(dllexport)
+#  define PRINT_IMPORT __declspec(dllimport)
+#else
+#  define PRINT_EXPORT __attribute__((__visibility__("default")))
+#  define PRINT_IMPORT
+#endif
+
+#ifdef PRINT_SHARED
+#  ifdef PRINT_EXPORTS
+#    define PRINT_API PRINT_EXPORT
 #  else
-#    ifdef _WIN32
-#      define PRINT_API __declspec(dllimport)
-#    else
-#      define PRINT_API
-#    endif
+#    define PRINT_API PRINT_IMPORT
 #  endif
 #else
 #  define PRINT_API

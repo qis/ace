@@ -1,59 +1,71 @@
-ifneq ($(OS),Windows_NT)
-ACE ?= /opt/ace
-else
-ACE ?= C:/Ace
-EXE := .exe
+preset ?= default
+config ?= debug
+params ?= 128
+
+ifeq ($(config),debug)
+output := Debug
 endif
 
-CONFIG ?= Debug
-PARAMS ?= 128
-SHARED ?= 0
+ifeq ($(config),release)
+output := Release
+endif
 
-all: build/$(CONFIG)
+ifeq ($(config),minsizerel)
+output := MinSizeRel
+endif
 
-build/%: phony build/build.ninja
-	@cmake --build build --config $* -v
+ifeq ($(config),relwithdebinfo)
+output := RelWithDebInfo
+endif
 
-run: run/$(CONFIG)
+ifeq ($(config),coverage)
+output := Coverage
+endif
 
-run/%: build/%
-	@cmake -E env LLVM_PROFILE_FILE="$*/main$(EXE).profraw" \
-	 cmake -E chdir build $*/main$(EXE) $(PARAMS)
+ifeq ($(OS),Windows_NT)
+exe := .exe
+endif
 
-debug: debug/$(CONFIG)
+build: configure
+	@cmake --build build --config $(output)
 
-debug/%: build/%
-	@cmake -E env LLVM_PROFILE_FILE="$*/main$(EXE).profraw" \
-	 cmake -E chdir build $(ACE)/bin/lldb -l lua -b -k bt \
-	  -o 'settings set auto-confirm 1' -o run -o quit \
-	  $*/main$(EXE) $(PARAMS)
+run: build
+	@cmake -E chdir build $(output)/main$(exe) $(params)
 
-test: build/Coverage
-	@cmake -E env LLVM_PROFILE_FILE="Coverage/main$(EXE).profraw" \
-	 cmake -E chdir build Coverage/main$(EXE) $(PARAMS)
-	@cmake -E compare_files \
-	  build/Coverage/main$(EXE).profraw \
-	  build/Coverage/main$(EXE).profraw && \
+test: build
+	@ctest --test-dir build -C $(output)
+
+debug: build
+	@cmake -E chdir build $(ACE)/bin/lldb -l lua -b -k bt \
+	  -o 'settings set auto-confirm 1' -o 'run' -o 'quit' \
+	  $(output)/main$(exe) $(params)
+
+coverage: configure
+	@cmake --build build --config Coverage
+	@cmake -E chdir build Coverage/main$(exe) $(params)
+	@cmake -E compare_files build/default.profraw build/default.profraw && \
 	$(ACE)/bin/llvm-profdata merge \
-	  -sparse build/Coverage/main$(EXE).profraw \
-	  -o build/Coverage/main$(EXE).profdata && \
-	$(ACE)/bin/llvm-cov show build/Coverage/main$(EXE) \
-	  -instr-profile=build/Coverage/main$(EXE).profdata && \
-	$(ACE)/bin/llvm-cov report build/Coverage/main$(EXE) \
-	  -instr-profile=build/Coverage/main$(EXE).profdata
+	  -sparse build/default.profraw -o build/default.profdata && \
+	$(ACE)/bin/llvm-cov show build/Coverage/main$(exe) \
+	  -instr-profile=build/default.profdata && \
+	$(ACE)/bin/llvm-cov report build/Coverage/main$(exe) \
+	  -instr-profile=build/default.profdata
 
-configure: build/build.ninja
+install: build/build.ninja
+	@cmake --build build --config Release --target install
 
-build/build.ninja: CMakeLists.txt
-	@cmake -G "Ninja Multi-Config" -Wno-dev --log-level=VERBOSE -DACE_TARGET="$(TARGET)" \
-	  -DCMAKE_CONFIGURATION_TYPES="Debug;Release;MinSizeRel;RelWithDebInfo;Coverage" \
-	  -DCMAKE_TOOLCHAIN_FILE="$(ACE)/toolchain.cmake" \
-	  -DBUILD_SHARED_LIBS="$(SHARED)" \
-	  -B build
+format:
+	@cmake -P $(ACE)/format.cmake src
 
 clean:
 	@cmake -E remove_directory build
 
-phony:
+preset:
+	@cmake --list-presets=configure
 
-.PHONY: all run debug test configure clean phony
+configure: build/build.ninja
+
+build/build.ninja: CMakeLists.txt
+	@cmake -B build --preset $(preset)
+
+.PHONY: build run test coverage install format clean preset configure

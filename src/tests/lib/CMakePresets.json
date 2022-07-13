@@ -1,0 +1,256 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja Multi-Config",
+      "installDir": "${sourceDir}/install",
+      "toolchainFile": "$env{ACE}/toolchain.cmake",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;MinSizeRel;RelWithDebInfo;Coverage",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+      }
+    },
+    {
+      "name": "shared",
+      "displayName": "Shared",
+      "binaryDir": "${sourceDir}/build/shared",
+      "inherits": "default",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": true
+      }
+    },
+    {
+      "name": "windows-default",
+      "displayName": "Windows Default",
+      "binaryDir": "${sourceDir}/build/windows",
+      "inherits": "default",
+      "cacheVariables": {
+        "ACE_TARGET": "x86_64-pc-windows-msvc"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "windows-shared",
+      "displayName": "Windows Shared",
+      "binaryDir": "${sourceDir}/build/windows/shared",
+      "inherits": "windows-default",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": true
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "vs-default",
+      "displayName": "VS Default",
+      "binaryDir": "${sourceDir}/build/vs",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;MinSizeRel;RelWithDebInfo",
+        "ACE_USE_VISUAL_STUDIO": true
+      },
+      "condition": {
+        "type": "notEquals",
+        "lhs": "$env{VCToolsVersion}",
+        "rhs": ""
+      }
+    },
+    {
+      "name": "vs-shared",
+      "displayName": "VS Shared",
+      "binaryDir": "${sourceDir}/build/vs/shared",
+      "inherits": "vs-default",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": true
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-coverage",
+      "displayName": "Coverage",
+      "configuration": "Coverage",
+      "configurePreset": "default"
+    },
+    {
+      "name": "shared-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "shared"
+    },
+    {
+      "name": "shared-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "shared"
+    },
+    {
+      "name": "shared-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "shared"
+    },
+    {
+      "name": "shared-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "shared"
+    },
+    {
+      "name": "shared-coverage",
+      "displayName": "Coverage",
+      "configuration": "Coverage",
+      "configurePreset": "shared"
+    },
+    {
+      "name": "windows-default-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "windows-default"
+    },
+    {
+      "name": "windows-default-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "windows-default"
+    },
+    {
+      "name": "windows-default-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "windows-default"
+    },
+    {
+      "name": "windows-default-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "windows-default"
+    },
+    {
+      "name": "windows-default-coverage",
+      "displayName": "Coverage",
+      "configuration": "Coverage",
+      "configurePreset": "windows-default"
+    },
+    {
+      "name": "windows-shared-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "windows-shared"
+    },
+    {
+      "name": "windows-shared-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "windows-shared"
+    },
+    {
+      "name": "windows-shared-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "windows-shared"
+    },
+    {
+      "name": "windows-shared-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "windows-shared"
+    },
+    {
+      "name": "windows-shared-coverage",
+      "displayName": "Coverage",
+      "configuration": "Coverage",
+      "configurePreset": "windows-shared"
+    },
+    {
+      "name": "vs-default-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "vs-default"
+    },
+    {
+      "name": "vs-default-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "vs-default"
+    },
+    {
+      "name": "vs-default-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "vs-default"
+    },
+    {
+      "name": "vs-default-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "vs-default"
+    },
+    {
+      "name": "vs-shared-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "vs-shared"
+    },
+    {
+      "name": "vs-shared-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "vs-shared"
+    },
+    {
+      "name": "vs-shared-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "vs-shared"
+    },
+    {
+      "name": "vs-shared-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "vs-shared"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Default",
+      "binaryDir": "${sourceDir}/build",
+      "generator": "Ninja Multi-Config",
+      "installDir": "${sourceDir}/install",
+      "toolchainFile": "$env{ACE}/toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;MinSizeRel;RelWithDebInfo",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "ACE_TARGET": "wasm32-wasi"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "default"
+    },
+    {
+      "name": "default-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "default"
+    }
+  ]
+}
