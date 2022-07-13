@@ -402,7 +402,10 @@ sudo rm -f /root/.bashrc
 rm -f ~/.bashrc
 
 # Register toolchain.
-echo 'export ACE="/opt/ace"' | sudo tee /etc/profile.d/ace.sh >/dev/null
+sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
+export ACE="/opt/ace"
+export PATH="/opt/ace/bin:${PATH}"
+EOF
 sudo chmod 0755 /etc/profile.d/ace.sh
 . /etc/profile.d/ace.sh
 
@@ -510,8 +513,8 @@ tar xf tools-windows.tar.gz
 Register toolchain.
 
 * Set the `ACE` environment variable to `C:\Ace`.
-* Add `C:\Ace` to `PATH` environment variable (for [make.cmd](make.cmd)).
-* Add `C:\Ace\sys\x86_64-pc-windows-msvc\bin` to `PATH` environment variable.
+* Add `C:\Ace\bin` to the `PATH` environment variable.
+* Add `C:\Ace\sys\x86_64-pc-windows-msvc\bin` to the `PATH` environment variable.
 * Set the `VSCMD_SKIP_SENDTELEMETRY` environment variable to `1`.
 
 </details>
