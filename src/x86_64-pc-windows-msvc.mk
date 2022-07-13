@@ -369,9 +369,13 @@ sys:	win/crt/lib/clang_rt.profile.lib
 
 ports:
 	@cmake -E echo "Installing ports ..." 1>&2
-	@make -C src/ports install
+	@cmake -E env \
+	 PATH="$(SYSTEM);$(PATH)" \
+	 make -C src/ports install
 	@cmake -E echo "Checking ports likage ..." 1>&2
-	@make -C src/ports check
+	@cmake -E env \
+	 PATH="$(SYSTEM);$(PATH)" \
+	 make -C src/ports check
 	@cmake -E echo "Creating sys-$(TARGET)-ports.tar.gz ..." 1>&2
 	@cmake -E make_directory \
 	  sys/$(TARGET)/bin \
