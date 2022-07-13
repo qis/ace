@@ -6,7 +6,7 @@ ifeq ($(OS),Windows_NT)
 $(error This target must be compiled on Linux)
 endif
 
-ARCH := $(shell cmake -P src/arch.cmake $(TARGET) 2>&1)
+ARCH := wasm32
 ROOT := $(CURDIR)/sys/$(TARGET)
 
 # ___  _  _________________  _  _____________  _  _________________________________________________

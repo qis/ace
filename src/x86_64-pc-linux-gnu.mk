@@ -6,7 +6,7 @@ ifeq ($(OS),Windows_NT)
 $(error This target must be compiled on Linux)
 endif
 
-ARCH := $(shell cmake -P src/arch.cmake $(TARGET) 2>&1)
+ARCH := $(shell cmake -P src/arch.cmake 2>&1)
 ROOT := $(CURDIR)/sys/$(TARGET)
 
 # ___________  _   _  _____________________________________________________________________________

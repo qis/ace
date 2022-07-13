@@ -6,7 +6,7 @@ ifneq ($(OS),Windows_NT)
 $(error This target must be compiled on Windows)
 endif
 
-ARCH := $(shell cmake -P src/arch.cmake $(TARGET) 2>&1)
+ARCH := $(shell cmake -P src/arch.cmake 2>&1)
 ROOT := $(CURDIR)/sys/$(TARGET)
 
 # ___  _  _________________  _  _____________  _  _________________________________________________
@@ -349,6 +349,7 @@ win/crt/lib/clang_rt.profile.lib: build/compiler-rt/build.ninja
 	 bin/ninja.exe -C build/compiler-rt \
 	  install-compiler-rt-headers \
 	  install-compiler-rt-stripped
+	@cmake -E copy_directory sys/$(TARGET)/crt/lib/windows lib/clang/$(LLVM_VER)/lib
 	@move sys\$(TARGET)\crt\lib\windows\* sys\$(TARGET)\crt\lib
 	@rd /q /s sys\$(TARGET)\crt\lib\windows
 

@@ -65,9 +65,9 @@ endforeach()
 find_program(LIB_EXECUTABLE lib.exe PATHS ${CRT_ROOT}/bin/Hostx64/x64 REQUIRED)
 
 # Copy VS 2022 assembler executable.
-if(NOT EXISTS ${ACE_ROOT}/crt/bin/ml64.exe)
+if(NOT EXISTS ${ACE_ROOT}/bin/ml64.exe)
   message(STATUS "Copying VS 2022 assembler executable ...")
-  file(COPY ${CRT_ROOT}/bin/Hostx64/x64/ml64.exe DESTINATION ${ACE_ROOT}/crt/bin)
+  file(COPY ${CRT_ROOT}/bin/Hostx64/x64/ml64.exe DESTINATION ${ACE_ROOT}/bin)
 endif()
 
 # Copy VS 2022 MSVC CRT files.
@@ -136,6 +136,16 @@ if(NOT EXISTS ${ACE_ROOT}/sdk/lib/um/kernel32.Lib)
 
   message(STATUS "Writing ${ACE_ROOT}/sdk/version.txt ...")
   file(APPEND ${ACE_ROOT}/sdk/version.txt "${SDK_VERSION}\n")
+endif()
+
+# Copy Windows 11 SDK manifest compiler.
+if(NOT EXISTS ${ACE_ROOT}/bin/mt.exe)
+  message(STATUS "Copying Windows 11 SDK manifest compiler ...")
+  file(COPY
+    ${SDK_ROOT}/bin/${SDK_VERSION}/x64/mt.exe
+    ${SDK_ROOT}/bin/${SDK_VERSION}/x64/mt.exe.config
+    ${SDK_ROOT}/bin/${SDK_VERSION}/x64/midlrtmd.dll
+    DESTINATION ${ACE_ROOT}/bin)
 endif()
 
 # Create build directory.

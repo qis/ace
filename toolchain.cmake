@@ -51,13 +51,23 @@ set(CMAKE_CXX_COMPILER_WORKS ON CACHE BOOL "")
 set(CMAKE_ASM_COMPILER_WORKS ON CACHE BOOL "")
 
 # Target Toolchain
-if(ACE_USE_VISUAL_STUDIO AND ACE_TARGET STREQUAL "x86_64-pc-windows-msvc")
+set(ACE_USE_VISUAL_STUDIO OFF CACHE BOOL "")
+
+if(CMAKE_BINARY_DIR MATCHES "^${ACE}/build" OR CMAKE_SOURCE_DIR MATCHES "^${ACE}/src/ports")
+  set(ACE_USE_CLANG_CL ON CACHE BOOL "")
+else()
+  set(ACE_USE_CLANG_CL OFF CACHE BOOL "")
+endif()
+
+if(ACE_TARGET STREQUAL "x86_64-pc-windows-msvc" AND ACE_USE_CLANG_CL)
+  set(ACE_SYSTEM_TOOLCHAIN_FILE "${ACE}/sys/x86_64-pc-windows-msvc-cl.cmake" CACHE PATH "")
+elseif(ACE_TARGET STREQUAL "x86_64-pc-windows-msvc" AND ACE_USE_VISUAL_STUDIO)
   set(ACE_SYSTEM_TOOLCHAIN_FILE "${ACE}/sys/x86_64-pc-windows-msvc-vs.cmake" CACHE PATH "")
 else()
   set(ACE_SYSTEM_TOOLCHAIN_FILE "${ACE}/sys/${ACE_TARGET}.cmake" CACHE PATH "")
 endif()
 
-message(STATUS "System toolchain file: ${ACE_SYSTEM_TOOLCHAIN_FILE}")
+message(DEBUG "System toolchain file: ${ACE_SYSTEM_TOOLCHAIN_FILE}")
 include(${ACE_SYSTEM_TOOLCHAIN_FILE})
 
 # Cache
