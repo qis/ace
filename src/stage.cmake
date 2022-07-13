@@ -65,9 +65,9 @@ endforeach()
 find_program(LIB_EXECUTABLE lib.exe PATHS ${CRT_ROOT}/bin/Hostx64/x64 REQUIRED)
 
 # Copy VS 2022 assembler executable.
-if(NOT EXISTS ${ACE_ROOT}/bin/ml64.exe)
+if(NOT EXISTS bin/ml64.exe)
   message(STATUS "Copying VS 2022 assembler executable ...")
-  file(COPY ${CRT_ROOT}/bin/Hostx64/x64/ml64.exe DESTINATION ${ACE_ROOT}/bin)
+  file(COPY ${CRT_ROOT}/bin/Hostx64/x64/ml64.exe DESTINATION bin)
 endif()
 
 # Copy VS 2022 MSVC CRT files.
@@ -82,42 +82,42 @@ if(NOT EXISTS ${ACE_ROOT}/crt/lib/libcpmt.lib)
   file(WRITE ${ACE_ROOT}/crt/version.txt "${CRT_VERSION}\n")
 endif()
 
+# Find Windows 11 SDK directory.
+set(PROGRAM_FILES_X86 "ProgramFiles(x86)")
+set(SDK_ROOT "$ENV{${PROGRAM_FILES_X86}}/Windows Kits/10")
+if(NOT IS_DIRECTORY ${SDK_ROOT})
+  message(FATAL_ERROR "Could not find Windows 11 SDK installation in ${SDK_ROOT}")
+endif()
+
+file(GLOB SDK_DIRECTORIES ${SDK_ROOT}/Include/* ${SDK_ROOT}/Lib/*)
+if(NOT SDK_DIRECTORIES)
+  message(FATAL_ERROR "Could not find Windows 11 SDK version in ${SDK_ROOT}")
+endif()
+
+# Find Windows 11 SDK version.
+set(SDK_VERSIONS)
+foreach(SDK_DIRECTORY_PATH ${SDK_DIRECTORIES})
+  get_filename_component(SDK_DIRECTORY_NAME "${SDK_DIRECTORY_PATH}" NAME)
+  list(APPEND SDK_VERSIONS ${SDK_DIRECTORY_NAME})
+endforeach()
+list(REMOVE_DUPLICATES SDK_VERSIONS)
+
+set(SDK_VERSION)
+foreach(SDK_VERSION_STRING ${SDK_VERSIONS})
+  if(NOT EXISTS ${SDK_ROOT}/Include/${SDK_VERSION_STRING}/ucrt/assert.h OR
+    NOT EXISTS ${SDK_ROOT}/Lib/${SDK_VERSION_STRING}/ucrt/x64/libucrt.lib)
+    continue()
+  endif()
+  if(NOT SDK_VERSION OR SDK_VERSION_STRING VERSION_GREATER "${SDK_VERSION}")
+    set(SDK_VERSION ${SDK_VERSION_STRING})
+  endif()
+endforeach()
+if(NOT SDK_VERSION)
+  message(FATAL_ERROR "Could not find Windows 11 SDK version with ucrt in ${SDK_ROOT}")
+endif()
+
 # Copy Windows 11 SDK files.
 if(NOT EXISTS ${ACE_ROOT}/sdk/lib/um/kernel32.Lib)
-  # Find Windows 11 SDK directory.
-  set(PROGRAM_FILES_X86 "ProgramFiles(x86)")
-  set(SDK_ROOT "$ENV{${PROGRAM_FILES_X86}}/Windows Kits/10")
-  if(NOT IS_DIRECTORY ${SDK_ROOT})
-    message(FATAL_ERROR "Could not find Windows 11 SDK installation in ${SDK_ROOT}")
-  endif()
-
-  file(GLOB SDK_DIRECTORIES ${SDK_ROOT}/Include/* ${SDK_ROOT}/Lib/*)
-  if(NOT SDK_DIRECTORIES)
-    message(FATAL_ERROR "Could not find Windows 11 SDK version in ${SDK_ROOT}")
-  endif()
-
-  # Find Windows 11 SDK version.
-  set(SDK_VERSIONS)
-  foreach(SDK_DIRECTORY_PATH ${SDK_DIRECTORIES})
-    get_filename_component(SDK_DIRECTORY_NAME "${SDK_DIRECTORY_PATH}" NAME)
-    list(APPEND SDK_VERSIONS ${SDK_DIRECTORY_NAME})
-  endforeach()
-  list(REMOVE_DUPLICATES SDK_VERSIONS)
-
-  set(SDK_VERSION)
-  foreach(SDK_VERSION_STRING ${SDK_VERSIONS})
-    if(NOT EXISTS ${SDK_ROOT}/Include/${SDK_VERSION_STRING}/ucrt/assert.h OR
-      NOT EXISTS ${SDK_ROOT}/Lib/${SDK_VERSION_STRING}/ucrt/x64/libucrt.lib)
-      continue()
-    endif()
-    if(NOT SDK_VERSION OR SDK_VERSION_STRING VERSION_GREATER "${SDK_VERSION}")
-      set(SDK_VERSION ${SDK_VERSION_STRING})
-    endif()
-  endforeach()
-  if(NOT SDK_VERSION)
-    message(FATAL_ERROR "Could not find Windows 11 SDK version with ucrt in ${SDK_ROOT}")
-  endif()
-
   message(STATUS "Copying Windows 11 SDK bin files ...")
   file(COPY ${SDK_ROOT}/bin/${SDK_VERSION}/x64 DESTINATION ${ACE_ROOT}/sdk)
   file(RENAME ${ACE_ROOT}/sdk/x64 ${ACE_ROOT}/sdk/bin)
@@ -139,13 +139,13 @@ if(NOT EXISTS ${ACE_ROOT}/sdk/lib/um/kernel32.Lib)
 endif()
 
 # Copy Windows 11 SDK manifest compiler.
-if(NOT EXISTS ${ACE_ROOT}/bin/mt.exe)
+if(NOT EXISTS bin/mt.exe)
   message(STATUS "Copying Windows 11 SDK manifest compiler ...")
   file(COPY
     ${SDK_ROOT}/bin/${SDK_VERSION}/x64/mt.exe
     ${SDK_ROOT}/bin/${SDK_VERSION}/x64/mt.exe.config
     ${SDK_ROOT}/bin/${SDK_VERSION}/x64/midlrtmd.dll
-    DESTINATION ${ACE_ROOT}/bin)
+    DESTINATION bin)
 endif()
 
 # Create build directory.
