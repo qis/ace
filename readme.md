@@ -427,6 +427,7 @@ cd /opt/ace
 
 # Extract tools archive.
 tar xf tools-linux.tar.gz
+tar xf tools-linux-clang-format.tar.gz
 ```
 
 For Windows cross-compilation, the `/opt/ace/sys/x86_64-pc-windows-msvc` directory must
@@ -508,6 +509,7 @@ cd C:\Ace
 
 rem Extract tools archive.
 tar xf tools-windows.tar.gz
+tar xf tools-windows-clang-format.tar.gz
 ```
 
 Register toolchain.
