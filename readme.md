@@ -379,8 +379,7 @@ Install toolchain and runtime dependencies using the generated archives.
 sudo apt install -y --no-install-recommends \
   ca-certificates curl dosfstools git openssh-client tzdata \
   apt-file file man-db manpages-dev p7zip-full tree vim wget xz-utils \
-  binutils elfutils make ninja-build patchelf pax-utils strace yasm \
-  nodejs npm python3 python3-pip
+  binutils elfutils make ninja-build patchelf pax-utils strace yasm
 
 # Update file database.
 sudo apt-file update
@@ -406,23 +405,6 @@ export PATH="/opt/ace/bin:/opt/ace/dev/bin:${PATH}"
 EOF
 sudo chmod 0755 /etc/profile.d/ace.sh
 . /etc/profile.d/ace.sh
-
-# Configure npm (optional).
-npm config set prefix ~/.npm
-sudo tee /etc/profile.d/npm.sh >/dev/null <<'EOF'
-export PATH="${PATH}:${HOME}/.npm/bin"
-EOF
-sudo chmod 0755 /etc/profile.d/npm.sh
-. /etc/profile.d/npm.sh
-
-# Install npm packages (optional).
-npm install -g typescript typescript-language-server eslint prettier terser
-npm install -g rollup @rollup/plugin-typescript rollup-plugin-terser
-npm install -g rollup-plugin-serve rollup-plugin-livereload
-
-# Install neovim packages (optional).
-npm install -g neovim
-pip install neovim
 
 # Configure git (optional).
 git config --global core.eol lf
@@ -490,8 +472,6 @@ Install tools and make sure that they are added to the `PATH` environment variab
 
 * [7-Zip][p7z]
 * [CMake][cmk]
-* [Node.js][njs]
-* [Python 3][py3]
 * [Microsoft Visual C++ Redistributable][vcr]
 
 Install [Git][git] and select the following options during setup:
@@ -512,15 +492,6 @@ Install [Git][git] and select the following options during setup:
   ☑ **Enable symbolic links**
 
 ```cmd
-rem Install npm packages (optional).
-npm install -g typescript typescript-language-server eslint prettier terser
-npm install -g rollup @rollup/plugin-typescript rollup-plugin-terser
-npm install -g rollup-plugin-serve rollup-plugin-livereload
-
-rem Install neovim packages (optional).
-npm install -g neovim
-pip install neovim
-
 rem Configure git (optional).
 git config --global core.eol lf
 git config --global core.autocrlf false
@@ -598,7 +569,6 @@ Use a [CMakePresets.json][cmp] file to configure projects in Visual Studio and V
 [pl5]: https://strawberryperl.com/
 [py3]: https://www.python.org/downloads/windows/
 [git]: https://git-scm.com/download/win
-[njs]: https://nodejs.org/
 [vsc]: https://visualstudio.microsoft.com/downloads/
 [vcr]: https://aka.ms/vs/17/release/vc_redist.x64.exe
 [cmp]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html

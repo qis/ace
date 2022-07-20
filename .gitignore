@@ -12,6 +12,7 @@
 .*
 !/cmake/
 !/src/
+!/src/icons/
 !/src/ports/
 !/src/tests/
 !/src/tests/.clang-format
@@ -21,6 +22,8 @@
 !/src/build.cmd
 !/src/build.sh
 !/src/build.wsb
+!/src/nvim.cmd
+!/src/nvim.ps1
 !/src/stage.cmake
 !/src/*.mk
 !/sys/
