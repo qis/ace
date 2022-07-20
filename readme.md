@@ -236,11 +236,6 @@ tar xf cmake.tar.gz -C /opt/cmake --strip-components=1
 echo 'export PATH="/opt/cmake/bin:${PATH}"' > /etc/profile.d/cmake.sh
 chmod 0755 /etc/profile.d/cmake.sh
 
-# Configure bash (optional).
-curl -L https://raw.githubusercontent.com/qis/ace/master/src/bash.sh -o /etc/profile.d/bash.sh
-chmod 0755 /etc/profile.d/bash.sh
-rm -f /{root,home/ace}/.bashrc
-
 # Log in as user
 su - ace
 ```
@@ -391,12 +386,6 @@ sudo tar xf cmake.tar.gz -C /opt/cmake --strip-components=1
 echo 'export PATH="/opt/cmake/bin:${PATH}"' | sudo tee /etc/profile.d/cmake.sh >/dev/null
 sudo chmod 0755 /etc/profile.d/cmake.sh
 . /etc/profile.d/cmake.sh
-
-# Configure bash (optional).
-sudo curl -L https://raw.githubusercontent.com/qis/ace/master/src/bash.sh -o /etc/profile.d/bash.sh
-sudo chmod 0755 /etc/profile.d/bash.sh
-sudo rm -f /root/.bashrc
-rm -f ~/.bashrc
 
 # Register toolchain.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
