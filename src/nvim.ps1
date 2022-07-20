@@ -11,10 +11,6 @@ function Confirm {
   }
 }
 
-$ace = (Resolve-Path -Path $PSScriptRoot\..).Path
-
-Write-Output $ace
-
 # Restart script as administrator.
 If ((IsAdmin) -eq $False) {
   If ($args[0] -eq "-elevated") {
@@ -32,13 +28,16 @@ If (!(Test-Path "HKCR:")) {
   New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT | Out-Null
 }
 
+# Ace
+$ace = (Resolve-Path -Path $PSScriptRoot\..).Path
+
 # Set editor command.
 $editor = "$ace\dev\bin\nvim-qt.exe"
 
 # Creates a file association.
 function Associate {
   $name = $args[0]
-  "text.ico" = $args[1]
+  $text = $args[1]
   $icon = $args[2]
   $type = $args[3]
   $exec = '"' + $editor + '" "%1"'
