@@ -443,6 +443,11 @@ mkdir sys/x86_64-pc-windows-msvc
 # Mount image.
 sudo mount -t vfat -o umask=0022,uid=`id -u`,gid=`id -g` \
   sys/x86_64-pc-windows-msvc.img sys/x86_64-pc-windows-msvc
+
+# Mount image during startup.
+sudo tee -a /etc/fstab >/dev/null <<'EOF'
+/opt/ace/sys/x86_64-pc-windows-msvc.img /opt/ace/sys/x86_64-pc-windows-msvc vfat umask=0022 0 1
+EOF
 ```
 
 <!--
