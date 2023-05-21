@@ -1,0 +1,33 @@
+diff '--color=auto' -ruNp aab828b6d1-a79ad07e76.clean/CMakeLists.txt aab828b6d1-a79ad07e76/CMakeLists.txt
+--- aab828b6d1-a79ad07e76.clean/CMakeLists.txt	2023-05-21 03:27:24.032444060 +0200
++++ aab828b6d1-a79ad07e76/CMakeLists.txt	2023-05-21 03:34:17.587388925 +0200
+@@ -586,7 +586,7 @@ endif()
+ 
+ 
+ configure_package_config_file(
+-	libxml2-config.cmake.cmake.in libxml2-config.cmake
++	libxml2-config.cmake.in libxml2-config.cmake
+ 	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/libxml2
+ )
+ 
+diff '--color=auto' -ruNp aab828b6d1-a79ad07e76.clean/libxml2-config.cmake.in aab828b6d1-a79ad07e76/libxml2-config.cmake.in
+--- aab828b6d1-a79ad07e76.clean/libxml2-config.cmake.in	2023-05-21 03:27:23.929110322 +0200
++++ aab828b6d1-a79ad07e76/libxml2-config.cmake.in	2023-05-21 03:52:57.485053619 +0200
+@@ -23,7 +23,7 @@
+ #   LibXml2::LibXml2          - the LibXml2 library
+ #   LibXml2::xmllint          - the xmllint command-line executable
+ 
+-get_filename_component(_libxml2_rootdir ${CMAKE_CURRENT_LIST_DIR}/../../../ ABSOLUTE)
++get_filename_component(_libxml2_rootdir ${CMAKE_CURRENT_LIST_DIR}/../../ ABSOLUTE)
+ 
+ set(LIBXML2_VERSION_MAJOR  @LIBXML_MAJOR_VERSION@)
+ set(LIBXML2_VERSION_MINOR  @LIBXML_MINOR_VERSION@)
+@@ -98,7 +98,7 @@ mark_as_advanced(LIBXML2_LIBRARY LIBXML2
+ 
+ if(NOT TARGET LibXml2::LibXml2 AND DEFINED LIBXML2_LIBRARY AND DEFINED LIBXML2_INCLUDE_DIRS)
+   add_library(LibXml2::LibXml2 UNKNOWN IMPORTED)
+-  set_target_properties(LibXml2::LibXml2 PROPERTIES IMPORTED_LOCATION "${LIBXML2_LIBRARY}")
++  set_target_properties(LibXml2::LibXml2 PROPERTIES IMPORTED_LOCATION_RELEASE "${LIBXML2_LIBRARY}")
+   set_target_properties(LibXml2::LibXml2 PROPERTIES INTERFACE_COMPILE_OPTIONS "${LIBXML2_DEFINITIONS}")
+   set_target_properties(LibXml2::LibXml2 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LIBXML2_INCLUDE_DIRS}")
+   set_target_properties(LibXml2::LibXml2 PROPERTIES INTERFACE_LINK_LIBRARIES "${LIBXML2_INTERFACE_LINK_LIBRARIES}")

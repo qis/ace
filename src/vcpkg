@@ -16,7 +16,7 @@ PORTS="benchmark doctest tbb"
 PORTS="${PORTS} zlib bzip2 lz4 liblzma brotli zstd"
 
 # Common
-PORTS="${PORTS} openssl icu"
+PORTS="${PORTS} openssl icu libxml2"
 
 # =============================================================================
 # Vcpkg
