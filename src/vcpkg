@@ -15,6 +15,9 @@ PORTS="benchmark doctest tbb"
 # Compression
 PORTS="${PORTS} zlib bzip2 lz4 liblzma brotli zstd"
 
+# Common
+PORTS="${PORTS} openssl"
+
 # =============================================================================
 # Vcpkg
 # =============================================================================
