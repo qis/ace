@@ -41,6 +41,10 @@ export VCPKG_FORCE_SYSTEM_BINARIES=1
 
 TRIPLETS="linux-static linux-shared mingw-static mingw-shared"
 
+name() {
+  echo "${1}" | cut -d[ -f1
+}
+
 error() {
   echo -e "\033[0;31merror: $*\033[0m" 1>&2
   exit 1
@@ -78,16 +82,19 @@ if [ "${1}" = "test" ]; then
     PORTS=$*
   fi
   for PORT in ${PORTS}; do
+    PORT=$(name "${PORT}")
     if [ ! -d src/tests/${PORT} ]; then
       error "invalid port name: ${PORT}"
     fi
   done
   for PORT in ${PORTS}; do
+    PORT=$(name "${PORT}")
     for TRIPLET in ${TRIPLETS}; do
       run cmake -E env PORT=${PORT} cmake --preset ${TRIPLET} src/tests
     done
   done
   for PORT in ${PORTS}; do
+    PORT=$(name "${PORT}")
     run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-shared --config Debug
     run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-static --config Release
     run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-static --config MinSizeRel
@@ -100,6 +107,7 @@ if [ "${1}" = "test" ]; then
     run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/mingw-shared --config Coverage
   done
   for PORT in ${PORTS}; do
+    PORT=$(name "${PORT}")
     run cmake -E chdir tests/${PORT}/linux-shared Debug/main
     run cmake -E chdir tests/${PORT}/linux-static Release/main
     run cmake -E chdir tests/${PORT}/linux-static MinSizeRel/main
