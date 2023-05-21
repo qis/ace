@@ -1,0 +1,15 @@
+diff '--color=auto' -ruNp c-72_1-src-f82392e365.clean/source/common/unicode/utypes.h c-72_1-src-f82392e365/source/common/unicode/utypes.h
+--- c-72_1-src-f82392e365.clean/source/common/unicode/utypes.h	2022-10-19 02:53:21.000000000 +0200
++++ c-72_1-src-f82392e365/source/common/unicode/utypes.h	2023-05-21 02:02:23.324956500 +0200
+@@ -136,9 +136,9 @@
+  * ICU 1.8.x on EBCDIC, etc..
+  * @stable ICU 2.0
+  */
+-#define U_ICUDATA_NAME    "icudt" U_ICU_VERSION_SHORT U_ICUDATA_TYPE_LETTER
++#define U_ICUDATA_NAME    "icudt" U_ICUDATA_TYPE_LETTER
+ #ifndef U_HIDE_INTERNAL_API
+-#define U_USRDATA_NAME    "usrdt" U_ICU_VERSION_SHORT U_ICUDATA_TYPE_LETTER  /**< @internal */
++#define U_USRDATA_NAME    "usrdt" U_ICUDATA_TYPE_LETTER  /**< @internal */
+ #define U_USE_USRDATA     0  /**< @internal */
+ #endif  /* U_HIDE_INTERNAL_API */
+ 
