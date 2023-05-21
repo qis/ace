@@ -1,0 +1,14 @@
+diff '--color=auto' -ruNp v1.2.13-f30d2a168d.clean/CMakeLists.txt v1.2.13-f30d2a168d/CMakeLists.txt
+--- v1.2.13-f30d2a168d.clean/CMakeLists.txt	2023-05-19 17:15:41.679517008 +0200
++++ v1.2.13-f30d2a168d/CMakeLists.txt	2023-05-19 17:14:44.469417559 +0200
+@@ -139,8 +139,9 @@ if(MINGW AND NOT ANDROID)
+         set(CMAKE_RC_COMPILER windres.exe)
+     endif()
+ 
++    string(REPLACE " " ";" ZLIB_RC_FLAGS ${CMAKE_RC_FLAGS})
+     add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/zlib1rc.obj
+-                       COMMAND ${CMAKE_RC_COMPILER}
++                       COMMAND ${CMAKE_RC_COMPILER} ${ZLIB_RC_FLAGS}
+                             -D GCC_WINDRES
+                             -I ${CMAKE_CURRENT_SOURCE_DIR}
+                             -I ${CMAKE_CURRENT_BINARY_DIR}
