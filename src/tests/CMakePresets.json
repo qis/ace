@@ -1,0 +1,51 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 26
+  },
+  "configurePresets": [
+    {
+      "hidden": true,
+      "name": "default",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/../../tests/$env{PORT}/${presetName}",
+      "toolchainFile": "${sourceDir}/../../toolchain.cmake",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "${presetName}"
+      }
+    },
+    {
+      "name": "linux-static",
+      "displayName": "Linux (Static)",
+      "inherits": [ "default" ],
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Release;MinSizeRel"
+      }
+    },
+    {
+      "name": "linux-shared",
+      "displayName": "Linux (Shared)",
+      "inherits": [ "default" ],
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Coverage"
+      }
+    },
+    {
+      "name": "mingw-static",
+      "displayName": "MinGW (Static)",
+      "inherits": [ "default" ],
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Release;MinSizeRel"
+      }
+    },
+    {
+      "name": "mingw-shared",
+      "displayName": "MinGW (Shared)",
+      "inherits": [ "default" ],
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Coverage"
+      }
+    }
+  ]
+}

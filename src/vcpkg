@@ -1,0 +1,143 @@
+#!/bin/bash
+#
+# src/vcpkg install|test [package ...]
+# src/vcpkg export|format|clean|reset
+#
+set -e
+
+# =============================================================================
+# Ports
+# =============================================================================
+
+# Core
+PORTS=""
+
+# =============================================================================
+# Vcpkg
+# =============================================================================
+
+SCRIPT=$(readlink -f -- "${0}" || realpath -- "${0}")
+SRC=$(dirname "${SCRIPT}")
+ACE=$(dirname "${SRC}")
+cd "${ACE}"
+
+export PATH="${ACE}/bin:${ACE}/cmake/bin:${PATH}"
+export WINEPATH="${ACE}/sys/mingw/bin;${ACE}/vcpkg/installed/mingw-shared/bin"
+
+export VCPKG_ROOT="${ACE}/vcpkg"
+export VCPKG_DEFAULT_TRIPLET="linux-static"
+export VCPKG_DEFAULT_HOST_TRIPLET="linux-static"
+export VCPKG_DOWNLOADS="${VCPKG_ROOT}/downloads"
+export VCPKG_FEATURE_FLAGS="-binarycaching"
+export VCPKG_OVERLAY_PORTS="${SRC}/ports"
+export VCPKG_OVERLAY_TRIPLETS="${SRC}/triplets"
+export VCPKG_FORCE_SYSTEM_BINARIES=1
+
+TRIPLETS="linux-static linux-shared mingw-static mingw-shared"
+
+error() {
+  echo -e "\033[0;31merror: $*\033[0m" 1>&2
+  exit 1
+}
+
+print() {
+  echo -e "\033[0;32m$*\033[0m" 1>&2
+}
+
+run() {
+  print "$*"
+  $*
+}
+
+if [ "${1}" = "clean" ]; then
+  rm -rf tests vcpkg/{buildtrees,installed,packages,vcpkg-export-*}
+  exit 0
+fi
+
+if [ "${1}" = "reset" ]; then
+  rm -rf tests vcpkg ports
+  exit 0
+fi
+
+if [ "${1}" = "export" ]; then
+  vcpkg/vcpkg export --raw --x-all-installed
+  rm -rf "ports"
+  mv "$(find vcpkg/vcpkg-export-* -maxdepth 0 | tail -1)"/installed ports
+  exit 0
+fi
+
+if [ "${1}" = "test" ]; then
+  shift
+  if [ -n "$*" ]; then
+    PORTS=$*
+  fi
+  for PORT in ${PORTS}; do
+    if [ ! -d src/tests/${PORT} ]; then
+      error "invalid port name: ${PORT}"
+    fi
+  done
+  for PORT in ${PORTS}; do
+    for TRIPLET in ${TRIPLETS}; do
+      run cmake -E env PORT=${PORT} cmake --preset ${TRIPLET} src/tests
+    done
+  done
+  for PORT in ${PORTS}; do
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-shared --config Debug
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-static --config Release
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-static --config MinSizeRel
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-shared --config RelWithDebInfo
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/linux-shared --config Coverage
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/mingw-shared --config Debug
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/mingw-static --config Release
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/mingw-static --config MinSizeRel
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/mingw-shared --config RelWithDebInfo
+    run cmake -E env PORT=${PORT} cmake --build tests/${PORT}/mingw-shared --config Coverage
+  done
+  for PORT in ${PORTS}; do
+    run cmake -E chdir tests/${PORT}/linux-shared Debug/main
+    run cmake -E chdir tests/${PORT}/linux-static Release/main
+    run cmake -E chdir tests/${PORT}/linux-static MinSizeRel/main
+    run cmake -E chdir tests/${PORT}/linux-shared RelWithDebInfo/main
+    run cmake -E chdir tests/${PORT}/linux-shared Coverage/main
+
+    run cmake -E chdir tests/${PORT}/linux-shared llvm-profdata merge -sparse default.profraw -o default.profdata
+    run cmake -E chdir tests/${PORT}/linux-shared llvm-cov show Coverage/main -instr-profile=default.profdata
+    run cmake -E chdir tests/${PORT}/linux-shared llvm-cov report Coverage/main -instr-profile=default.profdata
+
+    run cmake -E chdir tests/${PORT}/mingw-shared wine Debug/main.exe
+    run cmake -E chdir tests/${PORT}/mingw-static wine Release/main.exe
+    run cmake -E chdir tests/${PORT}/mingw-static wine MinSizeRel/main.exe
+    run cmake -E chdir tests/${PORT}/mingw-shared wine RelWithDebInfo/main.exe
+    run cmake -E chdir tests/${PORT}/mingw-shared wine Coverage/main.exe
+
+    run cmake -E chdir tests/${PORT}/mingw-shared llvm-profdata merge -sparse default.profraw -o default.profdata
+    run cmake -E chdir tests/${PORT}/mingw-shared llvm-cov show Coverage/main.exe -instr-profile=default.profdata
+    run cmake -E chdir tests/${PORT}/mingw-shared llvm-cov report Coverage/main.exe -instr-profile=default.profdata
+  done
+  exit 0
+fi
+
+if [ "${1}" = "format" ]; then
+  cmake -E chdir src/tests find . -name '*.hpp' -or -name '*.cpp' -print -exec clang-format -i '{}' ';'
+  exit 0
+fi
+
+if [ "${1}" = "install" ] && [ -z "${2}" ]; then
+  for TRIPLET in ${TRIPLETS}; do
+    print "vcpkg --triplet=${TRIPLET} ${PORTS}"
+    vcpkg/vcpkg --triplet=${TRIPLET} install ${PORTS}
+  done
+  exit 0
+fi
+
+for TRIPLET in ${TRIPLETS}; do
+  if [ "${1}" = "${triplet}" ]; then
+    vcpkg/vcpkg --triplet=${TRIPLET} $*
+    exit 0
+  fi
+done
+
+for TRIPLET in ${TRIPLETS}; do
+  print "vcpkg --triplet=${TRIPLET} $*"
+  vcpkg/vcpkg --triplet=${TRIPLET} $*
+done

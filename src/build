@@ -1,0 +1,1258 @@
+#!/bin/bash
+#
+# sudo src/build [dev|check|clean|reset|chroot]
+#
+set -e
+
+export LC_ALL=C
+
+SCRIPT=$(readlink -f -- "${0}" || realpath -- "${0}")
+SRC=$(dirname "${SCRIPT}")
+ACE=$(dirname "${SRC}")
+cd "${ACE}"
+
+export PATH=${ACE}/bin:${ACE}/cmake/bin:${PATH}
+export XZ_OPT="-T16 -9v"
+
+# https://cmake.org/download/
+CMAKE_VER=3.26.4
+CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz
+CMAKE_TAR=cmake.tar.gz
+
+# https://github.com/llvm/llvm-project/releases
+LLVM_VER=16.0.4
+LLVM_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/llvm-project-${LLVM_VER}.src.tar.xz
+LLVM_TAR=llvm.tar.xz
+
+# https://www.lua.org/download.html
+LUA_VER=5.4.6
+LUA_URL=http://www.lua.org/ftp/lua-${LUA_VER}.tar.gz
+LUA_TAR=lua.tar.gz
+
+# https://github.com/mingw-w64/mingw-w64/tags
+MINGW_VER=11.0.1
+MINGW_URL=https://github.com/mingw-w64/mingw-w64/archive/refs/tags/v${MINGW_VER}.tar.gz
+MINGW_TAR=mingw.tar.gz
+
+# https://yasm.tortall.net/Download.html
+YASM_VER=1.3.0
+YASM_URL=http://www.tortall.net/projects/yasm/releases/yasm-${YASM_VER}.tar.gz
+YASM_TAR=yasm.tar.gz
+
+# https://github.com/skvadrik/re2c/releases
+RE2C_VER=3.0
+RE2C_URL=https://github.com/skvadrik/re2c/archive/refs/tags/${RE2C_VER}.tar.gz
+RE2C_TAR=re2c.tar.gz
+
+# https://github.com/ninja-build/ninja/releases
+NINJA_VER=1.11.1
+NINJA_URL=https://github.com/ninja-build/ninja/archive/refs/tags/v${NINJA_VER}.tar.gz
+NINJA_TAR=ninja.tar.gz
+
+# https://github.com/mentebinaria/readpe/releases
+READPE_VER=0.82
+READPE_URL=https://github.com/mentebinaria/readpe/archive/refs/tags/v${READPE_VER}.tar.gz
+READPE_TAR=readpe.tar.gz
+
+# https://github.com/PowerShell/PowerShell
+POWERSHELL_URL=https://github.com/PowerShell/PowerShell/releases/download/v7.3.4/powershell_7.3.4-1.deb_amd64.deb
+POWERSHELL_DEB=powershell_7.3.4-1.deb_amd64.deb
+
+error() {
+  echo -e "\033[0;31merror: $*\033[0m" 1>&2
+  exit 1
+}
+
+print() {
+  echo -e "\033[0;32m$*\033[0m" 1>&2
+}
+
+if [ $(id -u) -ne 0 ]; then
+  error "this script must be executed as root"
+fi
+
+if [ "${1}" = "reset" ]; then
+  print "Deleting toolchain ..."
+  rm -rf bin cmake include lib libexec share sys
+  src/vcpkg reset
+fi
+
+if [ "${1}" = "reset" ] || [ "${1}" = "clean" ]; then
+  print "Deleting chroots ..."
+  umount check/dev/pts 2>/dev/null || true
+  umount check/proc 2>/dev/null || true
+  umount build/dev/pts 2>/dev/null || true
+  umount build/proc 2>/dev/null || true
+  rm -rf check build
+  exit 0
+fi
+
+if [ "${1}" = "check" ]; then
+  if [ ! -e check/bin/sh ]; then
+    print "Creating check sysroot ..."
+    debootstrap bullseye check http://deb.debian.org/debian/
+  fi
+
+  if [ -e /etc/resolv.conf ]; then
+    cat /etc/resolv.conf > check/etc/resolv.conf
+  fi
+
+  if [ ! -e check/proc/stat ]; then
+    print "Mounting check proc ..."
+    mount -t proc proc check/proc
+  fi
+
+  if [ ! -e check/dev/pts/ptmx ]; then
+    print "Mounting check devpts ..."
+    mount -t devpts devpts check/dev/pts
+  fi
+
+  if [ ! -e check/state.update ]; then
+    print "Updating check packages ..."
+    chroot check /usr/bin/apt update
+    chroot check /usr/bin/apt upgrade -y
+    chroot check /usr/bin/apt autoremove -y --purge
+    touch check/state.update
+  fi
+
+  if [ ! -e check/state.install ]; then
+    print "Installing check packages ..."
+    chroot check /usr/bin/apt install -y libatomic1 libc6 libgcc-s1
+    touch check/state.install
+  fi
+
+  print "Installing check toolchain ..."
+  rm -rf check/opt/ace
+  mkdir -p check/opt/ace
+  tar xf ace.tar.xz -C check/opt/ace
+
+  print "Checking toolchain ..."
+  chroot check /bin/bash <<'  EOF'
+  find /opt/ace/{bin,lib} -type f -print -exec ldd '{}' ';' 2>/dev/null | \
+    grep -v '\.\.' | grep -v '=> /opt/ace' | grep '=>' | \
+    sed -E 's/[ \t]*([^\(]*).*/\1/' | sort | uniq
+  EOF
+
+  chroot check /bin/bash <<'  EOF'
+  find /opt/ace/{bin,lib} -type f -print -exec ldd '{}' ';' 2>/dev/null > ldd.txt
+  EOF
+
+  print "Unmounting check devpts ..."
+  umount check/dev/pts 2>/dev/null || true
+
+  print "Unmounting check proc ..."
+  umount check/proc 2>/dev/null || true
+  exit 0
+fi
+
+# =============================================================================
+# chroot
+# =============================================================================
+
+if [ "${1}" != "build" ]; then
+  if [ ! -e build/bin/sh ]; then
+    print "Creating chroot ..."
+    debootstrap bullseye build http://deb.debian.org/debian/
+    if [ -f /etc/bash/bashrc.d/core ]; then
+      cp /etc/bash/bashrc.d/core build/etc/profile.d/core.sh
+    fi
+  fi
+
+  if [ -e /etc/resolv.conf ]; then
+    cat /etc/resolv.conf > build/etc/resolv.conf
+  fi
+
+  if [ ! -e build/proc/stat ]; then
+    print "Mounting proc ..."
+    mount -t proc proc build/proc
+  fi
+
+  if [ ! -e build/dev/pts/ptmx ]; then
+    print "Mounting devpts ..."
+    mount -t devpts devpts build/dev/pts
+  fi
+
+  if [ "${1}" != "chroot" ]; then
+    print "Copying build script ..."
+    mkdir -p build/opt/ace/src
+    cp src/build build/opt/ace/src/
+  fi
+
+  if [ "${1}" = "chroot" ]; then
+    chroot build /bin/bash --login
+    exit 0
+  fi
+
+  chroot build /bin/bash /opt/ace/src/build build
+
+  if [ "${1}" != "dev" ]; then
+    print "Unmounting devpts ..."
+    umount build/dev/pts 2>/dev/null || true
+
+    print "Unmounting proc ..."
+    umount build/proc 2>/dev/null || true
+
+    print "Creating archive ..."
+    if [ -f ace.tar.xz ]; then
+      mv ace.tar.xz build/ace.tar.xz.$(stat -c '%Y' ace.tar.xz)
+    fi
+    tar cJf ace.tar.xz -C build/opt/ace \
+      bin cmake include lib libexec share sys
+    chown $(stat -c '%u:%g' .) ace.tar.xz
+  fi
+  exit 0
+fi
+
+# =============================================================================
+# system
+# =============================================================================
+
+if [ ! -d build ]; then
+  mkdir build
+fi
+
+if [ ! -f build/state.update ]; then
+  print "Updating packages ..."
+  apt update
+  apt upgrade -y
+  apt autoremove -y --purge
+  touch build/state.update
+fi
+
+if [ ! -f build/state.install ]; then
+  print "Installing packages ..."
+  apt install -y --no-install-recommends \
+    ca-certificates curl file git openssh-client p7zip-full tree tzdata xz-utils \
+    apt-file automake build-essential man-db manpages-dev ninja-build patchelf pax-utils pev \
+    libc6-dev-i386 lib{ncurses,readline,edit,icu,lzma,xml2}-dev zlib1g-dev \
+    perl python3{,-distutils,-lib2to3} strace swig symlinks yasm
+  apt-file update
+  touch build/state.install
+fi
+
+if [ ! -f /root/.gitconfig ]; then
+  print "Configuring git ..."
+  git config --global core.eol lf
+  git config --global core.autocrlf false
+  git config --global core.filemode false
+  git config --global pull.rebase false
+fi
+
+# =============================================================================
+# sources
+# =============================================================================
+
+if [ ! -d build/src ]; then
+  mkdir build/src
+fi
+
+if [ ! -f build/${CMAKE_TAR} ]; then
+  print "Downloading build/${CMAKE_TAR} ..."
+  curl -L "${CMAKE_URL}" -o build/${CMAKE_TAR}
+fi
+
+if [ ! -f build/src/${LLVM_TAR} ]; then
+  print "Downloading build/src/${LLVM_TAR} ..."
+  curl -L "${LLVM_URL}" -o build/src/${LLVM_TAR}
+fi
+
+if [ ! -f build/src/${LUA_TAR} ]; then
+  print "Downloading build/src/${LUA_TAR} ..."
+  curl -L "${LUA_URL}" -o build/src/${LUA_TAR}
+fi
+
+if [ ! -f build/src/${MINGW_TAR} ]; then
+  print "Downloading build/src/${MINGW_TAR} ..."
+  curl -L "${MINGW_URL}" -o build/src/${MINGW_TAR}
+fi
+
+if [ ! -f build/src/${YASM_TAR} ]; then
+  print "Downloading build/src/${YASM_TAR} ..."
+  curl -L "${YASM_URL}" -o build/src/${YASM_TAR}
+fi
+
+if [ ! -f build/src/${RE2C_TAR} ]; then
+  print "Downloading build/src/${RE2C_TAR} ..."
+  curl -L "${RE2C_URL}" -o build/src/${RE2C_TAR}
+fi
+
+if [ ! -f build/src/${NINJA_TAR} ]; then
+  print "Downloading build/src/${NINJA_TAR} ..."
+  curl -L "${NINJA_URL}" -o build/src/${NINJA_TAR}
+fi
+
+if [ ! -f build/src/${READPE_TAR} ]; then
+  print "Downloading build/src/${READPE_TAR} ..."
+  curl -L "${READPE_URL}" -o build/src/${READPE_TAR}
+fi
+
+# =============================================================================
+# cmake
+# =============================================================================
+
+if [ ! -e cmake/bin/cmake ]; then
+  print "Extracting build/${CMAKE_TAR} ..."
+  mkdir -p cmake
+  tar xf build/${CMAKE_TAR} -C cmake -m --strip-components=1
+fi
+
+# =============================================================================
+# sysroot
+# =============================================================================
+# Based on https://packages.debian.org/stable/libc-dev information.
+# Use the following commands to figure out what's needed:
+#
+#   apt-file search <path>
+#   apt-cache depends -i <package>
+#   apt-cache depends -i --recurse <package>
+#
+
+if [ ! -d build/deb ]; then
+  print "Downloading packages ..."
+
+  # Kernel headers (user).
+  PACKAGES="linux-libc-dev"
+
+  # Kernel headers (system).
+  #KERNEL_DEPENDS=$(apt-cache depends -i linux-headers-amd64 | grep "Depends: linux-headers-" | head -1)
+  #KERNEL_VERSION=$(echo ${KERNEL_DEPENDS} | sed -E 's/.* linux-headers-(.*)-amd64.*/\1/')
+  #PACKAGES="${PACKAGES} linux-headers-${KERNEL_VERSION}-common"
+  #PACKAGES="${PACKAGES} linux-headers-${KERNEL_VERSION}-amd64"
+
+  # System libraries.
+  PACKAGES="${PACKAGES} libmd-dev libmd0"
+  PACKAGES="${PACKAGES} libbsd-dev libbsd0"
+  PACKAGES="${PACKAGES} libedit-dev libedit2"
+  PACKAGES="${PACKAGES} libicu-dev libicu67"
+  PACKAGES="${PACKAGES} libxml2-dev libxml2"
+  PACKAGES="${PACKAGES} libdbus-1-dev libdbus-1-3"
+  PACKAGES="${PACKAGES} libsystemd-dev libsystemd0"
+  PACKAGES="${PACKAGES} libgcrypt20-dev libgcrypt20"
+  PACKAGES="${PACKAGES} libgpg-error-dev libgpg-error0"
+  PACKAGES="${PACKAGES} liblz4-dev liblz4-1"
+  PACKAGES="${PACKAGES} liblzma-dev liblzma5"
+  PACKAGES="${PACKAGES} libzstd-dev libzstd1"
+  PACKAGES="${PACKAGES} zlib1g-dev zlib1g"
+
+  # Standard libraries.
+  PACKAGES="${PACKAGES} linux-libc-dev"
+  PACKAGES="${PACKAGES} libc6-dev libc6"
+  PACKAGES="${PACKAGES} libc6-dev-i386 libc6-i386"
+  PACKAGES="${PACKAGES} libcrypt-dev libcrypt1"
+  PACKAGES="${PACKAGES} libssl-dev libssl1.1"
+  PACKAGES="${PACKAGES} libtirpc-dev libtirpc3"
+  PACKAGES="${PACKAGES} libnsl-dev libnsl2"
+
+  # Compiler libraries.
+  PACKAGES="${PACKAGES} libitm1"
+  PACKAGES="${PACKAGES} libatomic1"
+  PACKAGES="${PACKAGES} libquadmath0"
+  PACKAGES="${PACKAGES} libgcc-10-dev"
+  PACKAGES="${PACKAGES} libgcc-s1"
+  PACKAGES="${PACKAGES} libstdc++6"
+
+  # Common libraries.
+  PACKAGES="${PACKAGES} libreadline-dev libreadline8 libtinfo6"
+  PACKAGES="${PACKAGES} libncurses-dev libncurses6 libncursesw6"
+
+  # Audio libraries.
+  PACKAGES="${PACKAGES} libasound2-dev libasound2"
+  PACKAGES="${PACKAGES} libpulse-dev"
+
+  # XCB libraries.
+  PACKAGES="${PACKAGES} libxcb1-dev libxcb1"
+  PACKAGES="${PACKAGES} libxdmcp-dev libxdmcp6"
+  PACKAGES="${PACKAGES} libxau-dev libxau6"
+
+  # X11 libraries.
+  PACKAGES="${PACKAGES} libx11-dev libx11-6"
+  PACKAGES="${PACKAGES} x11proto-dev"
+  PACKAGES="${PACKAGES} xtrans-dev"
+
+  # Wayland libraries.
+  PACKAGES="${PACKAGES} libwayland-dev"
+  PACKAGES="${PACKAGES} libffi-dev libffi7"
+  PACKAGES="${PACKAGES} libwayland-client0"
+  PACKAGES="${PACKAGES} libwayland-server0"
+  PACKAGES="${PACKAGES} libwayland-cursor0"
+  PACKAGES="${PACKAGES} libwayland-egl1"
+
+  # OpenGL libraries.
+  PACKAGES="${PACKAGES} libegl-dev libegl1"
+  PACKAGES="${PACKAGES} libgles-dev libgles1 libgles2 libglvnd0"
+  PACKAGES="${PACKAGES} libglx-dev libglx0"
+  PACKAGES="${PACKAGES} libgl-dev libgl1"
+
+  mkdir -p build/deb
+  chown _apt:root build/deb
+  cmake -E chdir build/deb apt download ${PACKAGES}
+  curl -L "${POWERSHELL_URL}" -o build/deb/${POWERSHELL_DEB}
+fi
+
+if [ ! -d sys/linux ]; then
+  print "Creating sysroot ..."
+
+  mkdir -p sys/linux
+  find build/deb -name '*.deb' -exec dpkg-deb -x '{}' sys/linux ';'
+
+  mkdir -p bin
+  ln -sf ../sys/linux$(readlink -- sys/linux/usr/bin/pwsh) bin/pwsh
+  patchelf --set-rpath '$ORIGIN/../sys/linux/usr/lib/x86_64-linux-gnu' bin/pwsh
+  find sys/linux/opt/microsoft/powershell -maxdepth 2 -type f -name '*.so' -exec \
+    patchelf --set-rpath '$ORIGIN/../../../../usr/lib/x86_64-linux-gnu' '{}' ';'
+
+  rm -rf sys/linux/etc
+  rm -rf sys/linux/usr/bin
+  rm -rf sys/linux/usr/share
+
+  mkdir sys/linux/usr/x86_64-linux-gnu
+  ln -sf ../include/x86_64-linux-gnu sys/linux/usr/x86_64-linux-gnu/include
+
+  find sys/linux -name '*.a' | while read static; do
+    if compgen -G "$(echo "${static}" | sed -E 's/\.a$/.so*/')" >/dev/null; then
+      echo "deleted:  ${static}"
+      rm -f "${static}"
+    fi
+  done
+
+  symlinks -rd sys/linux
+
+  symlinks -r sys/linux/usr/lib/x86_64-linux-gnu | while read symlink; do
+    symlink_type=$(echo "${symlink}" | cut -c1-8)
+    if [ "${symlink_type}" != "absolute" ]; then
+      error "invalid symlink type: ${symlink} (${symlink_type})"
+    fi
+
+    symlink_target=$(echo "${symlink}" | sed -E "s;.* -> ;;g")
+    if [ ! -e "sys/linux${symlink_target}" ]; then
+      error "missing file: sys/linux${symlink_target}"
+    fi
+
+    symlink_target_path=$(dirname "${symlink_target}")
+    if [ "${symlink_target_path}" != "/lib/x86_64-linux-gnu" ]; then
+      error "unknown symlink target path: ${symlink_target_path}"
+    fi
+
+    symlink_target_file="../../..${symlink_target}"
+
+    symlink_file=$(echo "${symlink}" | sed -E "s;absolute: ${ACE}/sys/linux/(.*) -> .*;sys/linux/\\1;g")
+    echo "relative: ${ACE}/${symlink_file} -> ${symlink_target_file}"
+    ln -sf "${symlink_target_file}" "${symlink_file}"
+  done
+
+  if [ "$(dirname $(readlink sys/linux/lib64/ld-linux-x86-64.so.2))" != "../lib/x86_64-linux-gnu" ]; then
+    symlink_target=$(readlink sys/linux/lib64/ld-linux-x86-64.so.2)
+    symlink_target_path=$(dirname "${symlink_target}")
+    if [ "${symlink_target_path}" != "/lib/x86_64-linux-gnu" ]; then
+      error "unexpected ld-linux-x86-64.so.2 symlink target path: ${symlink_target_path}"
+    fi
+
+    symlink_target_filename=$(basename "${symlink_target}")
+    ln -sf "../lib/x86_64-linux-gnu/${symlink_target_filename}" sys/linux/lib64/ld-linux-x86-64.so.2
+  fi
+
+  symlinks -r sys/linux/usr/lib32 | while read symlink; do
+    symlink_type=$(echo "${symlink}" | cut -c1-8)
+    if [ "${symlink_type}" != "absolute" ]; then
+      error "invalid symlink type: ${symlink} (${symlink_type})"
+    fi
+
+    symlink_target=$(echo "${symlink}" | sed -E "s;.* -> ;;g")
+    if [ ! -e "sys/linux${symlink_target}" ]; then
+      error "missing file: sys/linux${symlink_target}"
+    fi
+
+    symlink_target_path=$(dirname "${symlink_target}")
+    if [ "${symlink_target_path}" != "/lib32" ]; then
+      error "unknown symlink target path: ${symlink_target_path}"
+    fi
+
+    symlink_target_file="../..${symlink_target}"
+
+    symlink_file=$(echo "${symlink}" | sed -E "s;absolute: ${ACE}/sys/linux/(.*) -> .*;sys/linux/\\1;g")
+    echo "relative: ${ACE}/${symlink_file} -> ${symlink_target_file}"
+    ln -sf "${symlink_target_file}" "${symlink_file}"
+  done
+
+  rm -f sys/linux/lib/ld-linux.so.2
+
+  print "Fixing sysroot library paths ..."
+  find sys/linux/usr/lib/x86_64-linux-gnu -maxdepth 1 -type f -name '*.so*' \
+    -exec patchelf --set-rpath '$ORIGIN' '{}' ';' >/dev/null 2>&1
+
+  print "Fixing sysroot permissions ..."
+  find sys/linux -type d -exec chmod 0755 '{}' ';'
+  find sys/linux -type f -exec chmod 0644 '{}' ';'
+  chmod +x bin/pwsh
+
+  print "Fixing sysroot runtime paths ..."
+  find sys/linux/usr/lib/x86_64-linux-gnu -maxdepth 1 -type f -name '*.so*' \
+    -exec patchelf --set-rpath '$ORIGIN' '{}' ';' >/dev/null 2>&1
+  find sys/linux/lib/x86_64-linux-gnu -maxdepth 1 -type f -name '*.so*' \
+    -exec patchelf --set-rpath '$ORIGIN/../../usr/lib/x86_64-linux-gnu' '{}' ';' >/dev/null 2>&1
+fi
+
+if [ $(symlinks -r sys/linux | wc -l) -ne 0 ]; then
+  symlinks -r sys/linux
+  error "sysroot has unresolved absolute symlinks"
+fi
+
+# =============================================================================
+# stage
+# =============================================================================
+
+CLANG_ENABLE_EXPERIMENTAL=0
+CLANG_LIB_DIR=lib/clang/$(echo ${LLVM_VER} | cut -d. -f1)
+
+if [ ! -f build/src/llvm/llvm/CMakeLists.txt ]; then
+  print "Extracting build/src/${LLVM_TAR} ..."
+  mkdir -p build/src/llvm
+  tar xf build/src/${LLVM_TAR} -C build/src/llvm -m --strip-components=1
+
+  if [ ${CLANG_ENABLE_EXPERIMENTAL} -ne 0 ]; then
+    sed -E 's;([ \t])(if \(Args.hasArg\(options::OPT_fexperimental_library\)\));\1//\2;' \
+      -i build/src/llvm/clang/lib/Driver/ToolChain.cpp
+  fi
+fi
+
+if [ ! -f build/stage/build.ninja ]; then
+  print "Configuring stage ..."
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX="${ACE}" \
+    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-gnu" \
+    -DLLVM_ENABLE_PROJECTS="clang;lld" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind;libcxxabi;libcxx" \
+    -DLLVM_ENABLE_BINDINGS=OFF \
+    -DLLVM_ENABLE_DOXYGEN=OFF \
+    -DLLVM_ENABLE_WARNINGS=OFF \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_INCLUDE_EXAMPLES=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DCLANG_DEFAULT_CXX_STDLIB="libc++" \
+    -DCLANG_DEFAULT_RTLIB="compiler-rt" \
+    -DCLANG_DEFAULT_UNWINDLIB="none" \
+    -DCLANG_DEFAULT_LINKER="lld" \
+    -DCOMPILER_RT_BUILD_BUILTINS=ON \
+    -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+    -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+    -DCOMPILER_RT_BUILD_PROFILE=OFF \
+    -DCOMPILER_RT_BUILD_XRAY=OFF \
+    -DLIBUNWIND_ENABLE_SHARED=OFF \
+    -DLIBUNWIND_ENABLE_STATIC=ON \
+    -DLIBUNWIND_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_ENABLE_SHARED=OFF \
+    -DLIBCXXABI_ENABLE_STATIC=ON \
+    -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_SHARED_LIBRARY=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
+    -DLIBCXXABI_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
+    -DLIBCXX_ABI_UNSTABLE=ON \
+    -DLIBCXX_ABI_VERSION=2 \
+    -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF \
+    -DLIBCXX_ENABLE_INCOMPLETE_FEATURES=ON \
+    -DLIBCXX_ENABLE_SHARED=OFF \
+    -DLIBCXX_ENABLE_STATIC=ON \
+    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+    -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
+    -DLIBCXX_USE_COMPILER_RT=ON \
+    -B build/stage build/src/llvm/llvm
+fi
+
+if [ ! -e build/stage/bin/clang ]; then
+  print "Building stage ..."
+  ninja -C build/stage \
+    LTO \
+    lld \
+    llvm-ar \
+    llvm-nm \
+    llvm-objcopy \
+    llvm-objdump \
+    llvm-ranlib \
+    llvm-strip \
+    llvm-size \
+    clang \
+    clang-resource-headers \
+    llvm-config \
+    runtimes
+fi
+
+# =============================================================================
+# runtimes
+# =============================================================================
+
+if [ ! -f build/runtimes/build.ninja ]; then
+  print "Configuring runtimes ..."
+  PATH="${ACE}/build/stage/bin:${PATH}" \
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER="${ACE}/build/stage/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/build/stage/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/build/stage/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="/usr/bin/yasm" \
+    -DCMAKE_LINKER="${ACE}/build/stage/bin/lld" \
+    -DCMAKE_AR="${ACE}/build/stage/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/build/stage/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/build/stage/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/build/stage/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/build/stage/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/build/stage/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/build/stage/bin/llvm-size" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}/sys/linux" \
+    -DCMAKE_INSTALL_INCLUDEDIR="usr/include" \
+    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-gnu" \
+    -DLLVM_ENABLE_RUNTIMES="libunwind;libcxxabi;libcxx" \
+    -DLLVM_ENABLE_WARNINGS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLIBUNWIND_ENABLE_SHARED=OFF \
+    -DLIBUNWIND_ENABLE_STATIC=ON \
+    -DLIBUNWIND_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_ENABLE_SHARED=OFF \
+    -DLIBCXXABI_ENABLE_STATIC=ON \
+    -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_SHARED_LIBRARY=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
+    -DLIBCXXABI_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-flto=thin" \
+    -DLIBCXX_ABI_UNSTABLE=ON \
+    -DLIBCXX_ABI_VERSION=2 \
+    -DLIBCXX_ENABLE_SHARED=ON \
+    -DLIBCXX_ENABLE_STATIC=ON \
+    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+    -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
+    -DLIBCXX_USE_COMPILER_RT=ON \
+    -B build/runtimes build/src/llvm/runtimes
+fi
+
+if [ ! -f build/runtimes/lib/libc++.a ]; then
+  print "Building runtimes ..."
+  PATH="${ACE}/build/stage/bin:${PATH}" \
+  ninja -C build/runtimes
+
+  if [ -h build/runtimes/lib/libc++.so ] && [ -f build/runtimes/lib/libc++.so.2.0 ]; then
+    mv build/runtimes/lib/libc++.so.2.0 build/runtimes/lib/libc++.so
+    patchelf --set-soname "libc++.so" build/runtimes/lib/libc++.so
+  fi
+
+  if [ -h build/runtimes/lib/libc++.so.2 ]; then
+    rm -f build/runtimes/lib/libc++.so.2
+  fi
+
+  diff build/runtimes/lib/libc++.a build/stage/lib/x86_64-pc-linux-gnu/libc++.a >/dev/null 2>&1 || \
+    cp build/runtimes/lib/libc++.a build/stage/lib/x86_64-pc-linux-gnu/libc++.a
+
+  diff build/runtimes/lib/libc++experimental.a build/stage/lib/x86_64-pc-linux-gnu/libc++experimental.a >/dev/null 2>&1 || \
+    cp build/runtimes/lib/libc++experimental.a build/stage/lib/x86_64-pc-linux-gnu/libc++experimental.a
+
+  diff build/runtimes/lib/libc++.so build/stage/lib/x86_64-pc-linux-gnu/libc++.so >/dev/null 2>&1 || \
+    cp build/runtimes/lib/libc++.so build/stage/lib/x86_64-pc-linux-gnu/libc++.so
+
+  rm -f build/stage/lib/x86_64-pc-linux-gnu/libc++abi.a
+  rm -f build/stage/lib/x86_64-pc-linux-gnu/libunwind.a
+fi
+
+# =============================================================================
+# lua
+# =============================================================================
+
+if [ ! -f build/src/lua/Makefile ]; then
+  print "Extracting build/src/${LUA_TAR} ..."
+  mkdir -p build/src/lua
+  tar xf build/src/${LUA_TAR} -C build/src/lua -m --strip-components=1
+fi
+
+if [ ! -e lib/liblua.a ]; then
+  print "Installing lua ..."
+  PATH="${ACE}/build/stage/bin:${PATH}" \
+  make -C build/src/lua \
+    CC="${ACE}/build/stage/bin/clang" \
+    AR="${ACE}/build/stage/bin/llvm-ar rcu" \
+    RANLIB="${ACE}/build/stage/bin/llvm-ranlib" \
+    MYCFLAGS="-march=x86-64-v3 -flto=thin" \
+    INSTALL_MAN="${ACE}/build/man" \
+    INSTALL_TOP="${ACE}" \
+    all install
+fi
+
+# =============================================================================
+# tools
+# =============================================================================
+
+if [ ! -f build/tools/build.ninja ]; then
+  print "Configuring tools ..."
+  PATH="${ACE}/build/stage/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/build/stage/lib/x86_64-pc-linux-gnu" \
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER="${ACE}/build/stage/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/build/stage/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/build/stage/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="/usr/bin/yasm" \
+    -DCMAKE_LINKER="${ACE}/build/stage/bin/lld" \
+    -DCMAKE_AR="${ACE}/build/stage/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/build/stage/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/build/stage/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/build/stage/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/build/stage/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/build/stage/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/build/stage/bin/llvm-size" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}" \
+    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-gnu" \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;libclc;mlir;openmp;polly;lld;lldb;bolt" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind;libcxxabi;libcxx" \
+    -DLLVM_ENABLE_BINDINGS=OFF \
+    -DLLVM_ENABLE_DOXYGEN=OFF \
+    -DLLVM_ENABLE_LTO="Thin" \
+    -DLLVM_ENABLE_WARNINGS=OFF \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_INCLUDE_EXAMPLES=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLLVM_TARGETS_TO_BUILD="X86;Native;AMDGPU;NVPTX" \
+    -DCLANG_DEFAULT_CXX_STDLIB="libc++" \
+    -DCLANG_DEFAULT_RTLIB="compiler-rt" \
+    -DCLANG_DEFAULT_UNWINDLIB="none" \
+    -DCLANG_DEFAULT_LINKER="lld" \
+    -DCOMPILER_RT_BUILD_BUILTINS=ON \
+    -DCOMPILER_RT_BUILD_GWP_ASAN=OFF \
+    -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+    -DCOMPILER_RT_BUILD_MEMPROF=OFF \
+    -DCOMPILER_RT_BUILD_ORC=OFF \
+    -DCOMPILER_RT_BUILD_PROFILE=OFF \
+    -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+    -DCOMPILER_RT_BUILD_XRAY=OFF \
+    -DLIBUNWIND_ENABLE_SHARED=OFF \
+    -DLIBUNWIND_ENABLE_STATIC=ON \
+    -DLIBUNWIND_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_ENABLE_SHARED=OFF \
+    -DLIBCXXABI_ENABLE_STATIC=ON \
+    -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_SHARED_LIBRARY=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
+    -DLIBCXXABI_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-flto=thin" \
+    -DLIBCXX_ADDITIONAL_LIBRARIES="-nostdlib++;-pthread;-ldl" \
+    -DLIBCXX_ABI_UNSTABLE=ON \
+    -DLIBCXX_ABI_VERSION=2 \
+    -DLIBCXX_ENABLE_SHARED=ON \
+    -DLIBCXX_ENABLE_STATIC=ON \
+    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+    -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
+    -DLIBCXX_USE_COMPILER_RT=ON \
+    -DLLDB_ENABLE_PYTHON=OFF \
+    -DLLDB_ENABLE_LUA=ON \
+    -DLUA_INCLUDE_DIR="${ACE}/include" \
+    -DLUA_LIBRARIES="${ACE}/lib/liblua.a" \
+    -DDEFAULT_SYSROOT="../sys/linux" \
+    -B build/tools build/src/llvm/llvm
+
+  # Make sure the default sysroot is available during the build process.
+  ln -fs ../../sys build/tools/
+fi
+
+if [ ! -e bin/clang ]; then
+  print "Installing tools ..."
+  PATH="${ACE}/build/stage/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/build/stage/lib/x86_64-pc-linux-gnu" \
+  ninja -C build/tools install/strip
+
+  if [ ${CLANG_ENABLE_EXPERIMENTAL} -ne 0 ]; then
+    sed -E 's;.*_LIBCPP_ENABLE_DEBUG_MODE.*;#define _LIBCPP_ENABLE_EXPERIMENTAL;' \
+      -i include/x86_64-pc-linux-gnu/c++/v1/__config_site
+  fi
+
+  if [ -h lib/x86_64-pc-linux-gnu/libc++.so ] && [ -f lib/x86_64-pc-linux-gnu/libc++.so.2.0 ]; then
+    mv lib/x86_64-pc-linux-gnu/libc++.so.2.0 lib/x86_64-pc-linux-gnu/libc++.so
+    patchelf --set-soname "libc++.so" lib/x86_64-pc-linux-gnu/libc++.so
+  fi
+
+  if [ -h lib/x86_64-pc-linux-gnu/libc++.so.2 ]; then
+    rm -f lib/x86_64-pc-linux-gnu/libc++.so.2
+  fi
+
+  rm -f lib/x86_64-pc-linux-gnu/libc++abi.a
+  rm -f lib/x86_64-pc-linux-gnu/libunwind.a
+
+  rm -rf lib/clang/16/lib/i386-pc-linux-gnu
+
+  find lib -maxdepth 1 -type f -name '*.so*' -exec patchelf --set-rpath \
+    '$ORIGIN:$ORIGIN/x86_64-pc-linux-gnu:$ORIGIN/sys' '{}' ';' >/dev/null 2>&1
+
+  find bin -maxdepth 1 -type f -exec patchelf --set-rpath \
+    '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib:$ORIGIN/../lib/sys' '{}' ';' >/dev/null 2>&1
+
+  mkdir lib/sys
+
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libbsd.so.0 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libedit.so.2 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libform.so.6 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libicudata.so.67 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libicuuc.so.67 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libssl.so.1.1 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libmd.so.0 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libpanel.so.6 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libstdc++.so.6 lib/sys/
+  ln -sf ../../sys/linux/usr/lib/x86_64-linux-gnu/libxml2.so.2 lib/sys/
+  ln -sf ../../sys/linux/lib/x86_64-linux-gnu/liblzma.so.5 lib/sys/
+  ln -sf ../../sys/linux/lib/x86_64-linux-gnu/libncurses.so.6 lib/sys/
+  ln -sf ../../sys/linux/lib/x86_64-linux-gnu/libtinfo.so.6 lib/sys/
+  ln -sf ../../sys/linux/lib/x86_64-linux-gnu/libz.so.1 lib/sys/
+fi
+
+if [ ! -f build/compiler-rt/build.ninja ]; then
+  print "Configuring compiler-rt ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="/usr/bin/yasm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
+    -DCMAKE_AR="${ACE}/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}/${CLANG_LIB_DIR}" \
+    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-gnu" \
+    -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_ENABLE_WARNINGS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DCOMPILER_RT_BUILD_BUILTINS=OFF \
+    -DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON \
+    -B build/compiler-rt build/src/llvm/runtimes
+fi
+
+if [ ! -f ${CLANG_LIB_DIR}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a ]; then
+  print "Installing compiler-rt ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  ninja -C build/compiler-rt install/strip
+fi
+
+# =============================================================================
+# yasm
+# =============================================================================
+
+if [ ! -f build/src/yasm/configure ]; then
+  print "Extracting build/src/${YASM_TAR} ..."
+  mkdir -p build/src/yasm
+  tar xf build/src/${YASM_TAR} -C build/src/yasm -m --strip-components=1
+fi
+
+if [ ! -f build/yasm/Makefile ]; then
+  print "Configuring yasm ..."
+  mkdir -p build/yasm
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  cmake -E chdir build/yasm ../src/yasm/configure --prefix="${ACE}" --disable-nls --disable-rpath \
+    CC="${ACE}/bin/clang" CFLAGS="-O3 -march=x86-64-v3 -flto=thin"
+fi
+
+if [ ! -f bin/yasm ]; then
+  print "Installing yasm ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  cmake -E chdir build/yasm make -j17 install-strip
+  for exe in yasm ytasm vsyasm; do
+    patchelf --set-rpath '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/${exe}
+  done
+fi
+
+# =============================================================================
+# re2c
+# =============================================================================
+
+RE2C_WARNINGS_CFLAGS="\
+  -Wno-covered-switch-default \
+  -Wno-exit-time-destructors \
+  -Wno-unsafe-buffer-usage \
+  -Wno-unused-parameter \
+  -Wno-unused-function \
+  -Wno-unused-macros \
+  -Wno-switch-enum \
+  -Wno-shadow"
+
+if [ ! -f build/src/re2c/CMakeLists.txt ]; then
+  print "Extracting build/src/${RE2C_TAR} ..."
+  mkdir -p build/src/re2c
+  tar xf build/src/${RE2C_TAR} -C build/src/re2c -m --strip-components=1
+fi
+
+if [ ! -f build/re2c/build.ninja ]; then
+  print "Configuring re2c ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="${ACE}/bin/yasm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
+    -DCMAKE_AR="${ACE}/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -flto=thin" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -flto=thin ${RE2C_WARNINGS_CFLAGS}" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}" \
+    -DRE2C_BUILD_RE2GO=OFF \
+    -DRE2C_BUILD_RE2RUST=OFF \
+    -B build/re2c build/src/re2c
+fi
+
+if [ ! -f bin/re2c ]; then
+  print "Installing re2c ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  ninja -C build/re2c install/strip
+  patchelf --set-rpath '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/re2c
+fi
+
+# =============================================================================
+# ninja
+# =============================================================================
+
+if [ ! -f build/src/ninja/CMakeLists.txt ]; then
+  print "Extracting build/src/${NINJA_TAR} ..."
+  mkdir -p build/src/ninja
+  tar xf build/src/${NINJA_TAR} -C build/src/ninja -m --strip-components=1
+fi
+
+if [ ! -f build/ninja/build.ninja ]; then
+  print "Configuring ninja ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="${ACE}/bin/yasm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
+    -DCMAKE_AR="${ACE}/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -flto=thin" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -flto=thin" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}" \
+    -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib/x86_64-pc-linux-gnu:\$ORIGIN/../lib/sys" \
+    -B build/ninja build/src/ninja
+fi
+
+if [ ! -f bin/ninja ]; then
+  print "Installing ninja ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  ninja -C build/ninja install/strip
+fi
+
+# =============================================================================
+# mingw
+# =============================================================================
+
+if [ ! -f build/src/mingw/configure ]; then
+  print "Extracting build/src/${MINGW_TAR} ..."
+  mkdir -p build/src/mingw
+  tar xf build/src/${MINGW_TAR} -C build/src/mingw -m --strip-components=1
+fi
+
+if [ ! -f build/mingw-headers/Makefile ]; then
+  print "Configuring mingw headers ..."
+  mkdir -p build/mingw-headers
+  cmake -E chdir build/mingw-headers ../src/mingw/mingw-w64-headers/configure \
+    --prefix="${ACE}/sys/mingw" \
+    --with-default-win32-winnt=0x0A00 \
+    --with-default-msvcrt=ucrt \
+    --enable-idl
+fi
+
+if [ ! -f sys/mingw/include/windows.h ]; then
+  print "Installing mingw headers ..."
+  cmake -E chdir build/mingw-headers make install
+fi
+
+if [ ! -f build/mingw-crt/Makefile ]; then
+  print "Configuring mingw crt ..."
+  mkdir -p build/mingw-crt
+  cmake -E chdir build/mingw-crt ../src/mingw/mingw-w64-crt/configure \
+    CC="${ACE}/bin/clang" \
+    CXX="${ACE}/bin/clang++" \
+    AR="${ACE}/bin/llvm-ar" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    CFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -O3 -march=x86-64-v3 -fms-compatibility-version=19.36" \
+    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    --prefix="${ACE}/sys/mingw" \
+    --build=x86_64-w64-mingw32 \
+    --with-default-msvcrt=ucrt \
+    --disable-lib32 \
+    --enable-lib64
+fi
+
+if [ ! -f sys/mingw/lib/libucrt.a ]; then
+  print "Installing mingw crt ..."
+  cmake -E chdir build/mingw-crt make -j17 install
+fi
+
+if [ ! -f build/mingw-builtins/build.ninja ]; then
+  print "Configuring mingw builtins ..."
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CROSSCOMPILING=ON \
+    -DCMAKE_SYSTEM_NAME="Windows" \
+    -DCMAKE_SYSTEM_VERSION="10.0" \
+    -DCMAKE_SYSTEM_PROCESSOR="AMD64" \
+    -DCMAKE_SYSROOT="${ACE}/sys/mingw" \
+    -DCMAKE_C_COMPILER_WORKS=ON \
+    -DCMAKE_CXX_COMPILER_WORKS=ON \
+    -DCMAKE_ASM_COMPILER_WORKS=ON \
+    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="${ACE}/bin/yasm" \
+    -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_ASM_NASM_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_MAKE_PROGRAM="${ACE}/bin/ninja" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
+    -DCMAKE_AR="${ACE}/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
+    -DCMAKE_DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    -DCMAKE_RC_COMPILER="${ACE}/bin/llvm-windres" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.36" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.36" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}/${CLANG_LIB_DIR}" \
+    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-w64-mingw32" \
+    -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_ENABLE_WARNINGS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DCOMPILER_RT_BUILD_BUILTINS=ON \
+    -DCOMPILER_RT_BUILD_GWP_ASAN=OFF \
+    -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+    -DCOMPILER_RT_BUILD_MEMPROF=OFF \
+    -DCOMPILER_RT_BUILD_ORC=OFF \
+    -DCOMPILER_RT_BUILD_PROFILE=OFF \
+    -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+    -DCOMPILER_RT_BUILD_XRAY=OFF \
+    -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+    -B build/mingw-builtins build/src/llvm/runtimes
+fi
+
+if [ ! -f ${CLANG_LIB_DIR}/lib/windows/libclang_rt.builtins-x86_64.a ]; then
+  print "Installing mingw builtins ..."
+  ninja -C build/mingw-builtins install/strip
+fi
+
+if [ ! -f build/mingw-runtimes/build.ninja ]; then
+  print "Configuring mingw runtimes ..."
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CROSSCOMPILING=ON \
+    -DCMAKE_SYSTEM_NAME="Windows" \
+    -DCMAKE_SYSTEM_VERSION="10.0" \
+    -DCMAKE_SYSTEM_PROCESSOR="AMD64" \
+    -DCMAKE_SYSROOT="${ACE}/sys/mingw" \
+    -DCMAKE_CXX_COMPILER_WORKS=ON \
+    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="${ACE}/bin/yasm" \
+    -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_ASM_NASM_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_MAKE_PROGRAM="${ACE}/bin/ninja" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
+    -DCMAKE_AR="${ACE}/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
+    -DCMAKE_DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    -DCMAKE_RC_COMPILER="${ACE}/bin/llvm-windres" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.36" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.36" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}/sys/mingw" \
+    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-w64-mingw32" \
+    -DLLVM_ENABLE_RUNTIMES="libunwind;libcxxabi;libcxx" \
+    -DLLVM_ENABLE_WARNINGS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DLIBUNWIND_ENABLE_SHARED=OFF \
+    -DLIBUNWIND_ENABLE_STATIC=ON \
+    -DLIBUNWIND_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_ENABLE_SHARED=OFF \
+    -DLIBCXXABI_ENABLE_STATIC=ON \
+    -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_SHARED_LIBRARY=ON \
+    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
+    -DLIBCXXABI_USE_COMPILER_RT=ON \
+    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-flto=thin;-fms-compatibility-version=19.36" \
+    -DLIBCXX_ADDITIONAL_LIBRARIES="-nostdlib++" \
+    -DLIBCXX_ABI_UNSTABLE=ON \
+    -DLIBCXX_ABI_VERSION=2 \
+    -DLIBCXX_ENABLE_SHARED=ON \
+    -DLIBCXX_ENABLE_STATIC=ON \
+    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+    -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
+    -DLIBCXX_USE_COMPILER_RT=ON \
+    -B build/mingw-runtimes build/src/llvm/runtimes
+fi
+
+if [ ! -f sys/mingw/lib/libc++.a ]; then
+  print "Installing mingw runtimes ..."
+  ninja -C build/mingw-runtimes install/strip
+fi
+
+if [ ! -f build/mingw-compiler-rt/build.ninja ]; then
+  print "Configuring mingw compiler-rt ..."
+  cmake -GNinja -Wno-dev \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CROSSCOMPILING=ON \
+    -DCMAKE_SYSTEM_NAME="Windows" \
+    -DCMAKE_SYSTEM_VERSION="10.0" \
+    -DCMAKE_SYSTEM_PROCESSOR="AMD64" \
+    -DCMAKE_SYSROOT="${ACE}/sys/mingw" \
+    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
+    -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
+    -DCMAKE_ASM_NASM_COMPILER="${ACE}/bin/yasm" \
+    -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_ASM_NASM_COMPILER_TARGET="x86_64-w64-mingw32" \
+    -DCMAKE_MAKE_PROGRAM="${ACE}/bin/ninja" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
+    -DCMAKE_AR="${ACE}/bin/llvm-ar" \
+    -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
+    -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
+    -DCMAKE_STRIP="${ACE}/bin/llvm-strip" \
+    -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
+    -DCMAKE_DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    -DCMAKE_RC_COMPILER="${ACE}/bin/llvm-windres" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.36" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.36" \
+    -DCMAKE_INSTALL_PREFIX="${ACE}/${CLANG_LIB_DIR}" \
+    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-w64-mingw32" \
+    -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=OFF \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_ENABLE_WARNINGS=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_INCLUDE_DOCS=OFF \
+    -DCOMPILER_RT_BUILD_BUILTINS=OFF \
+    -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+    -DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON \
+    -DCOMPILER_RT_USE_BUILTINS_LIBRARY=ON \
+    -B build/mingw-compiler-rt build/src/llvm/runtimes
+fi
+
+if [ ! -f ${CLANG_LIB_DIR}/lib/windows/libclang_rt.profile-x86_64.a ]; then
+  print "Installing mingw compiler-rt ..."
+  ninja -C build/mingw-compiler-rt install/strip
+fi
+
+MINGW_WARNINGS_CFLAGS="\
+  -Wno-unknown-warning-option \
+  -Wno-empty-translation-unit \
+  -Wno-unused-but-set-variable \
+  -Wno-misleading-indentation \
+  -Wno-missing-noreturn \
+  -Wno-format-pedantic \
+  -Wno-format"
+
+if [ ! -f build/mingw-tools/Makefile ]; then
+  print "Configuring mingw tools ..."
+  mkdir -p build/mingw-tools
+  cmake -E chdir build/mingw-tools ../src/mingw/configure \
+    CC="${ACE}/bin/clang" \
+    CXX="${ACE}/bin/clang++" \
+    AR="${ACE}/bin/llvm-ar" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    CFLAGS="-march=x86-64-v3 -flto=thin ${MINGW_WARNINGS_CFLAGS}" \
+    --prefix="${ACE}" \
+    --without-headers \
+    --without-crt \
+    --with-tools=all
+fi
+
+if [ ! -f bin/gendef ]; then
+  print "Installing mingw tools ..."
+  cmake -E chdir build/mingw-tools make -j17 install-strip
+  for exe in gendef genidl; do
+    patchelf --set-rpath '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/${exe}
+  done
+fi
+
+# =============================================================================
+# readpe
+# =============================================================================
+
+if [ ! -f build/src/readpe/Makefile ]; then
+  print "Extracting build/src/${READPE_TAR} ..."
+  mkdir -p build/src/readpe
+  tar xf build/src/${READPE_TAR} -C build/src/readpe -m --strip-components=1
+fi
+
+if [ ! -f build/src/readpe/src/build/readpe ]; then
+  print "Building readpe ..."
+  cmake -E chdir build/src/readpe make \
+    CC="${ACE}/bin/clang" \
+    CFLAGS="-march=x86-64-v3 -flto=thin" \
+    prefix="${ACE}" -j17
+fi
+
+if [ ! -f bin/readpe ]; then
+  print "Installing readpe ..."
+  cmake -E chdir build/src/readpe make \
+    CC="${ACE}/bin/clang" \
+    CFLAGS="-march=x86-64-v3 -flto=thin" \
+    prefix="${ACE}" install-strip
+  for exe in readpe rva2ofs ofs2rva pehash pesec pescan pepack pestr pedis peres peldd; do
+    patchelf --set-rpath '$ORIGIN/../lib:$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/${exe}
+  done
+  for lib in lib/pev/plugins/*.so*; do
+    patchelf --set-rpath '$ORIGIN/../..:$ORIGIN/../../x86_64-pc-linux-gnu:$ORIGIN/../../sys' ${lib}
+  done
+  patchelf --set-rpath '$ORIGIN/x86_64-pc-linux-gnu:$ORIGIN/sys' lib/libpe.so
+fi

@@ -1,0 +1,7 @@
+/*
+.*
+!/src/
+!/.gitattributes
+!/.gitignore
+!/readme.md
+!/toolchain.cmake
