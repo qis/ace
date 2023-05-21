@@ -13,7 +13,7 @@ set -e
 PORTS="benchmark doctest tbb"
 
 # Compression
-PORTS="${PORTS} zlib bzip2"
+PORTS="${PORTS} zlib bzip2 lz4"
 
 # =============================================================================
 # Vcpkg
