@@ -1,0 +1,40 @@
+diff '--color=auto' -ruNp vcpkg/ports/tbb/0001-tchar-fixes.patch src/ports/tbb/0001-tchar-fixes.patch
+--- vcpkg/ports/tbb/0001-tchar-fixes.patch	1970-01-01 01:00:00.000000000 +0100
++++ src/ports/tbb/0001-tchar-fixes.patch	2023-05-20 20:47:01.752600095 +0200
+@@ -0,0 +1,12 @@
++diff '--color=auto' -ruNp v2021.9.0-a3c685485e.clean/include/oneapi/tbb/profiling.h v2021.9.0-a3c685485e/include/oneapi/tbb/profiling.h
++--- v2021.9.0-a3c685485e.clean/include/oneapi/tbb/profiling.h	2023-04-06 19:14:50.000000000 +0200
+++++ v2021.9.0-a3c685485e/include/oneapi/tbb/profiling.h	2023-05-19 04:04:26.775898719 +0200
++@@ -132,7 +132,7 @@ namespace d1 {
++         r1::call_itt_notify((int)t, ptr);
++     }
++ 
++-#if (_WIN32||_WIN64) && !__MINGW32__
+++#if (_WIN32||_WIN64)
++     inline void itt_set_sync_name(void* obj, const wchar_t* name) {
++         r1::itt_set_sync_name(obj, name);
++     }
+diff '--color=auto' -ruNp vcpkg/ports/tbb/portfile.cmake src/ports/tbb/portfile.cmake
+--- vcpkg/ports/tbb/portfile.cmake	2023-05-21 12:27:07.374152552 +0200
++++ src/ports/tbb/portfile.cmake	2023-05-21 02:08:29.772768282 +0200
+@@ -7,6 +7,8 @@ vcpkg_from_github(
+     REF "v${VERSION}"
+     SHA512 2ece7f678ad7c8968c0ad5cda9f987e4b318c6d9735169e1039beb0ff8dfca18815835875211acc6c7068913d9b0bdd4c9ded22962b0bb48f4a0ce0f7b78f31c
+     HEAD_REF onetbb_2021
++    PATCHES
++      0001-tchar-fixes.patch
+ )
+ 
+ vcpkg_cmake_configure(
+@@ -26,11 +28,6 @@ if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x
+   set(arch_suffix "32")
+ endif()
+ 
+-
+-if(NOT VCPKG_BUILD_TYPE)
+-    vcpkg_replace_string("${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/tbb${arch_suffix}.pc" "-ltbb12" "-ltbb12_debug")
+-endif()
+-
+ file(REMOVE_RECURSE
+     "${CURRENT_PACKAGES_DIR}/share/doc"
+     "${CURRENT_PACKAGES_DIR}/debug/include"
