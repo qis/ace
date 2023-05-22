@@ -29,6 +29,7 @@ cd "${ACE}"
 
 export PATH="${ACE}/bin:${ACE}/cmake/bin:${PATH}"
 export WINEPATH="${ACE}/sys/mingw/bin;${ACE}/vcpkg/installed/mingw-shared/bin"
+export LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu"
 
 export VCPKG_ROOT="${ACE}/vcpkg"
 export VCPKG_DEFAULT_TRIPLET="linux-static"
