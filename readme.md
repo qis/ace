@@ -236,6 +236,72 @@ rm -rf qemu
 
 </details>
 
+Instructions on how to add a port.
+
+<details>
+
+Use the `luajit` port as an example.
+
+```sh
+# Create backup.
+rm -f vcpkg.tar.xz
+XZ_OPT="-T16 -9v" tar cJf vcpkg.tar.xz vcpkg
+
+# Search for port using vcpkg.
+vcpkg/vcpkg search luajit
+
+# Inspect dependencies and choose features.
+vim vcpkg/ports/luajit/vcpkg.json
+
+# Add "luajit" to the PORTS variable in src/vcpkg.
+vim src/vcpkg
+
+# Try to install port.
+src/vcpkg install luajit
+
+# If the installation failed and the problem can be solved with
+# a simple triplet override, modify src/ports.cmake.
+vim src/ports.cmake
+
+# If the installation failed and the build process must be altered,
+# create a copy of the port directory in src/ports and edit it.
+cp -R vcpkg/ports/luajit src/ports/
+vim src/ports/luajit/portfile.cmake
+
+# If the installation failed and the port needs to be patched,
+# install it in editable mode until it works.
+src/vcpkg --editable install luajit
+
+# Optional: Create a patch and add it to the portfile.
+cmake/bin/cmake -E chdir vcpkg/buildtrees/luajit/src \
+  diff -ruNp f34f7265aa-eb31d8cee1.clean f34f7265aa-eb31d8cee1 \
+  > src/ports/luajit/0001-clang-fixes.patch
+vim src/ports/luajit/portfile.cmake
+
+# Clean vcpkg directory.
+src/vcpkg clean
+
+# Install port to verify the dependency graph.
+src/vcpkg --recurse install luajit
+
+# Create tests.
+cp -R src/tests/zlib src/tests/luajit
+vim src/tests/luajit/config.cmake
+vim src/tests/luajit/main.cpp
+
+# Build and run tests.
+src/vcpkg test luajit
+
+# Create commit.
+git diff
+git status
+git add src/vcpkg src/ports.cmake src/ports src/tests
+git commit -m "added port: luajit"
+git push
+```
+
+</details>
+
 [vcp]: https://vcpkg.io/
 [lto]: https://clang.llvm.org/docs/ThinLTO.html
 [abi]: https://abi-laboratory.pro/?view=timeline&l=glibc
