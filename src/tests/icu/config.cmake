@@ -6,3 +6,9 @@ add_custom_command(OUTPUT icudtl.dat
   MAIN_DEPENDENCY ${ICU_DATA} USES_TERMINAL)
 
 target_sources(main PRIVATE icudtl.dat)
+
+find_program(ICUPKG_EXECUTABLE icupkg REQUIRED)
+message(STATUS "Found icupkg: ${ICUPKG_EXECUTABLE}")
+
+find_program(PKGDATA_EXECUTABLE pkgdata REQUIRED)
+message(STATUS "Found pkgdata: ${PKGDATA_EXECUTABLE}")

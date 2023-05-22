@@ -10,3 +10,6 @@ The package icu is compatible with built-in CMake targets:
       MAIN_DEPENDENCY ${ICU_DATA} USES_TERMINAL)
 
     target_sources(main PRIVATE icudtl.dat)
+
+    find_program(ICUPKG_EXECUTABLE icupkg REQUIRED)
+    find_program(PKGDATA_EXECUTABLE pkgdata REQUIRED)
