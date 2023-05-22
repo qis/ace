@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+
+for arg in "$@"; do
+  name=$(echo "${arg}" | cut -d= -f1)
+  if [ "${name}" = "SOURCE_PATH" ]; then
+    src=$(echo "${arg}" | cut -d= -f2)
+    if [ ! -d "${src}" ]; then
+      echo "Missing source directory: ${src}" 1>&2
+      exit 1
+    fi
+
+    echo "SRC: ${src}"
+    echo "DST: $(pwd)"
+
+    cp -R "${src}"/* ./
+    exit 0
+  fi
+done
+
+echo "Missing configure argument: SOURCE_PATH" 1>&2
+exit 1
