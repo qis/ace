@@ -1,28 +1,12 @@
-# International Components for Unicode
-# https://cmake.org/cmake/help/latest/module/FindICU.html
-#
-#   find_package(ICU REQUIRED)
-#   find_package(ICU REQUIRED COMPONENTS ALL)
-#   find_package(ICU REQUIRED COMPONENTS data uc i18n)
-#   target_link_libraries(main PRIVATE ICU::data ICU::uc ICU::i18n)
-#
-#   add_custom_command(OUTPUT icudtl.dat
-#     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${ICU_DATA} icudtl.dat
-#     MAIN_DEPENDENCY ${ICU_DATA} USES_TERMINAL)
-#
-#   target_sources(main PRIVATE icudtl.dat)
-#
 cmake_policy(PUSH)
 cmake_policy(VERSION 3.20)
 set(CMAKE_IMPORT_FILE_VERSION 1)
 
-if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/icudtl.dat)
-  set(ICU_DATA "${CMAKE_CURRENT_LIST_DIR}/icudtl.dat" CACHE PATH "")
-  message(VERBOSE "Found ICU data file: ${ICU_DATA}")
-else()
-  message(FATAL_ERROR "Missing ICU data file: ${CMAKE_CURRENT_LIST_DIR}/icudtl.dat")
-  set(ICU_DATA "" CACHE STRING "")
+set(ICU_DATA "${CMAKE_CURRENT_LIST_DIR}/icudtl.dat" CACHE PATH "")
+if(NOT EXISTS ${ICU_DATA})
+  message(FATAL_ERROR "Missing ICU data file: ${ICU_DATA}")
 endif()
+message(VERBOSE "Found ICU data file: ${ICU_DATA}")
 
 enable_language(CXX)
 

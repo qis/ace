@@ -237,7 +237,7 @@ target_include_directories(icupkg
 set_target_properties(icupkg PROPERTIES
   INSTALL_RPATH "$ORIGIN/../lib")
 
-install(TARGETS icupkg RUNTIME DESTINATION tools)
+install(TARGETS icupkg RUNTIME DESTINATION bin)
 
 # ==========================================================================
 # TOOL: pkgdata
@@ -263,7 +263,7 @@ endif()
 set_target_properties(pkgdata PROPERTIES
   INSTALL_RPATH "$ORIGIN/../lib")
 
-install(TARGETS pkgdata RUNTIME DESTINATION tools)
+install(TARGETS pkgdata RUNTIME DESTINATION bin)
 
 # ==========================================================================
 # HEADERS
