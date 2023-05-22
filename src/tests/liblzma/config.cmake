@@ -1,2 +1,2 @@
-find_package(liblzma CONFIG REQUIRED)
-target_link_libraries(main PRIVATE liblzma::liblzma)
+find_package(LibLZMA REQUIRED)
+target_link_libraries(main PRIVATE LibLZMA::LibLZMA)
