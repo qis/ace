@@ -13,7 +13,9 @@ list(GET VCPKG_TARGET_TRIPLET_LIST 0 VCPKG_TARGET_SYSROOT)
 list(GET VCPKG_TARGET_TRIPLET_LIST 1 VCPKG_LIBRARY_LINKAGE)
 
 if(VCPKG_TARGET_SYSROOT STREQUAL "linux")
-  set(CMAKE_BUILD_RPATH ${ACE}/lib/x86_64-pc-linux-gnu CACHE PATH "")
+  set(CMAKE_BUILD_RPATH
+    ${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/lib
+    ${ACE}/lib/x86_64-pc-linux-gnu CACHE PATH "")
   set(CMAKE_BUILD_RPATH_USE_ORIGIN ON CACHE BOOL "")
 elseif(VCPKG_TARGET_SYSROOT STREQUAL "mingw")
   set(CMAKE_CROSSCOMPILING ON CACHE BOOL "" FORCE)
@@ -192,7 +194,7 @@ set(CMAKE_MAP_IMPORTED_CONFIG_COVERAGE ";Release" CACHE STRING "" FORCE)
 # Environment
 set(ENV{PKG_CONFIG_PATH} "${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/lib/pkgconfig")
 set(ENV{LD_LIBRARY_PATH} "${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/lib:${ACE}/lib/x86_64-pc-linux-gnu")
-set(ENV{WINEPATH} "${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/bin:${ACE}/sys/mingw/bin")
+set(ENV{WINEPATH} "${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/bin;${ACE}/sys/mingw/bin")
 
 # Cache
 if(ENABLE_CCACHE)

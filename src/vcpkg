@@ -28,8 +28,6 @@ ACE=$(dirname "${SRC}")
 cd "${ACE}"
 
 export PATH="${ACE}/bin:${ACE}/cmake/bin:${PATH}"
-export WINEPATH="${ACE}/sys/mingw/bin;${ACE}/vcpkg/installed/mingw-shared/bin"
-export LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu"
 
 export VCPKG_ROOT="${ACE}/vcpkg"
 export VCPKG_DEFAULT_TRIPLET="linux-static"
@@ -118,10 +116,15 @@ if [ "${1}" = "test" ]; then
     run cmake -E chdir tests/${PORT}/linux-shared llvm-profdata merge -sparse default.profraw -o default.profdata
     run cmake -E chdir tests/${PORT}/linux-shared llvm-cov report Coverage/main -instr-profile=default.profdata
 
+    WINEPATH="${ACE}/vcpkg/installed/mingw-shared/bin;${ACE}/sys/mingw/bin" \
     run cmake -E chdir tests/${PORT}/mingw-shared wine Debug/main.exe
+    WINEPATH="${ACE}/vcpkg/installed/mingw-static/bin;${ACE}/sys/mingw/bin" \
     run cmake -E chdir tests/${PORT}/mingw-static wine Release/main.exe
+    WINEPATH="${ACE}/vcpkg/installed/mingw-static/bin;${ACE}/sys/mingw/bin" \
     run cmake -E chdir tests/${PORT}/mingw-static wine MinSizeRel/main.exe
+    WINEPATH="${ACE}/vcpkg/installed/mingw-shared/bin;${ACE}/sys/mingw/bin" \
     run cmake -E chdir tests/${PORT}/mingw-shared wine RelWithDebInfo/main.exe
+    WINEPATH="${ACE}/vcpkg/installed/mingw-shared/bin;${ACE}/sys/mingw/bin" \
     run cmake -E chdir tests/${PORT}/mingw-shared wine Coverage/main.exe
 
     run cmake -E chdir tests/${PORT}/mingw-shared llvm-profdata merge -sparse default.profraw -o default.profdata
@@ -135,16 +138,12 @@ if [ "${1}" = "format" ]; then
   exit 0
 fi
 
-if [ "${1}" = "install" ] && [ -z "${2}" ]; then
-  for TRIPLET in ${TRIPLETS}; do
-    print "vcpkg --triplet=${TRIPLET} ${PORTS}"
-    vcpkg/vcpkg --triplet=${TRIPLET} install ${PORTS}
-  done
-  exit 0
-fi
-
 for TRIPLET in ${TRIPLETS}; do
-  if [ "${1}" = "${triplet}" ]; then
+  if [ "${1}" = "${TRIPLET}" ]; then
+    shift
+    PKG_CONFIG_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib/pkgconfig" \
+    LD_LIBRARY_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib:${ACE}/lib/x86_64-pc-linux-gnu" \
+    WINEPATH="${ACE}/vcpkg/installed/${TRIPLET}/bin;${ACE}/sys/mingw/bin" \
     vcpkg/vcpkg --triplet=${TRIPLET} $*
     exit 0
   fi
@@ -152,5 +151,8 @@ done
 
 for TRIPLET in ${TRIPLETS}; do
   print "vcpkg --triplet=${TRIPLET} $*"
+  PKG_CONFIG_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib/pkgconfig" \
+  LD_LIBRARY_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib:${ACE}/lib/x86_64-pc-linux-gnu" \
+  WINEPATH="${ACE}/vcpkg/installed/${TRIPLET}/bin;${ACE}/sys/mingw/bin" \
   vcpkg/vcpkg --triplet=${TRIPLET} $*
 done
