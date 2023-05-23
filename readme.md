@@ -16,7 +16,7 @@ Runtime dependencies for building and using this toolchain.
 # Replace with equivalent packages for other linux distributions.
 apt install -y --no-install-recommends \
   ca-certificates curl git openssh-client sudo tar tzdata unzip xz-utils zip \
-  automake debootstrap make patchelf perl pkg-config python3 strace \
+  autoconf automake debootstrap libtool make patchelf perl pkg-config python3 strace \
   libatomic1 libc6 libgcc-s1
 
 # Install debian packages for windows development.
