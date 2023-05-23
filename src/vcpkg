@@ -152,10 +152,16 @@ for TRIPLET in ${TRIPLETS}; do
   fi
 done
 
+if [ "${1}" = "install" ] && [ -z "${2}" ]; then
+  ARGS="install ${PORTS}"
+else
+  ARGS="${*}"
+fi
+
 for TRIPLET in ${TRIPLETS}; do
-  print "vcpkg --triplet=${TRIPLET} $*"
+  print "vcpkg --triplet=${TRIPLET} ${ARGS}"
   PKG_CONFIG_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib/pkgconfig" \
   LD_LIBRARY_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib:${ACE}/lib/x86_64-pc-linux-gnu" \
   WINEPATH="${ACE}/vcpkg/installed/${TRIPLET}/bin;${ACE}/sys/mingw/bin" \
-  vcpkg/vcpkg --triplet=${TRIPLET} $*
+  vcpkg/vcpkg --triplet=${TRIPLET} ${ARGS}
 done
