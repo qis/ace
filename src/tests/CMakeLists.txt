@@ -6,4 +6,8 @@ target_compile_features(main PRIVATE cxx_std_20)
 target_compile_options(main PRIVATE -fexperimental-library)
 target_link_options(main PRIVATE -fexperimental-library)
 
+if(WIN32)
+  target_compile_definitions(main PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+
 include($ENV{PORT}/config.cmake)
