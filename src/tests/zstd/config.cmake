@@ -1,6 +1,2 @@
 find_package(zstd CONFIG REQUIRED)
-if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
-  target_link_libraries(main PRIVATE zstd::libzstd_static)
-else()
-  target_link_libraries(main PRIVATE zstd::libzstd_shared)
-endif()
+target_link_libraries(main PRIVATE zstd::zstd)
