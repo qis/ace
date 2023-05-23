@@ -48,17 +48,17 @@ name() {
 }
 
 error() {
-  echo -e "\033[0;31merror: $*\033[0m" 1>&2
+  echo -e "\033[0;31merror: ${*}\033[0m" 1>&2
   exit 1
 }
 
 print() {
-  echo -e "\033[0;32m$*\033[0m" 1>&2
+  echo -e "\033[0;32m${*}\033[0m" 1>&2
 }
 
 run() {
-  print "$*"
-  $*
+  print "${*}"
+  ${*}
 }
 
 if [ "${1}" = "clean" ]; then
@@ -80,8 +80,8 @@ fi
 
 if [ "${1}" = "test" ]; then
   shift
-  if [ -n "$*" ]; then
-    PORTS=$*
+  if [ -n "${*}" ]; then
+    PORTS=${*}
   fi
   for PORT in ${PORTS}; do
     PORT=$(name "${PORT}")
@@ -144,10 +144,11 @@ fi
 for TRIPLET in ${TRIPLETS}; do
   if [ "${1}" = "${TRIPLET}" ]; then
     shift
+    print "vcpkg --triplet=${TRIPLET} ${*}"
     PKG_CONFIG_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib/pkgconfig" \
     LD_LIBRARY_PATH="${ACE}/vcpkg/installed/${TRIPLET}/lib:${ACE}/lib/x86_64-pc-linux-gnu" \
     WINEPATH="${ACE}/vcpkg/installed/${TRIPLET}/bin;${ACE}/sys/mingw/bin" \
-    vcpkg/vcpkg --triplet=${TRIPLET} $*
+    vcpkg/vcpkg --triplet=${TRIPLET} ${*}
     exit 0
   fi
 done
