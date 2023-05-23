@@ -79,7 +79,6 @@ fi
 if [ "${1}" = "reset" ]; then
   print "Deleting toolchain ..."
   rm -rf bin cmake include lib libexec share sys
-  src/vcpkg reset
 fi
 
 if [ "${1}" = "reset" ] || [ "${1}" = "clean" ]; then
@@ -89,6 +88,7 @@ if [ "${1}" = "reset" ] || [ "${1}" = "clean" ]; then
   umount build/dev/pts 2>/dev/null || true
   umount build/proc 2>/dev/null || true
   rm -rf check build
+  src/vcpkg clean
   exit 0
 fi
 
@@ -1221,9 +1221,10 @@ if [ ! -f build/mingw-tools/Makefile ]; then
     RANLIB="${ACE}/bin/llvm-ranlib" \
     CFLAGS="-march=x86-64-v3 -flto=thin ${MINGW_WARNINGS_CFLAGS}" \
     --prefix="${ACE}" \
+    --with-tools="all" \
+    --without-libraries \
     --without-headers \
-    --without-crt \
-    --with-tools=all
+    --without-crt
 fi
 
 if [ ! -f bin/gendef ]; then
@@ -1232,6 +1233,33 @@ if [ ! -f bin/gendef ]; then
   for exe in gendef genidl; do
     patchelf --set-rpath '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/${exe}
   done
+fi
+
+if [ ! -f build/mingw-pthread/Makefile ]; then
+  print "Configuring mingw pthread ..."
+  mkdir -p build/mingw-pthread
+  cmake -E chdir build/mingw-pthread ../src/mingw/mingw-w64-libraries/winpthreads/configure \
+    CC="${ACE}/bin/clang --target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RC="${ACE}/bin/llvm-windres" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    DSYMUTIL="${ACE}/bin/dsymutil" \
+    CFLAGS="-O3 -march=x86-64-v3 -fms-compatibility-version=19.36" \
+    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    LIBTOOLFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    RCFLAGS="-I ${ACE}/sys/mingw/include" \
+    --prefix="${ACE}/sys/mingw" \
+    --host="x86_64-w64-mingw32"
+fi
+
+if [ ! -f sys/mingw/lib/libpthread.a ]; then
+  print "Installing mingw pthread ..."
+  cmake -E chdir build/mingw-pthread make -j17 install-strip
 fi
 
 # =============================================================================

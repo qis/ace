@@ -1,0 +1,8 @@
+{
+  "name": "pthreads",
+  "version": "9999",
+  "port-version": 1,
+  "description": "Empty package for pthreads on Microsoft Windows provided by MinGW-w64.",
+  "homepage": "http://locklessinc.com/articles/pthreads_on_windows/",
+  "license": "MIT AND BSD-3-Clause"
+}
