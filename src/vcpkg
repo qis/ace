@@ -19,7 +19,7 @@ PORTS="${PORTS} zlib bzip2 lz4 liblzma brotli zstd"
 PORTS="${PORTS} openssl icu libxml2 luajit boost"
 
 # Database
-PORTS="${PORTS} sqlite3[dbstat,fts5,limit,math,rtree,session]"
+PORTS="${PORTS} sqlite3[core,dbstat,fts5,limit,math,rtree,session]"
 
 # =============================================================================
 # Vcpkg
