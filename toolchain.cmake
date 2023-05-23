@@ -38,7 +38,9 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "")
 set(VCPKG_SYSTEM_PROGRAM_PATH)
 
 file(GLOB VCPKG_INSTALLED_TOOLS_DIRECTORIES
+  ${ACE}/vcpkg/installed/linux-shared/tools
   ${ACE}/vcpkg/installed/linux-shared/tools/*
+  ${ACE}/vcpkg/installed/linux-static/tools
   ${ACE}/vcpkg/installed/linux-static/tools/*
   LIST_DIRECTORIES true)
 
