@@ -16,7 +16,7 @@ PORTS="benchmark doctest tbb"
 PORTS="${PORTS} zlib bzip2 lz4 liblzma brotli zstd"
 
 # Common
-PORTS="${PORTS} openssl icu libxml2 luajit"
+PORTS="${PORTS} openssl icu libxml2 luajit boost"
 
 # =============================================================================
 # Vcpkg
@@ -36,7 +36,7 @@ export VCPKG_DEFAULT_TRIPLET="linux-static"
 export VCPKG_DEFAULT_HOST_TRIPLET="linux-static"
 export VCPKG_DOWNLOADS="${VCPKG_ROOT}/downloads"
 export VCPKG_FEATURE_FLAGS="-binarycaching"
-export VCPKG_OVERLAY_PORTS="${SRC}/ports"
+export VCPKG_OVERLAY_PORTS="${SRC}/ports:${SRC}/boost"
 export VCPKG_OVERLAY_TRIPLETS="${SRC}/triplets"
 export VCPKG_FORCE_SYSTEM_BINARIES=1
 

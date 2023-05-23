@@ -1,0 +1,11 @@
+{
+  "name": "boost-coroutine",
+  "version": "9999",
+  "port-version": 1,
+  "description": "Boost module",
+  "homepage": "https://github.com/boostorg/boost",
+  "license": "BSL-1.0",
+  "dependencies": [
+    "boost"
+  ]
+}
