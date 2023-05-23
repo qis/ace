@@ -116,7 +116,6 @@ if [ "${1}" = "test" ]; then
     run cmake -E chdir tests/${PORT}/linux-shared Coverage/main
 
     run cmake -E chdir tests/${PORT}/linux-shared llvm-profdata merge -sparse default.profraw -o default.profdata
-    run cmake -E chdir tests/${PORT}/linux-shared llvm-cov show Coverage/main -instr-profile=default.profdata
     run cmake -E chdir tests/${PORT}/linux-shared llvm-cov report Coverage/main -instr-profile=default.profdata
 
     run cmake -E chdir tests/${PORT}/mingw-shared wine Debug/main.exe
@@ -126,7 +125,6 @@ if [ "${1}" = "test" ]; then
     run cmake -E chdir tests/${PORT}/mingw-shared wine Coverage/main.exe
 
     run cmake -E chdir tests/${PORT}/mingw-shared llvm-profdata merge -sparse default.profraw -o default.profdata
-    run cmake -E chdir tests/${PORT}/mingw-shared llvm-cov show Coverage/main.exe -instr-profile=default.profdata
     run cmake -E chdir tests/${PORT}/mingw-shared llvm-cov report Coverage/main.exe -instr-profile=default.profdata
   done
   exit 0
