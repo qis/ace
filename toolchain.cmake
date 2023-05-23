@@ -190,6 +190,7 @@ set(CMAKE_MAP_IMPORTED_CONFIG_COVERAGE ";Release" CACHE STRING "" FORCE)
 # Environment
 set(ENV{PKG_CONFIG_PATH} "${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/lib/pkgconfig")
 set(ENV{LD_LIBRARY_PATH} "${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/lib:${ACE}/lib/x86_64-pc-linux-gnu")
+set(ENV{WINEPATH} "${ACE}/vcpkg/installed/${VCPKG_TARGET_TRIPLET}/bin:${ACE}/sys/mingw/bin")
 
 # Cache
 if(ENABLE_CCACHE)
