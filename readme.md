@@ -131,7 +131,10 @@ Binaries compiled with this toolchain must be distributed under the following co
 3. LLVM Runtime Libraries<br/>
    [src/copyright/llvm.txt](src/copyright/llvm.txt)
 
-4. Third Party Libraries<br/>
+4. Backtrace Library<br/>
+   [src/copyright/backtrace.txt](src/copyright/backtrace.txt)
+
+5. Third Party Libraries<br/>
    `vcpkg/installed/*/share/*/copyright`
 
 

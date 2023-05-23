@@ -58,6 +58,11 @@ READPE_TAR=readpe.tar.gz
 POWERSHELL_URL=https://github.com/PowerShell/PowerShell/releases/download/v7.3.4/powershell_7.3.4-1.deb_amd64.deb
 POWERSHELL_DEB=powershell_7.3.4-1.deb_amd64.deb
 
+# https://github.com/ianlancetaylor/libbacktrace
+BACKTRACE_REF=cdb64b688dda93bbbacbc2b1ccf50ce9329d4748
+BACKTRACE_URL=https://github.com/ianlancetaylor/libbacktrace/archive/${BACKTRACE_REF}.tar.gz
+BACKTRACE_TAR=backtrace.tar.gz
+
 error() {
   echo -e "\033[0;31merror: $*\033[0m" 1>&2
   exit 1
@@ -284,6 +289,11 @@ fi
 if [ ! -f build/src/${READPE_TAR} ]; then
   print "Downloading build/src/${READPE_TAR} ..."
   curl -L "${READPE_URL}" -o build/src/${READPE_TAR}
+fi
+
+if [ ! -f build/src/${BACKTRACE_TAR} ]; then
+  print "Downloading build/src/${BACKTRACE_TAR} ..."
+  curl -L "${BACKTRACE_URL}" -o build/src/${BACKTRACE_TAR}
 fi
 
 # =============================================================================
@@ -1255,4 +1265,76 @@ if [ ! -f bin/readpe ]; then
     patchelf --set-rpath '$ORIGIN/../..:$ORIGIN/../../x86_64-pc-linux-gnu:$ORIGIN/../../sys' ${lib}
   done
   patchelf --set-rpath '$ORIGIN/x86_64-pc-linux-gnu:$ORIGIN/sys' lib/libpe.so
+fi
+
+# =============================================================================
+# backtrace
+# =============================================================================
+
+if [ ! -f build/src/backtrace/configure ]; then
+  print "Extracting build/src/${BACKTRACE_TAR} ..."
+  mkdir -p build/src/backtrace
+  tar xf build/src/${BACKTRACE_TAR} -C build/src/backtrace -m --strip-components=1
+fi
+
+if [ ! -f build/backtrace/Makefile ]; then
+  print "Configuring backtrace ..."
+  mkdir -p build/backtrace
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  cmake -E chdir build/backtrace ../src/backtrace/configure \
+    CC="${ACE}/bin/clang" \
+    CXX="${ACE}/bin/clang++" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    DSYMUTIL="${ACE}/bin/dsymutil" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    CFLAGS="-O3 -march=x86-64-v3" \
+    LDFLAGS="-lc++" \
+    --prefix="${ACE}/sys/linux" \
+    --disable-multilib \
+    --disable-shared \
+    --enable-static \
+    --with-system-libunwind \
+    --with-gnu-ld \
+    --with-pic
+fi
+
+if [ ! -f sys/linux/lib/libbacktrace.a ]; then
+  print "Installing backtrace ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  make -C build/backtrace install
+fi
+
+if [ ! -f build/mingw-backtrace/Makefile ]; then
+  print "Configuring mingw backtrace ..."
+  mkdir -p build/mingw-backtrace
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  cmake -E chdir build/mingw-backtrace ../src/backtrace/configure --host=x86_64-w64-mingw32 \
+    CC="${ACE}/bin/clang" \
+    CXX="${ACE}/bin/clang++" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    DSYMUTIL="${ACE}/bin/dsymutil" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    CFLAGS="-march=x86-64-v3" \
+    LDFLAGS="-lc++" \
+    CFLAGS="-O3 -march=x86-64-v3 --target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -fms-compatibility-version=19.36" \
+    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -lc++" \
+    --prefix="${ACE}/sys/mingw" \
+    --disable-multilib \
+    --disable-shared \
+    --enable-static \
+    --with-system-libunwind
+fi
+
+if [ ! -f sys/mingw/lib/libbacktrace.a ]; then
+  print "Installing mingw backtrace ..."
+  PATH="${ACE}/bin:${PATH}" \
+  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
+  make -C build/mingw-backtrace install
 fi
