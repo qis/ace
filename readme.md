@@ -75,6 +75,24 @@ src/vcpkg install
 XZ_OPT="-T16 -9v" tar cJf ports.tar.xz --exclude="vcpkg/installed/vcpkg" vcpkg/installed
 ```
 
+## Vulkan SDK (Optional)
+Manually install the [Vulkan SDK][sdk].
+
+```sh
+# Install sdk.
+mkdir vulkan
+curl -L https://sdk.lunarg.com/sdk/download/1.3.243.0/linux/vulkansdk-linux-x86_64-1.3.243.0.tar.gz -o ~/downloads/vulkan.tar.gz
+tar xf ~/downloads/vulkan.tar.gz -C vulkan -m --strip-components=1
+
+# Register sdk.
+sudo tee /etc/profile.d/vulkan.sh >/dev/null <<'EOF'
+export VULKAN_SDK="/opt/ace/vulkan/x86_64"
+export PATH="${VULKAN_SDK}/bin:${PATH}"
+EOF
+sudo chmod 0755 /etc/profile.d/vulkan.sh
+source /etc/profile
+```
+
 ## Linux Sysroot
 The **Debian 11 (Bullseye)** sysroot should result in binary compatibility with:
 
@@ -315,5 +333,6 @@ git push
 
 [vcp]: https://vcpkg.io/
 [lto]: https://clang.llvm.org/docs/ThinLTO.html
+[sdk]: https://vulkan.lunarg.com/sdk/home#linux
 [abi]: https://abi-laboratory.pro/?view=timeline&l=glibc
 [lts]: https://www.kernel.org/category/releases.html
