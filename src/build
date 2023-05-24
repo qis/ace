@@ -2,6 +2,9 @@
 #
 # sudo src/build [dev|check|clean|reset|chroot]
 #
+
+# TODO: When available, build the LLVM runtime with -DLIBCXX_ENABLE_STD_MODULE (or similar).
+
 set -e
 
 export LC_ALL=C
