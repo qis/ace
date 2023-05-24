@@ -50,6 +50,14 @@ sudo src/build clean
 
 # Extract toolchain archive.
 XZ_OPT="-T16 -9v" tar xJf ace.tar.xz
+
+# Register toolchain.
+sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
+export ACE="/opt/ace"
+export PATH="${ACE}/bin:${ACE}/cmake/bin:${PATH}"
+EOF
+sudo chmod 0755 /etc/profile.d/ace.sh
+source /etc/profile
 ```
 
 ## Libraries
