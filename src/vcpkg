@@ -37,7 +37,7 @@ export VCPKG_FORCE_SYSTEM_BINARIES=1
 TRIPLETS="linux-static linux-shared mingw-static mingw-shared"
 
 name() {
-  echo "${1}" | cut -d[ -f1
+  echo "${1}" | cut -d\[ -f1
 }
 
 error() {
