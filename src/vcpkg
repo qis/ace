@@ -23,7 +23,7 @@ SRC=$(dirname "${SCRIPT}")
 ACE=$(dirname "${SRC}")
 cd "${ACE}"
 
-export PATH="${ACE}/bin:${ACE}/cmake/bin:${PATH}"
+export PATH="${ACE}/bin:${PATH}"
 
 export VCPKG_ROOT="${ACE}/vcpkg"
 export VCPKG_DEFAULT_TRIPLET="linux-static"

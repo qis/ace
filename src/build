@@ -14,7 +14,7 @@ SRC=$(dirname "${SCRIPT}")
 ACE=$(dirname "${SRC}")
 cd "${ACE}"
 
-export PATH=${ACE}/bin:${ACE}/cmake/bin:${PATH}
+export PATH=${ACE}/bin:${PATH}
 export XZ_OPT="-T16 -9v"
 
 # https://cmake.org/download/
@@ -81,7 +81,7 @@ fi
 
 if [ "${1}" = "reset" ]; then
   print "Deleting toolchain ..."
-  rm -rf bin cmake include lib libexec share sys
+  rm -rf bin doc include lib libexec man share sys
 fi
 
 if [ "${1}" = "reset" ] || [ "${1}" = "clean" ]; then
@@ -205,7 +205,7 @@ if [ "${1}" != "build" ]; then
       mv ace.tar.xz chroot/ace.tar.xz.$(stat -c '%Y' ace.tar.xz)
     fi
     tar cJf ace.tar.xz -C chroot/opt/ace \
-      bin cmake include lib libexec share sys
+      bin doc include lib libexec man share sys
     chown $(stat -c '%u:%g' .) ace.tar.xz
   fi
   exit 0
@@ -303,10 +303,9 @@ fi
 # cmake
 # =============================================================================
 
-if [ ! -e cmake/bin/cmake ]; then
+if [ ! -e bin/cmake ]; then
   print "Extracting build/${CMAKE_TAR} ..."
-  mkdir -p cmake
-  tar xf build/${CMAKE_TAR} -C cmake -m --strip-components=1
+  tar xf build/${CMAKE_TAR} -m --strip-components=1
 fi
 
 # =============================================================================

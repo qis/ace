@@ -54,7 +54,6 @@ XZ_OPT="-T16 -9v" tar xJf ace.tar.xz
 # Register toolchain.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
 export ACE="/opt/ace"
-export PATH="${ACE}/bin:${ACE}/cmake/bin:${PATH}"
 EOF
 sudo chmod 0755 /etc/profile.d/ace.sh
 source /etc/profile
@@ -302,7 +301,7 @@ vim src/ports/luajit/portfile.cmake
 src/vcpkg --editable install luajit
 
 # Optional: Create a patch and add it to the portfile.
-cmake/bin/cmake -E chdir vcpkg/buildtrees/luajit/src \
+bin/cmake -E chdir vcpkg/buildtrees/luajit/src \
   diff -ruNp f34f7265aa-eb31d8cee1.clean f34f7265aa-eb31d8cee1 \
   > src/ports/luajit/0001-clang-fixes.patch
 vim src/ports/luajit/portfile.cmake
