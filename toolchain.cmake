@@ -1,6 +1,7 @@
 # Toolchain
 include_guard(GLOBAL)
 get_filename_component(ACE ${CMAKE_CURRENT_LIST_DIR} ABSOLUTE CACHE)
+message(DEBUG "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 
 # Target
 set(VCPKG_TARGET_TRIPLET linux-shared CACHE STRING "")
