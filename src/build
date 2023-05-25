@@ -88,9 +88,9 @@ if [ "${1}" = "reset" ] || [ "${1}" = "clean" ]; then
   print "Deleting chroots ..."
   umount check/dev/pts 2>/dev/null || true
   umount check/proc 2>/dev/null || true
-  umount build/dev/pts 2>/dev/null || true
-  umount build/proc 2>/dev/null || true
-  rm -rf check build
+  umount chroot/dev/pts 2>/dev/null || true
+  umount chroot/proc 2>/dev/null || true
+  rm -rf check chroot
   src/vcpkg clean
   exit 0
 fi
@@ -158,53 +158,53 @@ fi
 # =============================================================================
 
 if [ "${1}" != "build" ]; then
-  if [ ! -e build/bin/sh ]; then
+  if [ ! -e chroot/bin/sh ]; then
     print "Creating chroot ..."
-    debootstrap bullseye build http://deb.debian.org/debian/
+    debootstrap bullseye chroot http://deb.debian.org/debian/
     if [ -f /etc/bash/bashrc.d/core ]; then
-      cp /etc/bash/bashrc.d/core build/etc/profile.d/core.sh
+      cp /etc/bash/bashrc.d/core chroot/etc/profile.d/core.sh
     fi
   fi
 
   if [ -e /etc/resolv.conf ]; then
-    cat /etc/resolv.conf > build/etc/resolv.conf
+    cat /etc/resolv.conf > chroot/etc/resolv.conf
   fi
 
-  if [ ! -e build/proc/stat ]; then
+  if [ ! -e chroot/proc/stat ]; then
     print "Mounting proc ..."
-    mount -t proc proc build/proc
+    mount -t proc proc chroot/proc
   fi
 
-  if [ ! -e build/dev/pts/ptmx ]; then
+  if [ ! -e chroot/dev/pts/ptmx ]; then
     print "Mounting devpts ..."
-    mount -t devpts devpts build/dev/pts
+    mount -t devpts devpts chroot/dev/pts
   fi
 
   if [ "${1}" != "chroot" ]; then
     print "Copying build script ..."
-    mkdir -p build/opt/ace/src
-    cp src/build build/opt/ace/src/
+    mkdir -p chroot/opt/ace/src
+    cp src/build chroot/opt/ace/src/
   fi
 
   if [ "${1}" = "chroot" ]; then
-    chroot build /bin/bash --login
+    chroot chroot /bin/bash --login
     exit 0
   fi
 
-  chroot build /bin/bash /opt/ace/src/build build
+  chroot chroot /bin/bash /opt/ace/src/build build
 
   if [ "${1}" != "dev" ]; then
     print "Unmounting devpts ..."
-    umount build/dev/pts 2>/dev/null || true
+    umount chroot/dev/pts 2>/dev/null || true
 
     print "Unmounting proc ..."
-    umount build/proc 2>/dev/null || true
+    umount chroot/proc 2>/dev/null || true
 
     print "Creating archive ..."
     if [ -f ace.tar.xz ]; then
-      mv ace.tar.xz build/ace.tar.xz.$(stat -c '%Y' ace.tar.xz)
+      mv ace.tar.xz chroot/ace.tar.xz.$(stat -c '%Y' ace.tar.xz)
     fi
-    tar cJf ace.tar.xz -C build/opt/ace \
+    tar cJf ace.tar.xz -C chroot/opt/ace \
       bin cmake include lib libexec share sys
     chown $(stat -c '%u:%g' .) ace.tar.xz
   fi
