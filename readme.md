@@ -15,7 +15,7 @@ Runtime dependencies for building and using this toolchain.
 # Install debian packages.
 # Replace with equivalent packages for other linux distributions.
 apt install -y --no-install-recommends \
-  ca-certificates curl git openssh-client sudo tar tzdata unzip xz-utils zip \
+  ca-certificates brotli curl git lz4 openssh-client sudo tar tzdata unzip xz-utils zip zstd \
   autoconf automake debootstrap libtool make patchelf perl pkg-config python3 strace \
   libatomic1 libc6 libgcc-s1
 
@@ -64,7 +64,9 @@ Install third party libraries.
 
 ```sh
 # Install vcpkg.
-git clone --depth 1 --single-branch https://github.com/Microsoft/vcpkg
+mkdir vcpkg
+curl -L https://github.com/microsoft/vcpkg/archive/refs/tags/2023.04.15.tar.gz -o vcpkg.tar.gz
+tar xf vcpkg.tar.gz -C vcpkg -m --strip-components=1
 vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
 # Install ports.

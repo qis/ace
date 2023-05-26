@@ -34,7 +34,7 @@ export VCPKG_OVERLAY_PORTS="${SRC}/ports:${SRC}/boost"
 export VCPKG_OVERLAY_TRIPLETS="${SRC}/triplets"
 export VCPKG_FORCE_SYSTEM_BINARIES=1
 
-TRIPLETS="linux-static linux-shared mingw-static mingw-shared"
+TRIPLETS="linux-shared linux-static mingw-shared mingw-static"
 
 name() {
   echo "${1}" | cut -d\[ -f1

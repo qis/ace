@@ -2,9 +2,6 @@
 #
 # sudo src/build [dev|check|clean|reset|chroot]
 #
-
-# TODO: When available, build the LLVM runtime with -DLIBCXX_ENABLE_STD_MODULE (or similar).
-
 set -e
 
 export LC_ALL=C
@@ -14,18 +11,18 @@ SRC=$(dirname "${SCRIPT}")
 ACE=$(dirname "${SRC}")
 cd "${ACE}"
 
-export PATH=${ACE}/bin:${PATH}
 export XZ_OPT="-T16 -9v"
+
+# https://github.com/llvm/llvm-project
+LLVM_VER=17.0.0
+LLVM_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/llvm-project-${LLVM_VER}.src.tar.xz
+LLVM_TAR=llvm.tar.xz
+LLVM_GIT=main
 
 # https://cmake.org/download/
 CMAKE_VER=3.26.4
 CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz
 CMAKE_TAR=cmake.tar.gz
-
-# https://github.com/llvm/llvm-project/releases
-LLVM_VER=16.0.4
-LLVM_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VER}/llvm-project-${LLVM_VER}.src.tar.xz
-LLVM_TAR=llvm.tar.xz
 
 # https://www.lua.org/download.html
 LUA_VER=5.4.6
@@ -181,9 +178,10 @@ if [ "${1}" != "build" ]; then
   fi
 
   if [ "${1}" != "chroot" ]; then
-    print "Copying build script ..."
+    print "Copying scripts ..."
     mkdir -p chroot/opt/ace/src
     cp src/build chroot/opt/ace/src/
+    cp src/mingw.patch chroot/opt/ace/src/
   fi
 
   if [ "${1}" = "chroot" ]; then
@@ -210,6 +208,8 @@ if [ "${1}" != "build" ]; then
   fi
   exit 0
 fi
+
+export PATH=${ACE}/bin:${PATH}
 
 # =============================================================================
 # system
@@ -254,14 +254,18 @@ if [ ! -d build/src ]; then
   mkdir build/src
 fi
 
+if [ -n "${LLVM_GIT}" ]; then
+  if [ ! -d build/src/llvm ]; then
+    git clone --branch "${LLVM_GIT}" --depth 1 https://github.com/llvm/llvm-project build/src/llvm
+  fi
+elif [ ! -f build/src/${LLVM_TAR} ]; then
+  print "Downloading build/src/${LLVM_TAR} ..."
+  curl -L "${LLVM_URL}" -o build/src/${LLVM_TAR}
+fi
+
 if [ ! -f build/${CMAKE_TAR} ]; then
   print "Downloading build/${CMAKE_TAR} ..."
   curl -L "${CMAKE_URL}" -o build/${CMAKE_TAR}
-fi
-
-if [ ! -f build/src/${LLVM_TAR} ]; then
-  print "Downloading build/src/${LLVM_TAR} ..."
-  curl -L "${LLVM_URL}" -o build/src/${LLVM_TAR}
 fi
 
 if [ ! -f build/src/${LUA_TAR} ]; then
@@ -297,15 +301,6 @@ fi
 if [ ! -f build/src/${BACKTRACE_TAR} ]; then
   print "Downloading build/src/${BACKTRACE_TAR} ..."
   curl -L "${BACKTRACE_URL}" -o build/src/${BACKTRACE_TAR}
-fi
-
-# =============================================================================
-# cmake
-# =============================================================================
-
-if [ ! -e bin/cmake ]; then
-  print "Extracting build/${CMAKE_TAR} ..."
-  tar xf build/${CMAKE_TAR} -m --strip-components=1
 fi
 
 # =============================================================================
@@ -397,7 +392,7 @@ if [ ! -d build/deb ]; then
 
   mkdir -p build/deb
   chown _apt:root build/deb
-  cmake -E chdir build/deb apt download ${PACKAGES}
+  env --chdir=build/deb apt download ${PACKAGES}
   curl -L "${POWERSHELL_URL}" -o build/deb/${POWERSHELL_DEB}
 fi
 
@@ -510,21 +505,23 @@ if [ $(symlinks -r sys/linux | wc -l) -ne 0 ]; then
 fi
 
 # =============================================================================
-# stage
+# cmake
 # =============================================================================
 
-CLANG_ENABLE_EXPERIMENTAL=0
-CLANG_LIB_DIR=lib/clang/$(echo ${LLVM_VER} | cut -d. -f1)
+if [ ! -e bin/cmake ]; then
+  print "Extracting build/${CMAKE_TAR} ..."
+  tar xf build/${CMAKE_TAR} -m --strip-components=1
+  rm -f bin/cmake-gui
+fi
+
+# =============================================================================
+# stage
+# =============================================================================
 
 if [ ! -f build/src/llvm/llvm/CMakeLists.txt ]; then
   print "Extracting build/src/${LLVM_TAR} ..."
   mkdir -p build/src/llvm
   tar xf build/src/${LLVM_TAR} -C build/src/llvm -m --strip-components=1
-
-  if [ ${CLANG_ENABLE_EXPERIMENTAL} -ne 0 ]; then
-    sed -E 's;([ \t])(if \(Args.hasArg\(options::OPT_fexperimental_library\)\));\1//\2;' \
-      -i build/src/llvm/clang/lib/Driver/ToolChain.cpp
-  fi
 fi
 
 if [ ! -f build/stage/build.ninja ]; then
@@ -593,84 +590,6 @@ if [ ! -e build/stage/bin/clang ]; then
 fi
 
 # =============================================================================
-# runtimes
-# =============================================================================
-
-if [ ! -f build/runtimes/build.ninja ]; then
-  print "Configuring runtimes ..."
-  PATH="${ACE}/build/stage/bin:${PATH}" \
-  cmake -GNinja -Wno-dev \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_C_COMPILER="${ACE}/build/stage/bin/clang" \
-    -DCMAKE_CXX_COMPILER="${ACE}/build/stage/bin/clang++" \
-    -DCMAKE_ASM_COMPILER="${ACE}/build/stage/bin/clang" \
-    -DCMAKE_ASM_NASM_COMPILER="/usr/bin/yasm" \
-    -DCMAKE_LINKER="${ACE}/build/stage/bin/lld" \
-    -DCMAKE_AR="${ACE}/build/stage/bin/llvm-ar" \
-    -DCMAKE_NM="${ACE}/build/stage/bin/llvm-nm" \
-    -DCMAKE_RANLIB="${ACE}/build/stage/bin/llvm-ranlib" \
-    -DCMAKE_OBJCOPY="${ACE}/build/stage/bin/llvm-objcopy" \
-    -DCMAKE_OBJDUMP="${ACE}/build/stage/bin/llvm-objdump" \
-    -DCMAKE_STRIP="${ACE}/build/stage/bin/llvm-strip" \
-    -DCMAKE_SIZE="${ACE}/build/stage/bin/llvm-size" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3" \
-    -DCMAKE_INSTALL_PREFIX="${ACE}/sys/linux" \
-    -DCMAKE_INSTALL_INCLUDEDIR="usr/include" \
-    -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-gnu" \
-    -DLLVM_ENABLE_RUNTIMES="libunwind;libcxxabi;libcxx" \
-    -DLLVM_ENABLE_WARNINGS=OFF \
-    -DLLVM_INCLUDE_TESTS=OFF \
-    -DLLVM_INCLUDE_DOCS=OFF \
-    -DLIBUNWIND_ENABLE_SHARED=OFF \
-    -DLIBUNWIND_ENABLE_STATIC=ON \
-    -DLIBUNWIND_USE_COMPILER_RT=ON \
-    -DLIBCXXABI_ENABLE_SHARED=OFF \
-    -DLIBCXXABI_ENABLE_STATIC=ON \
-    -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
-    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_SHARED_LIBRARY=ON \
-    -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
-    -DLIBCXXABI_USE_COMPILER_RT=ON \
-    -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-flto=thin" \
-    -DLIBCXX_ABI_UNSTABLE=ON \
-    -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ENABLE_SHARED=ON \
-    -DLIBCXX_ENABLE_STATIC=ON \
-    -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
-    -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
-    -DLIBCXX_USE_COMPILER_RT=ON \
-    -B build/runtimes build/src/llvm/runtimes
-fi
-
-if [ ! -f build/runtimes/lib/libc++.a ]; then
-  print "Building runtimes ..."
-  PATH="${ACE}/build/stage/bin:${PATH}" \
-  ninja -C build/runtimes
-
-  if [ -h build/runtimes/lib/libc++.so ] && [ -f build/runtimes/lib/libc++.so.2.0 ]; then
-    mv build/runtimes/lib/libc++.so.2.0 build/runtimes/lib/libc++.so
-    patchelf --set-soname "libc++.so" build/runtimes/lib/libc++.so
-  fi
-
-  if [ -h build/runtimes/lib/libc++.so.2 ]; then
-    rm -f build/runtimes/lib/libc++.so.2
-  fi
-
-  diff build/runtimes/lib/libc++.a build/stage/lib/x86_64-pc-linux-gnu/libc++.a >/dev/null 2>&1 || \
-    cp build/runtimes/lib/libc++.a build/stage/lib/x86_64-pc-linux-gnu/libc++.a
-
-  diff build/runtimes/lib/libc++experimental.a build/stage/lib/x86_64-pc-linux-gnu/libc++experimental.a >/dev/null 2>&1 || \
-    cp build/runtimes/lib/libc++experimental.a build/stage/lib/x86_64-pc-linux-gnu/libc++experimental.a
-
-  diff build/runtimes/lib/libc++.so build/stage/lib/x86_64-pc-linux-gnu/libc++.so >/dev/null 2>&1 || \
-    cp build/runtimes/lib/libc++.so build/stage/lib/x86_64-pc-linux-gnu/libc++.so
-
-  rm -f build/stage/lib/x86_64-pc-linux-gnu/libc++abi.a
-  rm -f build/stage/lib/x86_64-pc-linux-gnu/libunwind.a
-fi
-
-# =============================================================================
 # lua
 # =============================================================================
 
@@ -686,9 +605,13 @@ if [ ! -e lib/liblua.a ]; then
   make -C build/src/lua \
     CC="${ACE}/build/stage/bin/clang" \
     AR="${ACE}/build/stage/bin/llvm-ar rcu" \
+    NM="${ACE}/build/stage/bin/llvm-nm" \
     RANLIB="${ACE}/build/stage/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/build/stage/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/build/stage/bin/llvm-objdump" \
+    STRIP="${ACE}/build/stage/bin/llvm-strip" \
+    SIZE="${ACE}/build/stage/bin/llvm-size" \
     MYCFLAGS="-march=x86-64-v3 -flto=thin" \
-    INSTALL_MAN="${ACE}/build/man" \
     INSTALL_TOP="${ACE}" \
     all install
 fi
@@ -697,19 +620,20 @@ fi
 # tools
 # =============================================================================
 
+CLANG_LIB_DIR=lib/clang/$(echo ${LLVM_VER} | cut -d. -f1)
+
 if [ ! -f build/tools/build.ninja ]; then
   print "Configuring tools ..."
   PATH="${ACE}/build/stage/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/build/stage/lib/x86_64-pc-linux-gnu" \
   cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER="${ACE}/build/stage/bin/clang" \
     -DCMAKE_CXX_COMPILER="${ACE}/build/stage/bin/clang++" \
     -DCMAKE_ASM_COMPILER="${ACE}/build/stage/bin/clang" \
     -DCMAKE_ASM_NASM_COMPILER="/usr/bin/yasm" \
-    -DCMAKE_LINKER="${ACE}/build/stage/bin/lld" \
     -DCMAKE_AR="${ACE}/build/stage/bin/llvm-ar" \
     -DCMAKE_NM="${ACE}/build/stage/bin/llvm-nm" \
+    -DCMAKE_LINKER="${ACE}/build/stage/bin/lld" \
     -DCMAKE_RANLIB="${ACE}/build/stage/bin/llvm-ranlib" \
     -DCMAKE_OBJCOPY="${ACE}/build/stage/bin/llvm-objcopy" \
     -DCMAKE_OBJDUMP="${ACE}/build/stage/bin/llvm-objdump" \
@@ -778,30 +702,29 @@ if [ ! -e bin/clang ]; then
   LD_LIBRARY_PATH="${ACE}/build/stage/lib/x86_64-pc-linux-gnu" \
   ninja -C build/tools install/strip
 
-  if [ ${CLANG_ENABLE_EXPERIMENTAL} -ne 0 ]; then
-    sed -E 's;.*_LIBCPP_ENABLE_DEBUG_MODE.*;#define _LIBCPP_ENABLE_EXPERIMENTAL;' \
-      -i include/x86_64-pc-linux-gnu/c++/v1/__config_site
+  mv bin/clang bin/clang0
+
+  if [ ! -h lib/x86_64-pc-linux-gnu/libc++.so ]; then
+    error "lib/x86_64-pc-linux-gnu/libc++.so is not a symlink"
+  fi
+  if [ ! -f lib/x86_64-pc-linux-gnu/libc++.so.2.0 ]; then
+    error "lib/x86_64-pc-linux-gnu/libc++.so.2.0 is not a regular file"
   fi
 
-  if [ -h lib/x86_64-pc-linux-gnu/libc++.so ] && [ -f lib/x86_64-pc-linux-gnu/libc++.so.2.0 ]; then
-    mv lib/x86_64-pc-linux-gnu/libc++.so.2.0 lib/x86_64-pc-linux-gnu/libc++.so
-    patchelf --set-soname "libc++.so" lib/x86_64-pc-linux-gnu/libc++.so
-  fi
+  mv lib/x86_64-pc-linux-gnu/libc++.so.2.0 lib/x86_64-pc-linux-gnu/libc++.so
+  patchelf --set-soname "libc++.so" lib/x86_64-pc-linux-gnu/libc++.so
 
-  if [ -h lib/x86_64-pc-linux-gnu/libc++.so.2 ]; then
-    rm -f lib/x86_64-pc-linux-gnu/libc++.so.2
-  fi
-
+  rm -f lib/x86_64-pc-linux-gnu/libc++.so.2
   rm -f lib/x86_64-pc-linux-gnu/libc++abi.a
   rm -f lib/x86_64-pc-linux-gnu/libunwind.a
 
-  rm -rf lib/clang/16/lib/i386-pc-linux-gnu
+  rm -rf ${CLANG_LIB_DIR}/lib/i386-pc-linux-gnu
 
   find lib -maxdepth 1 -type f -name '*.so*' -exec patchelf --set-rpath \
-    '$ORIGIN:$ORIGIN/x86_64-pc-linux-gnu:$ORIGIN/sys' '{}' ';' >/dev/null 2>&1
+    '$ORIGIN:$ORIGIN/sys' '{}' ';' >/dev/null 2>&1
 
   find bin -maxdepth 1 -type f -exec patchelf --set-rpath \
-    '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib:$ORIGIN/../lib/sys' '{}' ';' >/dev/null 2>&1
+    '$ORIGIN/../lib:$ORIGIN/../lib/sys' '{}' ';' >/dev/null 2>&1
 
   mkdir lib/sys
 
@@ -820,21 +743,21 @@ if [ ! -e bin/clang ]; then
   ln -sf ../../sys/linux/lib/x86_64-linux-gnu/libncurses.so.6 lib/sys/
   ln -sf ../../sys/linux/lib/x86_64-linux-gnu/libtinfo.so.6 lib/sys/
   ln -sf ../../sys/linux/lib/x86_64-linux-gnu/libz.so.1 lib/sys/
+
+  mv bin/clang0 bin/clang
 fi
 
 if [ ! -f build/compiler-rt/build.ninja ]; then
   print "Configuring compiler-rt ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
   cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_ASM_NASM_COMPILER="/usr/bin/yasm" \
-    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_AR="${ACE}/bin/llvm-ar" \
     -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
     -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
     -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
@@ -856,8 +779,6 @@ fi
 
 if [ ! -f ${CLANG_LIB_DIR}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a ]; then
   print "Installing compiler-rt ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
   ninja -C build/compiler-rt install/strip
 fi
 
@@ -874,19 +795,23 @@ fi
 if [ ! -f build/yasm/Makefile ]; then
   print "Configuring yasm ..."
   mkdir -p build/yasm
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
-  cmake -E chdir build/yasm ../src/yasm/configure --prefix="${ACE}" --disable-nls --disable-rpath \
-    CC="${ACE}/bin/clang" CFLAGS="-O3 -march=x86-64-v3 -flto=thin"
+  env --chdir=build/yasm ../src/yasm/configure --prefix="${ACE}" --disable-nls --disable-rpath \
+    CC="${ACE}/bin/clang" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
+    CFLAGS="-O3 -march=x86-64-v3 -flto=thin"
 fi
 
 if [ ! -f bin/yasm ]; then
   print "Installing yasm ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
-  cmake -E chdir build/yasm make -j17 install-strip
+  env --chdir=build/yasm make -j17 install-strip
   for exe in yasm ytasm vsyasm; do
-    patchelf --set-rpath '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/${exe}
+    patchelf --set-rpath '$ORIGIN/../lib/sys' bin/${exe}
   done
 fi
 
@@ -912,17 +837,15 @@ fi
 
 if [ ! -f build/re2c/build.ninja ]; then
   print "Configuring re2c ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
   cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_ASM_NASM_COMPILER="${ACE}/bin/yasm" \
-    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_AR="${ACE}/bin/llvm-ar" \
     -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
     -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
     -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
@@ -930,6 +853,8 @@ if [ ! -f build/re2c/build.ninja ]; then
     -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
     -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -flto=thin" \
     -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -flto=thin ${RE2C_WARNINGS_CFLAGS}" \
+    -DCMAKE_CXX_STANDARD_LIBRARIES="-static-libstdc++" \
+    -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib/sys" \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
     -DRE2C_BUILD_RE2GO=OFF \
     -DRE2C_BUILD_RE2RUST=OFF \
@@ -938,10 +863,7 @@ fi
 
 if [ ! -f bin/re2c ]; then
   print "Installing re2c ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
   ninja -C build/re2c install/strip
-  patchelf --set-rpath '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/re2c
 fi
 
 # =============================================================================
@@ -956,17 +878,15 @@ fi
 
 if [ ! -f build/ninja/build.ninja ]; then
   print "Configuring ninja ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
   cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_ASM_NASM_COMPILER="${ACE}/bin/yasm" \
-    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_AR="${ACE}/bin/llvm-ar" \
     -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
     -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
     -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
@@ -974,15 +894,14 @@ if [ ! -f build/ninja/build.ninja ]; then
     -DCMAKE_SIZE="${ACE}/bin/llvm-size" \
     -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -flto=thin" \
     -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -flto=thin" \
+    -DCMAKE_CXX_STANDARD_LIBRARIES="-static-libstdc++" \
+    -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib/sys" \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
-    -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib/x86_64-pc-linux-gnu:\$ORIGIN/../lib/sys" \
     -B build/ninja build/src/ninja
 fi
 
 if [ ! -f bin/ninja ]; then
   print "Installing ninja ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
   ninja -C build/ninja install/strip
 fi
 
@@ -990,48 +909,112 @@ fi
 # mingw
 # =============================================================================
 
+MINGW_WARNINGS_CFLAGS="\
+  -Wno-unknown-warning-option \
+  -Wno-empty-translation-unit \
+  -Wno-unused-but-set-variable \
+  -Wno-misleading-indentation \
+  -Wno-missing-noreturn \
+  -Wno-format-pedantic \
+  -Wno-format"
+
 if [ ! -f build/src/mingw/configure ]; then
   print "Extracting build/src/${MINGW_TAR} ..."
   mkdir -p build/src/mingw
   tar xf build/src/${MINGW_TAR} -C build/src/mingw -m --strip-components=1
+  patch -d build/src/mingw -p0 < src/mingw.patch
 fi
 
 if [ ! -f build/mingw-headers/Makefile ]; then
   print "Configuring mingw headers ..."
   mkdir -p build/mingw-headers
-  cmake -E chdir build/mingw-headers ../src/mingw/mingw-w64-headers/configure \
+  env --chdir=build/mingw-headers ../src/mingw/mingw-w64-headers/configure \
+    CC="${ACE}/bin/clang" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RC="${ACE}/bin/llvm-windres" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    DSYMUTIL="${ACE}/bin/dsymutil" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
+    CFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -O3 -march=x86-64-v3 -fms-compatibility-version=19.36" \
+    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    LIBTOOLFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    RCFLAGS="-I ${ACE}/sys/mingw/include" \
+    --with-default-win32-winnt="0x0A00" \
+    --with-default-msvcrt="ucrt" \
     --prefix="${ACE}/sys/mingw" \
-    --with-default-win32-winnt=0x0A00 \
-    --with-default-msvcrt=ucrt \
+    --host="x86_64-w64-mingw32" \
     --enable-idl
 fi
 
 if [ ! -f sys/mingw/include/windows.h ]; then
   print "Installing mingw headers ..."
-  cmake -E chdir build/mingw-headers make install
+  env --chdir=build/mingw-headers make -j17 install-strip
 fi
 
 if [ ! -f build/mingw-crt/Makefile ]; then
   print "Configuring mingw crt ..."
   mkdir -p build/mingw-crt
-  cmake -E chdir build/mingw-crt ../src/mingw/mingw-w64-crt/configure \
+  env --chdir=build/mingw-crt ../src/mingw/mingw-w64-crt/configure \
     CC="${ACE}/bin/clang" \
-    CXX="${ACE}/bin/clang++" \
     AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RC="${ACE}/bin/llvm-windres" \
     RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
     DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    DSYMUTIL="${ACE}/bin/dsymutil" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
     CFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -O3 -march=x86-64-v3 -fms-compatibility-version=19.36" \
     LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    LIBTOOLFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    RCFLAGS="-I ${ACE}/sys/mingw/include" \
+    --with-default-msvcrt="ucrt" \
     --prefix="${ACE}/sys/mingw" \
-    --build=x86_64-w64-mingw32 \
-    --with-default-msvcrt=ucrt \
+    --host="x86_64-w64-mingw32" \
     --disable-lib32 \
     --enable-lib64
 fi
 
 if [ ! -f sys/mingw/lib/libucrt.a ]; then
   print "Installing mingw crt ..."
-  cmake -E chdir build/mingw-crt make -j17 install
+  env --chdir=build/mingw-crt make -j17 install-strip
+fi
+
+if [ ! -f build/mingw-tools/Makefile ]; then
+  print "Configuring mingw tools ..."
+  mkdir -p build/mingw-tools
+  env --chdir=build/mingw-tools ../src/mingw/configure \
+    CC="${ACE}/bin/clang" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
+    CFLAGS="-O3 -march=x86-64-v3 -flto=thin ${MINGW_WARNINGS_CFLAGS}" \
+    --with-default-win32-winnt="0x0A00" \
+    --with-default-msvcrt="ucrt" \
+    --prefix="${ACE}" \
+    --with-tools="all" \
+    --without-libraries \
+    --without-headers \
+    --without-crt
+fi
+
+if [ ! -f bin/gendef ]; then
+  print "Installing mingw tools ..."
+  env --chdir=build/mingw-tools make -j17 install-strip
+  for exe in gendef genidl; do
+    patchelf --set-rpath '$ORIGIN/../lib/sys' bin/${exe}
+  done
 fi
 
 if [ ! -f build/mingw-builtins/build.ninja ]; then
@@ -1055,9 +1038,9 @@ if [ ! -f build/mingw-builtins/build.ninja ]; then
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_NASM_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_MAKE_PROGRAM="${ACE}/bin/ninja" \
-    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_AR="${ACE}/bin/llvm-ar" \
     -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
     -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
     -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
@@ -1091,6 +1074,34 @@ if [ ! -f ${CLANG_LIB_DIR}/lib/windows/libclang_rt.builtins-x86_64.a ]; then
   ninja -C build/mingw-builtins install/strip
 fi
 
+if [ ! -f build/mingw-pthread/Makefile ]; then
+  print "Configuring mingw pthread ..."
+  mkdir -p build/mingw-pthread
+  env --chdir=build/mingw-pthread ../src/mingw/mingw-w64-libraries/winpthreads/configure \
+    CC="${ACE}/bin/clang --target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RC="${ACE}/bin/llvm-windres" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    DSYMUTIL="${ACE}/bin/dsymutil" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
+    CFLAGS="-O3 -march=x86-64-v3 -fms-compatibility-version=19.36" \
+    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    LIBTOOLFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    RCFLAGS="-I ${ACE}/sys/mingw/include" \
+    --prefix="${ACE}/sys/mingw" \
+    --host="x86_64-w64-mingw32"
+fi
+
+if [ ! -f sys/mingw/lib/libpthread.a ]; then
+  print "Installing mingw pthread ..."
+  env --chdir=build/mingw-pthread make -j17 install-strip
+fi
+
 if [ ! -f build/mingw-runtimes/build.ninja ]; then
   print "Configuring mingw runtimes ..."
   cmake -GNinja -Wno-dev \
@@ -1110,9 +1121,9 @@ if [ ! -f build/mingw-runtimes/build.ninja ]; then
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_NASM_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_MAKE_PROGRAM="${ACE}/bin/ninja" \
-    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_AR="${ACE}/bin/llvm-ar" \
     -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
     -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
     -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
@@ -1173,9 +1184,9 @@ if [ ! -f build/mingw-compiler-rt/build.ninja ]; then
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_NASM_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_MAKE_PROGRAM="${ACE}/bin/ninja" \
-    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_AR="${ACE}/bin/llvm-ar" \
     -DCMAKE_NM="${ACE}/bin/llvm-nm" \
+    -DCMAKE_LINKER="${ACE}/bin/lld" \
     -DCMAKE_RANLIB="${ACE}/bin/llvm-ranlib" \
     -DCMAKE_OBJCOPY="${ACE}/bin/llvm-objcopy" \
     -DCMAKE_OBJDUMP="${ACE}/bin/llvm-objdump" \
@@ -1204,66 +1215,6 @@ if [ ! -f ${CLANG_LIB_DIR}/lib/windows/libclang_rt.profile-x86_64.a ]; then
   ninja -C build/mingw-compiler-rt install/strip
 fi
 
-MINGW_WARNINGS_CFLAGS="\
-  -Wno-unknown-warning-option \
-  -Wno-empty-translation-unit \
-  -Wno-unused-but-set-variable \
-  -Wno-misleading-indentation \
-  -Wno-missing-noreturn \
-  -Wno-format-pedantic \
-  -Wno-format"
-
-if [ ! -f build/mingw-tools/Makefile ]; then
-  print "Configuring mingw tools ..."
-  mkdir -p build/mingw-tools
-  cmake -E chdir build/mingw-tools ../src/mingw/configure \
-    CC="${ACE}/bin/clang" \
-    CXX="${ACE}/bin/clang++" \
-    AR="${ACE}/bin/llvm-ar" \
-    RANLIB="${ACE}/bin/llvm-ranlib" \
-    CFLAGS="-march=x86-64-v3 -flto=thin ${MINGW_WARNINGS_CFLAGS}" \
-    --prefix="${ACE}" \
-    --with-tools="all" \
-    --without-libraries \
-    --without-headers \
-    --without-crt
-fi
-
-if [ ! -f bin/gendef ]; then
-  print "Installing mingw tools ..."
-  cmake -E chdir build/mingw-tools make -j17 install-strip
-  for exe in gendef genidl; do
-    patchelf --set-rpath '$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/${exe}
-  done
-fi
-
-if [ ! -f build/mingw-pthread/Makefile ]; then
-  print "Configuring mingw pthread ..."
-  mkdir -p build/mingw-pthread
-  cmake -E chdir build/mingw-pthread ../src/mingw/mingw-w64-libraries/winpthreads/configure \
-    CC="${ACE}/bin/clang --target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
-    AR="${ACE}/bin/llvm-ar" \
-    NM="${ACE}/bin/llvm-nm" \
-    RC="${ACE}/bin/llvm-windres" \
-    STRIP="${ACE}/bin/llvm-strip" \
-    RANLIB="${ACE}/bin/llvm-ranlib" \
-    OBJCOPY="${ACE}/bin/llvm-objcopy" \
-    OBJDUMP="${ACE}/bin/llvm-objdump" \
-    DLLTOOL="${ACE}/bin/llvm-dlltool" \
-    DSYMUTIL="${ACE}/bin/dsymutil" \
-    CFLAGS="-O3 -march=x86-64-v3 -fms-compatibility-version=19.36" \
-    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
-    LIBTOOLFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
-    RCFLAGS="-I ${ACE}/sys/mingw/include" \
-    --prefix="${ACE}/sys/mingw" \
-    --host="x86_64-w64-mingw32"
-fi
-
-if [ ! -f sys/mingw/lib/libpthread.a ]; then
-  print "Installing mingw pthread ..."
-  cmake -E chdir build/mingw-pthread make -j17 install-strip
-fi
-
 # =============================================================================
 # readpe
 # =============================================================================
@@ -1276,25 +1227,39 @@ fi
 
 if [ ! -f build/src/readpe/src/build/readpe ]; then
   print "Building readpe ..."
-  cmake -E chdir build/src/readpe make \
+  env --chdir=build/src/readpe make \
     CC="${ACE}/bin/clang" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
     CFLAGS="-march=x86-64-v3 -flto=thin" \
     prefix="${ACE}" -j17
 fi
 
 if [ ! -f bin/readpe ]; then
   print "Installing readpe ..."
-  cmake -E chdir build/src/readpe make \
+  env --chdir=build/src/readpe make \
     CC="${ACE}/bin/clang" \
+    AR="${ACE}/bin/llvm-ar" \
+    NM="${ACE}/bin/llvm-nm" \
+    RANLIB="${ACE}/bin/llvm-ranlib" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
     CFLAGS="-march=x86-64-v3 -flto=thin" \
-    prefix="${ACE}" install-strip
+    prefix="${ACE}" -j17 install-strip
   for exe in readpe rva2ofs ofs2rva pehash pesec pescan pepack pestr pedis peres peldd; do
-    patchelf --set-rpath '$ORIGIN/../lib:$ORIGIN/../lib/x86_64-pc-linux-gnu:$ORIGIN/../lib/sys' bin/${exe}
+    patchelf --set-rpath '$ORIGIN/../lib:$ORIGIN/../lib/sys' bin/${exe}
   done
   for lib in lib/pev/plugins/*.so*; do
-    patchelf --set-rpath '$ORIGIN/../..:$ORIGIN/../../x86_64-pc-linux-gnu:$ORIGIN/../../sys' ${lib}
+    patchelf --set-rpath '$ORIGIN/../..:$ORIGIN/../../sys' ${lib}
   done
-  patchelf --set-rpath '$ORIGIN/x86_64-pc-linux-gnu:$ORIGIN/sys' lib/libpe.so
+  patchelf --set-rpath '$ORIGIN/sys' lib/libpe.so
 fi
 
 # =============================================================================
@@ -1310,18 +1275,17 @@ fi
 if [ ! -f build/backtrace/Makefile ]; then
   print "Configuring backtrace ..."
   mkdir -p build/backtrace
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
-  cmake -E chdir build/backtrace ../src/backtrace/configure \
+  env --chdir=build/backtrace ../src/backtrace/configure \
     CC="${ACE}/bin/clang" \
-    CXX="${ACE}/bin/clang++" \
     AR="${ACE}/bin/llvm-ar" \
     NM="${ACE}/bin/llvm-nm" \
-    DSYMUTIL="${ACE}/bin/dsymutil" \
-    OBJCOPY="${ACE}/bin/llvm-objcopy" \
     RANLIB="${ACE}/bin/llvm-ranlib" \
-    CFLAGS="-O3 -march=x86-64-v3" \
-    LDFLAGS="-lc++" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
+    CFLAGS="-O2 -march=x86-64-v3" \
+    LDFLAGS="-l:libc++.a" \
     --prefix="${ACE}/sys/linux" \
     --disable-multilib \
     --disable-shared \
@@ -1333,28 +1297,28 @@ fi
 
 if [ ! -f sys/linux/lib/libbacktrace.a ]; then
   print "Installing backtrace ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
-  make -C build/backtrace install
+  make -C build/backtrace install-strip
 fi
 
 if [ ! -f build/mingw-backtrace/Makefile ]; then
   print "Configuring mingw backtrace ..."
   mkdir -p build/mingw-backtrace
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
-  cmake -E chdir build/mingw-backtrace ../src/backtrace/configure --host=x86_64-w64-mingw32 \
+  env --chdir=build/mingw-backtrace ../src/backtrace/configure --host=x86_64-w64-mingw32 \
     CC="${ACE}/bin/clang" \
-    CXX="${ACE}/bin/clang++" \
     AR="${ACE}/bin/llvm-ar" \
     NM="${ACE}/bin/llvm-nm" \
-    DSYMUTIL="${ACE}/bin/dsymutil" \
-    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    RC="${ACE}/bin/llvm-windres" \
     RANLIB="${ACE}/bin/llvm-ranlib" \
-    CFLAGS="-march=x86-64-v3" \
-    LDFLAGS="-lc++" \
-    CFLAGS="-O3 -march=x86-64-v3 --target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -fms-compatibility-version=19.36" \
-    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -lc++" \
+    OBJCOPY="${ACE}/bin/llvm-objcopy" \
+    OBJDUMP="${ACE}/bin/llvm-objdump" \
+    DLLTOOL="${ACE}/bin/llvm-dlltool" \
+    DSYMUTIL="${ACE}/bin/dsymutil" \
+    STRIP="${ACE}/bin/llvm-strip" \
+    SIZE="${ACE}/bin/llvm-size" \
+    CFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -O2 -march=x86-64-v3 -fms-compatibility-version=19.36" \
+    LDFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw -l:libc++.dll.a" \
+    LIBTOOLFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw" \
+    RCFLAGS="-I ${ACE}/sys/mingw/include" \
     --prefix="${ACE}/sys/mingw" \
     --disable-multilib \
     --disable-shared \
@@ -1364,7 +1328,5 @@ fi
 
 if [ ! -f sys/mingw/lib/libbacktrace.a ]; then
   print "Installing mingw backtrace ..."
-  PATH="${ACE}/bin:${PATH}" \
-  LD_LIBRARY_PATH="${ACE}/lib/x86_64-pc-linux-gnu" \
-  make -C build/mingw-backtrace install
+  make -C build/mingw-backtrace install-strip
 fi
