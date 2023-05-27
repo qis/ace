@@ -1,0 +1,45 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 26
+  },
+  "configurePresets": [
+    {
+      "hidden": true,
+      "name": "default",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/../../build/modules/${presetName}",
+      "installDir": "${sourceDir}/../../lib/modules/${presetName}",
+      "toolchainFile": "${sourceDir}/../../toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;MinSizeRel;RelWithDebInfo;Coverage",
+        "VCPKG_TARGET_TRIPLET": "${presetName}",
+        "BUILD_SHARED_LIBS": false
+      },
+      "warnings": {
+        "dev": false
+      }
+    },
+    {
+      "name": "linux-shared",
+      "displayName": "Linux (Shared)",
+      "inherits": "default"
+    },
+    {
+      "name": "linux-static",
+      "displayName": "Linux (Static)",
+      "inherits": "default"
+    },
+    {
+      "name": "mingw-shared",
+      "displayName": "MinGW (Shared)",
+      "inherits": "default"
+    },
+    {
+      "name": "mingw-static",
+      "displayName": "MinGW (Static)",
+      "inherits": "default"
+    }
+  ]
+}

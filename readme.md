@@ -45,11 +45,11 @@ cd /opt/ace
 # Create toolchain archive.
 sudo src/build
 
-# Clean project directory.
-sudo src/build clean
-
 # Extract toolchain archive.
 XZ_OPT="-T16 -9v" tar xJf ace.tar.xz
+
+# Build C++ standard library modules.
+make -C src/modules
 
 # Register toolchain.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
@@ -71,23 +71,23 @@ vcpkg/bootstrap-vcpkg.sh -disableMetrics
 
 # Install ports.
 src/vcpkg install
-
-# Create ports archive (optional).
-XZ_OPT="-T16 -9v" tar cJf ports.tar.xz --exclude="vcpkg/installed/vcpkg" vcpkg/installed
 ```
 
 ## Vulkan SDK (Optional)
 Manually install the [Vulkan SDK][sdk].
 
 ```sh
-# Install sdk.
-mkdir vulkan
-curl -L https://sdk.lunarg.com/sdk/download/1.3.243.0/linux/vulkansdk-linux-x86_64-1.3.243.0.tar.gz -o ~/downloads/vulkan.tar.gz
-tar xf ~/downloads/vulkan.tar.gz -C vulkan -m --strip-components=1
+# Make vulkan directory.
+sudo mkdir /opt/vulkan
+sudo chown $(id -u):$(id -g) /opt/vulkan
 
-# Register sdk.
+# Install vulkan sdk.
+curl -L https://sdk.lunarg.com/sdk/download/1.3.243.0/linux/vulkansdk-linux-x86_64-1.3.243.0.tar.gz -o ~/vulkan.tar.gz
+tar xf ~/vulkan.tar.gz -C /opt/vulkan -m --strip-components=1
+
+# Register vulkan sdk.
 sudo tee /etc/profile.d/vulkan.sh >/dev/null <<'EOF'
-export VULKAN_SDK="/opt/ace/vulkan/x86_64"
+export VULKAN_SDK="/opt/vulkan/x86_64"
 export PATH="${VULKAN_SDK}/bin:${PATH}"
 EOF
 sudo chmod 0755 /etc/profile.d/vulkan.sh

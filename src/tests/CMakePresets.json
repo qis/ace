@@ -13,6 +13,9 @@
       "toolchainFile": "${sourceDir}/../../toolchain.cmake",
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "${presetName}"
+      },
+      "warnings": {
+        "dev": false
       }
     },
     {

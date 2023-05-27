@@ -7,3 +7,23 @@
  /**
   * This file has no copyright assigned and is placed in the Public Domain.
   * This file is part of the mingw-w64 runtime package.
+--- mingw-w64-headers/crt/wchar.h
++++ mingw-w64-headers/crt/wchar.h
+@@ -40,6 +40,9 @@ extern "C" {
+ 
+ #ifndef _FILE_DEFINED
+   struct _iobuf {
++#ifdef _UCRT
++    void *_Placeholder;
++#else
+     char *_ptr;
+     int _cnt;
+     char *_base;
+@@ -48,6 +51,7 @@ extern "C" {
+     int _charbuf;
+     int _bufsiz;
+     char *_tmpfname;
++#endif
+   };
+   typedef struct _iobuf FILE;
+ #define _FILE_DEFINED

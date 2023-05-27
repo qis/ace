@@ -111,32 +111,27 @@ if(CLANG_SYSTEM_NAME STREQUAL "mingw")
   cmake_policy(SET CMP0092 NEW)
 endif()
 
-set(CMAKE_C_FLAGS_INIT "${VCPKG_C_FLAGS}")
+set(CFLAGS "-march=x86-64-v3 -fasm -mavx2 -fmerge-all-constants -fdiagnostics-absolute-paths")
+
+if(CLANG_SYSTEM_NAME STREQUAL "mingw")
+  set(CFLAGS "${CFLAGS} -fms-compatibility-version=19.36 -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00")
+endif()
+
+set(CMAKE_C_FLAGS_INIT "${CFLAGS} ${VCPKG_C_FLAGS}")
 set(CMAKE_C_FLAGS_DEBUG_INIT "${VCPKG_C_FLAGS_DEBUG}")
 set(CMAKE_C_FLAGS_RELEASE_INIT "${VCPKG_C_FLAGS_RELEASE}")
 set(CMAKE_C_FLAGS_MINSIZEREL_INIT "${VCPKG_C_FLAGS_RELEASE}")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "${VCPKG_C_FLAGS_DEBUG}")
 set(CMAKE_C_FLAGS_COVERAGE_INIT "${VCPKG_C_FLAGS_DEBUG} -g -fprofile-instr-generate -fcoverage-mapping")
 
-string(APPEND CMAKE_C_FLAGS_INIT " -march=x86-64-v3 -fasm -mavx2")
-string(APPEND CMAKE_C_FLAGS_INIT " -fmerge-all-constants")
-string(APPEND CMAKE_C_FLAGS_INIT " -fdiagnostics-absolute-paths")
-
-if(CLANG_SYSTEM_NAME STREQUAL "mingw")
-  # https://github.com/microsoft/STL/wiki/Macro-_MSVC_STL_UPDATE
-  string(APPEND CMAKE_C_FLAGS_INIT " -fms-compatibility-version=19.36")
-  string(APPEND CMAKE_C_FLAGS_INIT " -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00")
-endif()
-
-set(CMAKE_CXX_FLAGS_INIT "${VCPKG_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS_INIT "${CFLAGS} ${VCPKG_CXX_FLAGS} -fexperimental-library")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "${VCPKG_CXX_FLAGS_DEBUG}")
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "${VCPKG_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_MINSIZEREL_INIT "${VCPKG_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${VCPKG_CXX_FLAGS_DEBUG}")
 set(CMAKE_CXX_FLAGS_COVERAGE_INIT "${VCPKG_CXX_FLAGS_DEBUG} -g -fprofile-instr-generate -fcoverage-mapping")
 
-string(APPEND CMAKE_CXX_FLAGS_INIT " ${CMAKE_C_FLAGS_INIT}")
-string(APPEND CMAKE_CXX_FLAGS_INIT " -fexperimental-library")
+unset(CFLAGS)
 
 # Linker
 find_program(CMAKE_AR llvm-ar PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
