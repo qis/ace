@@ -10,7 +10,7 @@
 module;
 #include <string>
 
-export module std:string;
+export module std.string;
 export namespace std {
   // [char.traits], character traits
   using std::char_traits;

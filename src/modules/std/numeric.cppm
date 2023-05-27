@@ -10,7 +10,7 @@
 module;
 #include <numeric>
 
-export module std:numeric;
+export module std.numeric;
 export namespace std {
   // [accumulate], accumulate
   using std::accumulate;

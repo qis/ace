@@ -10,7 +10,7 @@
 module;
 #include <condition_variable>
 
-export module std:condition_variable;
+export module std.condition_variable;
 export namespace std {
 
   // [thread.condition.condvar], class condition_variable

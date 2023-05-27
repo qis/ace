@@ -10,7 +10,7 @@
 module;
 #include <valarray>
 
-export module std:valarray;
+export module std.valarray;
 export namespace std {
   using std::gslice;
   using std::gslice_array;

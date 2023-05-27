@@ -10,7 +10,7 @@
 module;
 #include <atomic>
 
-export module std:atomic;
+export module std.atomic;
 export namespace std {
 
   // [atomics.order], order and consistency

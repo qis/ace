@@ -10,7 +10,7 @@
 module;
 #include <cstring>
 
-export module std:cstring;
+export module std.cstring;
 export namespace std {
   using std::size_t;
 

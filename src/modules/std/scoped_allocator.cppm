@@ -10,7 +10,7 @@
 module;
 #include <scoped_allocator>
 
-export module std:scoped_allocator;
+export module std.scoped_allocator;
 export namespace std {
   // class template scoped_allocator_adaptor
   using std::scoped_allocator_adaptor;

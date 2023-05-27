@@ -10,7 +10,7 @@
 module;
 #include <list>
 
-export module std:list;
+export module std.list;
 export namespace std {
   // [list], class template list
   using std::list;

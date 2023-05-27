@@ -10,7 +10,7 @@
 module;
 #include <stack>
 
-export module std:stack;
+export module std.stack;
 export namespace std {
   // [stack], class template stack
   using std::stack;

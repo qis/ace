@@ -10,7 +10,7 @@
 module;
 #include <complex>
 
-export module std:complex;
+export module std.complex;
 export namespace std {
 
   // [complex], class template complex

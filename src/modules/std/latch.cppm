@@ -10,7 +10,7 @@
 module;
 #include <latch>
 
-export module std:latch;
+export module std.latch;
 export namespace std {
   using std::latch;
 } // namespace std

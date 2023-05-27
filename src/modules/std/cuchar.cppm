@@ -10,7 +10,7 @@
 module;
 #include <cuchar>
 
-export module std:cuchar;
+export module std.cuchar;
 export namespace std {
   // Note the Standard does not mark these symbols optional, but libc++'s header
   // does. So this seems strictly not to be conforming.

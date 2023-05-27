@@ -10,7 +10,7 @@
 module;
 #include <variant>
 
-export module std:variant;
+export module std.variant;
 export namespace std {
   // [variant.variant], class template variant
   using std::variant;

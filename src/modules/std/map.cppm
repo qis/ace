@@ -10,7 +10,7 @@
 module;
 #include <map>
 
-export module std:map;
+export module std.map;
 export namespace std {
   // [map], class template map
   using std::map;

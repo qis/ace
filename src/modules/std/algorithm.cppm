@@ -10,7 +10,7 @@
 module;
 #include <algorithm>
 
-export module std:algorithm;
+export module std.algorithm;
 export namespace std {
   namespace ranges {
     // [algorithms.results], algorithm result types

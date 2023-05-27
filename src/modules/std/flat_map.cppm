@@ -13,7 +13,7 @@ module;
 #  include <flat_map>
 #endif
 
-export module std:flat_map;
+export module std.flat_map;
 export namespace std {
 #if 0
   // [flat.map], class template flat_­map

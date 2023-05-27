@@ -10,7 +10,7 @@
 module;
 #include <bit>
 
-export module std:bit;
+export module std.bit;
 export namespace std {
   // [bit.cast], bit_cast
   using std::bit_cast;

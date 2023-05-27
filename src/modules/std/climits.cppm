@@ -10,7 +10,7 @@
 module;
 #include <climits>
 
-export module std:climits;
+export module std.climits;
 export namespace std {
   // This module exports nothing.
 } // namespace std

@@ -10,7 +10,7 @@
 module;
 #include <memory>
 
-export module std:memory;
+export module std.memory;
 export namespace std {
   // [pointer.traits], pointer traits
   using std::pointer_traits;

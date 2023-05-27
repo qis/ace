@@ -10,7 +10,7 @@
 module;
 #include <source_location>
 
-export module std:source_location;
+export module std.source_location;
 export namespace std {
   using std::source_location;
 } // namespace std

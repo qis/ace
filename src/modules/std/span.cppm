@@ -10,7 +10,7 @@
 module;
 #include <span>
 
-export module std:span;
+export module std.span;
 export namespace std {
   // constants
   using std::dynamic_extent;

@@ -10,7 +10,7 @@
 module;
 #include <ranges>
 
-export module std:ranges;
+export module std.ranges;
 export namespace std {
   namespace ranges {
     inline namespace __cpo {

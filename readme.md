@@ -48,7 +48,7 @@ sudo src/build
 # Extract toolchain archive.
 XZ_OPT="-T16 -9v" tar xJf ace.tar.xz
 
-# Build C++ standard library modules.
+# Build standard library modules.
 make -C src/modules
 
 # Register toolchain.

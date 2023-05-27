@@ -10,7 +10,7 @@
 module;
 #include <chrono>
 
-export module std:chrono;
+export module std.chrono;
 export namespace std {
 
   namespace chrono {

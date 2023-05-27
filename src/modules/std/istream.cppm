@@ -13,7 +13,7 @@ module;
 #  include <istream>
 #endif
 
-export module std:istream;
+export module std.istream;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::basic_istream;

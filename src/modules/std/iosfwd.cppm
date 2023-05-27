@@ -10,7 +10,7 @@
 module;
 #include <iosfwd>
 
-export module std:iosfwd;
+export module std.iosfwd;
 export namespace std {
   // All symbols are exported by other modules.
 } // namespace std

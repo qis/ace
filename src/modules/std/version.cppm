@@ -10,7 +10,7 @@
 module;
 #include <version>
 
-export module std:version;
+export module std.version;
 export namespace std {
   // This module exports nothing.
 } // namespace std

@@ -13,7 +13,7 @@ module;
 #  include <print>
 #endif
 
-export module std:print;
+export module std.print;
 export namespace std {
 #if 0
   // [print.fun], print functions

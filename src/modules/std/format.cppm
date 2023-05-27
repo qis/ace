@@ -10,7 +10,7 @@
 module;
 #include <format>
 
-export module std:format;
+export module std.format;
 #if !defined(_LIBCPP_HAS_NO_INCOMPLETE_FORMAT)
 export namespace std {
   // [format.context], class template basic_format_context

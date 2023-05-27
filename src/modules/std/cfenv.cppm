@@ -10,7 +10,7 @@
 module;
 #include <cfenv>
 
-export module std:cfenv;
+export module std.cfenv;
 export namespace std {
   // types
   using std::fenv_t;

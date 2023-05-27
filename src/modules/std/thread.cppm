@@ -10,7 +10,7 @@
 module;
 #include <thread>
 
-export module std:thread;
+export module std.thread;
 export namespace std {
   // [thread.thread.class], class thread
   using std::thread;

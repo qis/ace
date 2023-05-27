@@ -10,7 +10,7 @@
 module;
 #include <execution>
 
-export module std:execution;
+export module std.execution;
 export namespace std {
   // [execpol.type], execution policy type trait
   using std::is_execution_policy;

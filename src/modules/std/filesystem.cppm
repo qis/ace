@@ -10,7 +10,7 @@
 module;
 #include <filesystem>
 
-export module std:filesystem;
+export module std.filesystem;
 export namespace std::filesystem {
   // [fs.class.path], paths
   using std::filesystem::path;

@@ -55,4 +55,10 @@ test:
 	rm -rf $(ACE)/tests/modules
 	$(ACE)/src/vcpkg test modules
 
-.PHONY: all test
+clean:
+	rm -rf $(ACE)/build/modules
+	rmdir $(ACE)/build 2>/dev/null || true
+	rm -rf $(ACE)/tests/modules
+	rmdir $(ACE)/tests 2>/dev/null || true
+
+.PHONY: all test clean

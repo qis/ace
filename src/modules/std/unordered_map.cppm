@@ -10,7 +10,7 @@
 module;
 #include <unordered_map>
 
-export module std:unordered_map;
+export module std.unordered_map;
 export namespace std {
   // [unord.map], class template unordered_­map
   using std::unordered_map;

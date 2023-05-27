@@ -13,7 +13,7 @@ module;
 #  include <iomanip>
 #endif
 
-export module std:iomanip;
+export module std.iomanip;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::get_money;

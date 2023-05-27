@@ -10,7 +10,7 @@
 module;
 #include <system_error>
 
-export module std:system_error;
+export module std.system_error;
 export namespace std {
   using std::error_category;
   using std::generic_category;

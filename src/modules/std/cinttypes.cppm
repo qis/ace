@@ -10,7 +10,7 @@
 module;
 #include <cinttypes>
 
-export module std:cinttypes;
+export module std.cinttypes;
 export namespace std {
   using std::imaxdiv_t;
 

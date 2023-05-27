@@ -10,7 +10,7 @@
 module;
 #include <cassert>
 
-export module std:cassert;
+export module std.cassert;
 export namespace std {
   // This module exports nothing.
 } // namespace std

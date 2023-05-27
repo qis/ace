@@ -10,7 +10,7 @@
 module;
 #include <mdspan>
 
-export module std:mdspan;
+export module std.mdspan;
 export namespace std {
   // [mdspan.extents], class template extents
   using std::extents;

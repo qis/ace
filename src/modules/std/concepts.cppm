@@ -10,7 +10,7 @@
 module;
 #include <concepts>
 
-export module std:concepts;
+export module std.concepts;
 export namespace std {
 
   // [concepts.lang], language-related concepts

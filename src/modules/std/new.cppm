@@ -10,7 +10,7 @@
 module;
 #include <new>
 
-export module std:__new; // Note new is a keyword and not a valid identifier
+export module std.__new; // Note new is a keyword and not a valid identifier
 export namespace std {
   // [alloc.errors], storage allocation errors
   using std::bad_alloc;

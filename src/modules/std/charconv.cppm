@@ -10,7 +10,7 @@
 module;
 #include <charconv>
 
-export module std:charconv;
+export module std.charconv;
 export namespace std {
 
   // floating-point format for primitive numerical conversion

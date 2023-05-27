@@ -13,7 +13,7 @@ module;
 #  include <streambuf>
 #endif
 
-export module std:streambuf;
+export module std.streambuf;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::basic_streambuf;

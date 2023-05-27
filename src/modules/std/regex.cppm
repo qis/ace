@@ -13,7 +13,7 @@ module;
 #  include <regex>
 #endif
 
-export module std:regex;
+export module std.regex;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   // [re.const], regex constants

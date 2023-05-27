@@ -10,7 +10,7 @@
 module;
 #include <typeindex>
 
-export module std:typeindex;
+export module std.typeindex;
 export namespace std {
   using std::hash;
   using std::type_index;

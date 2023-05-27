@@ -10,7 +10,7 @@
 module;
 #include <forward_list>
 
-export module std:forward_list;
+export module std.forward_list;
 export namespace std {
   // [forward.list], class template forward_list
   using std::forward_list;

@@ -13,7 +13,7 @@ module;
 #  include <codecvt>
 #endif
 
-export module std:codecvt;
+export module std.codecvt;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
 

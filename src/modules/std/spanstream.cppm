@@ -13,7 +13,7 @@ module;
 #  include <spanstream>
 #endif
 
-export module std:spanstream;
+export module std.spanstream;
 export namespace std {
 #if 0
   using std::basic_spanbuf;

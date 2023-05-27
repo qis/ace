@@ -9,7 +9,7 @@
 
 module;
 #include <exception>
-export module std:exception;
+export module std.exception;
 export namespace std {
   using std::bad_exception;
   using std::current_exception;

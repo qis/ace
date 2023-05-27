@@ -10,7 +10,7 @@
 module;
 #include <shared_mutex>
 
-export module std:shared_mutex;
+export module std.shared_mutex;
 export namespace std {
   // [thread.sharedmutex.class], class shared_­mutex
   using std::shared_mutex;

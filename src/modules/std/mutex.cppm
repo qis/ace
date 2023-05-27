@@ -10,7 +10,7 @@
 module;
 #include <mutex>
 
-export module std:mutex;
+export module std.mutex;
 export namespace std {
   // [thread.mutex.class], class mutex
   using std::mutex;

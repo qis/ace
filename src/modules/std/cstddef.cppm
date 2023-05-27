@@ -10,7 +10,7 @@
 module;
 #include <cstddef>
 
-export module std:cstddef;
+export module std.cstddef;
 export namespace std {
   using std::max_align_t;
   using std::nullptr_t;

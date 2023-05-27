@@ -17,7 +17,7 @@ module;
 #include <cstdarg>
 #endif
 
-export module std:cwchar;
+export module std.cwchar;
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 export namespace std {
   using std::mbstate_t;

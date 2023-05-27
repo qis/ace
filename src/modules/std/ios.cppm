@@ -13,7 +13,7 @@ module;
 #  include <ios>
 #endif
 
-export module std:ios;
+export module std.ios;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::fpos;

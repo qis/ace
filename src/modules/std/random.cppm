@@ -10,7 +10,7 @@
 module;
 #include <random>
 
-export module std:random;
+export module std.random;
 export namespace std {
   // [rand.req.urng], uniform random bit generator requirements
   using std::uniform_random_bit_generator;

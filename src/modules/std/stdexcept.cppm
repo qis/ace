@@ -10,7 +10,7 @@
 module;
 #include <stdexcept>
 
-export module std:stdexcept;
+export module std.stdexcept;
 export namespace std {
   using std::domain_error;
   using std::invalid_argument;

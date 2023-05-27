@@ -11,7 +11,7 @@ module;
 #include <functional>
 #include <vector>
 
-export module std:vector;
+export module std.vector;
 export namespace std {
   // [vector], class template vector
   using std::vector;

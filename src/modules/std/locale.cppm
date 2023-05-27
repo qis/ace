@@ -13,7 +13,7 @@ module;
 #  include <locale>
 #endif
 
-export module std:locale;
+export module std.locale;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   // [locale], locale

@@ -13,7 +13,7 @@ module;
 #  include <strstream>
 #endif
 
-export module std:strstream;
+export module std.strstream;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::istrstream;

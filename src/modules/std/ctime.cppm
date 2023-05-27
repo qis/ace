@@ -10,7 +10,7 @@
 module;
 #include <ctime>
 
-export module std:ctime;
+export module std.ctime;
 export namespace std {
   using std::clock_t;
   using std::size_t;

@@ -10,7 +10,7 @@
 module;
 #include <typeinfo>
 
-export module std:typeinfo;
+export module std.typeinfo;
 export namespace std {
   using std::bad_cast;
   using std::bad_typeid;

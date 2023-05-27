@@ -10,7 +10,7 @@
 module;
 #include <optional>
 
-export module std:optional;
+export module std.optional;
 export namespace std {
   // [optional.optional], class template optional
   using std::optional;

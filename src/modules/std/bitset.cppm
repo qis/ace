@@ -10,7 +10,7 @@
 module;
 #include <bitset>
 
-export module std:bitset;
+export module std.bitset;
 export namespace std {
   using std::bitset;
 

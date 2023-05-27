@@ -13,7 +13,7 @@ module;
 #  include <cwctype>
 #endif
 
-export module std:cwctype;
+export module std.cwctype;
 #ifndef _LIBCPP_HAS_NO_WIDE_CHARACTERS
 export namespace std {
   using std::wctrans_t;

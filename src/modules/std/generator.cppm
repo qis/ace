@@ -13,7 +13,7 @@ module;
 #  include <generator>
 #endif
 
-export module std:generator;
+export module std.generator;
 export namespace std {
 #if 0
   using std::generator;

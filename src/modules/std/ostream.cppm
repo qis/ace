@@ -13,7 +13,7 @@ module;
 #  include <ostream>
 #endif
 
-export module std:ostream;
+export module std.ostream;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::basic_ostream;

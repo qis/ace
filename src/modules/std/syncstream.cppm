@@ -13,7 +13,7 @@ module;
 #  include <syncstream>
 #endif
 
-export module std:syncstream;
+export module std.syncstream;
 export namespace std {
 #if 0
   using std::basic_syncbuf;

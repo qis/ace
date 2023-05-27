@@ -10,7 +10,7 @@
 module;
 #include <cstdio>
 
-export module std:cstdio;
+export module std.cstdio;
 export namespace std {
   using std::FILE;
   using std::fpos_t;

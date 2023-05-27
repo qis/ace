@@ -10,7 +10,7 @@
 module;
 #include <numbers>
 
-export module std:numbers;
+export module std.numbers;
 export namespace std::numbers {
   using std::numbers::e_v;
   using std::numbers::egamma_v;

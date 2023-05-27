@@ -10,7 +10,7 @@
 module;
 #include <coroutine>
 #include <functional>
-export module std:coroutine;
+export module std.coroutine;
 export namespace std {
 
   // [coroutine.traits], coroutine traits

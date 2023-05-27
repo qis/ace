@@ -13,7 +13,7 @@ module;
 #  include <clocale>
 #endif
 
-export module std:clocale;
+export module std.clocale;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::lconv;

@@ -10,7 +10,7 @@
 module;
 #include <barrier>
 
-export module std:barrier;
+export module std.barrier;
 export namespace std {
   using std::barrier;
 } // namespace std

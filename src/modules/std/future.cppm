@@ -10,7 +10,7 @@
 module;
 #include <future>
 
-export module std:future;
+export module std.future;
 export namespace std {
   using std::future_errc;
   using std::future_status;

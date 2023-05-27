@@ -10,7 +10,7 @@
 module;
 #include <cerrno>
 
-export module std:cerrno;
+export module std.cerrno;
 export namespace std {
   // This module exports nothing.
 } // namespace std

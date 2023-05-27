@@ -13,7 +13,7 @@ module;
 #  include <stop_token>
 #endif
 
-export module std:stop_token;
+export module std.stop_token;
 export namespace std {
 #if 0
   // [stoptoken], class stop_­token

@@ -10,7 +10,7 @@
 module;
 #include <set>
 
-export module std:set;
+export module std.set;
 export namespace std {
   // [set], class template set
   using std::set;

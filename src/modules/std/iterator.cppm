@@ -10,7 +10,7 @@
 module;
 #include <iterator>
 
-export module std:iterator;
+export module std.iterator;
 export namespace std {
   // [iterator.assoc.types], associated types
   // [incrementable.traits], incrementable traits

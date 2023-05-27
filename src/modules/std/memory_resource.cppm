@@ -10,7 +10,7 @@
 module;
 #include <memory_resource>
 
-export module std:memory_resource;
+export module std.memory_resource;
 export namespace std::pmr {
   // [mem.res.class], class memory_resource
   using std::pmr::memory_resource;

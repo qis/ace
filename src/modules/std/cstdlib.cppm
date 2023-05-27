@@ -10,7 +10,7 @@
 module;
 #include <cstdlib>
 
-export module std:cstdlib;
+export module std.cstdlib;
 export namespace std {
   using std::div_t;
   using std::ldiv_t;

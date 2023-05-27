@@ -14,7 +14,7 @@ namespace internal {
   using std::ignore;
 }  // namespace internal
 
-export module std:tuple;
+export module std.tuple;
 export namespace std {
   // [tuple.tuple], class template tuple
   using std::tuple;

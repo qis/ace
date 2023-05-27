@@ -10,7 +10,7 @@
 module;
 #include <deque>
 
-export module std:deque;
+export module std.deque;
 export namespace std {
   // [deque], class template deque
   using std::deque;

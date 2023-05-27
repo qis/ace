@@ -10,7 +10,7 @@
 module;
 #include <compare>
 
-export module std:compare;
+export module std.compare;
 export namespace std {
 
   // [cmp.categories], comparison category types

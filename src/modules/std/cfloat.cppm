@@ -10,7 +10,7 @@
 module;
 #include <cfloat>
 
-export module std:cfloat;
+export module std.cfloat;
 export namespace std {
   // This module exports nothing.
 } // namespace std

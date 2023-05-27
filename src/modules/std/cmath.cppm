@@ -10,7 +10,7 @@
 module;
 #include <cmath>
 
-export module std:cmath;
+export module std.cmath;
 export namespace std {
 
   using std::double_t;

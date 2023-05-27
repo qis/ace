@@ -9,7 +9,7 @@
 
 module;
 #include <utility>
-export module std:utility;
+export module std.utility;
 export namespace std {
   // [utility.swap], swap
   using std::swap;

@@ -13,7 +13,7 @@ module;
 #  include <stacktrace>
 #endif
 
-export module std:stacktrace;
+export module std.stacktrace;
 export namespace std {
 #if 0
   // [stacktrace.entry], class stacktrace_­entry

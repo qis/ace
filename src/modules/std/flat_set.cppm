@@ -13,7 +13,7 @@ module;
 #  include <flat_set>
 #endif
 
-export module std:flat_set;
+export module std.flat_set;
 export namespace std {
 #if 0
   // [flat.set], class template flat_­set

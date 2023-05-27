@@ -10,7 +10,7 @@
 module;
 #include <expected>
 
-export module std:expected;
+export module std.expected;
 export namespace std {
   // [expected.unexpected], class template unexpected
   using std::unexpected;

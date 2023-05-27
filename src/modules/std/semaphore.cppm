@@ -10,7 +10,7 @@
 module;
 #include <semaphore>
 
-export module std:semaphore;
+export module std.semaphore;
 export namespace std {
   // [thread.sema.cnt], class template counting_semaphore
   using std::counting_semaphore;

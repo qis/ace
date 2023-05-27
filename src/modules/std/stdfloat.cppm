@@ -13,7 +13,7 @@ module;
 #  include <stdfloat>
 #endif
 
-export module std:stdfloat;
+export module std.stdfloat;
 export namespace std {
 #if defined(__STDCPP_FLOAT16_T__)
   using std::float16_t;

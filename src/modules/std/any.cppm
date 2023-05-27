@@ -10,7 +10,7 @@
 module;
 #include <any>
 
-export module std:any;
+export module std.any;
 export namespace std {
 
   // [any.bad.any.cast], class bad_any_cast

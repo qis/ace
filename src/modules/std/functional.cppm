@@ -10,7 +10,7 @@
 module;
 #include <functional>
 
-export module std:functional;
+export module std.functional;
 export namespace std {
   // [func.invoke], invoke
   using std::invoke;

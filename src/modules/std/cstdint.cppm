@@ -10,7 +10,7 @@
 module;
 #include <cstdint>
 
-export module std:cstdint;
+export module std.cstdint;
 export namespace std {
   // signed
   using std::int8_t _LIBCPP_USING_IF_EXISTS;

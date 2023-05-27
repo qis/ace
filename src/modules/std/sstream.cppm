@@ -13,7 +13,7 @@ module;
 #  include <sstream>
 #endif
 
-export module std:sstream;
+export module std.sstream;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::basic_stringbuf;

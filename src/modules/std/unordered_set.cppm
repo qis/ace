@@ -10,7 +10,7 @@
 module;
 #include <unordered_set>
 
-export module std:unordered_set;
+export module std.unordered_set;
 export namespace std {
   // [unord.set], class template unordered_­set
   using std::unordered_set;

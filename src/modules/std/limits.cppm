@@ -10,7 +10,7 @@
 module;
 #include <limits>
 
-export module std:limits;
+export module std.limits;
 export namespace std {
   // [fp.style], floating-point type properties
   using std::float_denorm_style;

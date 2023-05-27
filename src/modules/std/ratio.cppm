@@ -10,7 +10,7 @@
 module;
 #include <ratio>
 
-export module std:ratio;
+export module std.ratio;
 export namespace std {
   // [ratio.ratio], class template ratio
   using std::ratio;

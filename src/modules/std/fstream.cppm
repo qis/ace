@@ -13,7 +13,7 @@ module;
 #  include <fstream>
 #endif
 
-export module std:fstream;
+export module std.fstream;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::basic_filebuf;

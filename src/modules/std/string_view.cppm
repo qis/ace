@@ -10,7 +10,7 @@
 module;
 #include <string_view>
 
-export module std:string_view;
+export module std.string_view;
 export namespace std {
   // [string.view.template], class template basic_string_view
   using std::basic_string_view;

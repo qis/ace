@@ -1,4 +1,7 @@
-import std;
+import std.format;
+import std.iostream;
+import std.ostream;
+import std.string;
 #include <stdlib.h>
 
 int main(int argc, char* argv[])

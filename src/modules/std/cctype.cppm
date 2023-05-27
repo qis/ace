@@ -10,7 +10,7 @@
 module;
 #include <cctype>
 
-export module std:cctype;
+export module std.cctype;
 export namespace std {
   using std::isalnum;
   using std::isalpha;

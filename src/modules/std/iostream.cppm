@@ -13,7 +13,7 @@ module;
 #  include <iostream>
 #endif
 
-export module std:iostream;
+export module std.iostream;
 #ifndef _LIBCPP_HAS_NO_LOCALIZATION
 export namespace std {
   using std::cerr;

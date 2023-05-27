@@ -10,7 +10,7 @@
 module;
 #include <queue>
 
-export module std:queue;
+export module std.queue;
 export namespace std {
   // [queue], class template queue
   using std::queue;

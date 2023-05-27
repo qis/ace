@@ -9,7 +9,7 @@
 
 module;
 #include <type_traits>
-export module std:type_traits;
+export module std.type_traits;
 export namespace std {
   // [meta.help], helper class
   using std::integral_constant;
