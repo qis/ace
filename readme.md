@@ -15,7 +15,8 @@ Runtime dependencies for building and using this toolchain.
 # Install debian packages.
 # Replace with equivalent packages for other linux distributions.
 apt install -y --no-install-recommends \
-  ca-certificates brotli curl git lz4 openssh-client sudo tar tzdata unzip xz-utils zip zstd \
+  brotli gzip libxml2-utils lz4 openssl xz-utils zstd \
+  ca-certificates curl git openssh-client sudo tar tzdata unzip zip \
   autoconf automake debootstrap libtool make patchelf perl pkg-config python3 strace \
   libatomic1 libc6 libgcc-s1
 

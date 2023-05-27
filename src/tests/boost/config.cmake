@@ -10,3 +10,5 @@ target_link_libraries(main PRIVATE
 target_compile_definitions(main PRIVATE
   BOOST_MATH_STANDALONE=1
   BOOST_MP_STANDALONE=1)
+
+target_link_libraries(main PRIVATE ${CMAKE_DL_LIBS})

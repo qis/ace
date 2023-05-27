@@ -38,8 +38,6 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "")
 set(CLANG_SYSTEM_PROGRAM_PATH)
 
 file(GLOB CLANG_INSTALLED_TOOLS_DIRECTORIES
-  ${ACE}/vcpkg/installed/linux-shared/tools
-  ${ACE}/vcpkg/installed/linux-shared/tools/*
   ${ACE}/vcpkg/installed/linux-static/tools
   ${ACE}/vcpkg/installed/linux-static/tools/*
   LIST_DIRECTORIES ON)
@@ -144,7 +142,7 @@ if(CLANG_LIBRARY_LINKAGE STREQUAL "static")
 endif()
 
 if(CLANG_SYSTEM_NAME STREQUAL "linux")
-  set(LDFLAGS "-Wl,--undefined-version -ldl")
+  set(LDFLAGS "-Wl,--undefined-version")
   set(LDFLAGS_DEBUG "")
   set(LDFLAGS_RELEASE "-s")
 elseif(CLANG_SYSTEM_NAME STREQUAL "mingw")

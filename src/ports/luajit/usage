@@ -1,4 +1,4 @@
-The package luajit is compatible with built-in CMake targets:
+The package luajit provides CMake targets:
 
     find_package(LuaJIT REQUIRED)
     target_link_libraries(main PRIVATE LuaJIT::LuaJIT)
