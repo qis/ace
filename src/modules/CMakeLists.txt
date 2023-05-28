@@ -11,6 +11,7 @@ target_sources(std PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES ${sources}
 
 target_compile_definitions(std PRIVATE _LIBCPP_ENABLE_EXPERIMENTAL)
 target_compile_options(std PUBLIC -Wno-reserved-module-identifier)
+target_compile_features(std PUBLIC cxx_std_23)
 
 install(TARGETS std
   ARCHIVE DESTINATION "$<CONFIG>"
