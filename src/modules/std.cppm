@@ -11,7 +11,7 @@ export module std;
 
 // The headers of Table 24: C++ library headers [tab:headers.cpp]
 // and the headers of Table 25: C++ headers for C library facilities [tab:headers.cpp.c]
-//export import :__new; // Note new is a keyword and not a valid identifier
+export import std.__new; // Note new is a keyword and not a valid identifier
 export import std.algorithm;
 export import std.any;
 export import std.array;
