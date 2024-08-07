@@ -1,0 +1,137 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 30
+  },
+  "configurePresets": [
+    {
+      "hidden": true,
+      "name": "default",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "warnings": { "dev": false },
+      "cacheVariables": {
+        "CMAKE_CXX_MODULE_STD": true,
+        "CMAKE_CXX_SCAN_FOR_MODULES": true,
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "CMAKE_EXPERIMENTAL_CXX_IMPORT_STD": "0e5b6991-d74f-4b3d-a41c-cf096e0b2508"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "linux",
+      "inherits": "default",
+      "toolchainFile": "$env{ACE}/linux.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "mingw",
+      "inherits": "default",
+      "toolchainFile": "$env{ACE}/mingw.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "shared",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_CONFIGURATION_TYPES": "Debug;RelWithDebInfo;Coverage",
+        "CMAKE_DEFAULT_CONFIGS": "Debug"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "static",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Release;MinSizeRel",
+        "CMAKE_DEFAULT_CONFIGS": "Release"
+      }
+    },
+    {
+      "name": "linux-shared",
+      "displayName": "Linux Debug",
+      "inherits": [ "linux", "shared" ],
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "linux-static",
+      "displayName": "Linux Release",
+      "inherits": [ "linux", "static" ],
+      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" }
+    },
+    {
+      "name": "mingw-shared",
+      "displayName": "MinGW Debug",
+      "inherits": [ "mingw", "shared" ]
+    },
+    {
+      "name": "mingw-static",
+      "displayName": "MinGW Release",
+      "inherits": [ "mingw", "static" ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "linux-shared"
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "linux-static"
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "linux-shared"
+    },
+    {
+      "name": "linux-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "linux-static"
+    },
+    {
+      "name": "linux-coverage",
+      "displayName": "Coverage",
+      "configuration": "Coverage",
+      "configurePreset": "linux-shared"
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "Debug",
+      "configuration": "Debug",
+      "configurePreset": "mingw-shared"
+    },
+    {
+      "name": "mingw-release",
+      "displayName": "Release",
+      "configuration": "Release",
+      "configurePreset": "mingw-static"
+    },
+    {
+      "name": "mingw-relwithdebinfo",
+      "displayName": "RelWithDebInfo",
+      "configuration": "RelWithDebInfo",
+      "configurePreset": "mingw-shared"
+    },
+    {
+      "name": "mingw-minsizerel",
+      "displayName": "MinSizeRel",
+      "configuration": "MinSizeRel",
+      "configurePreset": "mingw-static"
+    },
+    {
+      "name": "mingw-coverage",
+      "displayName": "Coverage",
+      "configuration": "Coverage",
+      "configurePreset": "mingw-shared"
+    }
+  ]
+}

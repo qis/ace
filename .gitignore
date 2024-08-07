@@ -1,0 +1,9 @@
+/*
+.*
+!/doc/
+!/src/
+!/.gitattributes
+!/.gitignore
+!/linux.cmake
+!/mingw.cmake
+!/readme.md
