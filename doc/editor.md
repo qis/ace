@@ -5,12 +5,12 @@ Editor setup instructions.
 1. Install and configure [VSCode][vsc] or [VSCodium][vsu].
 
 2. Install required extensions.
-  - CMake Tools `ms-vscode.cmake-tools`
-  - clangd `llvm-vs-code-extensions.vscode-clangd`
-  - CodeLLDB `vadimcn.vscode-lldb`
+   * CMake Tools `ms-vscode.cmake-tools`
+   * clangd `llvm-vs-code-extensions.vscode-clangd`
+   * CodeLLDB `vadimcn.vscode-lldb`
 
 3. Install optional extension for license formatting.
-  - Reflow Markdown `marvhen.reflow-markdown`
+   * Reflow Markdown `marvhen.reflow-markdown`
 
 4. Add required user or workspace settings.
 
