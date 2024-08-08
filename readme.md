@@ -156,8 +156,8 @@ SystemPropertiesAdvanced.exe
 * Set `VCPKG_DISABLE_METRICS` to `1`.
 * Add `C:\Ace\vcpkg` to `PATH`.
 
-## Visual Studio Code
-Configure [VS Code][vsc] according to [doc/vscode.md](doc/vscode.md).
+## Editor
+Configure editor according to [doc/editor.md](doc/editor.md).
 
 ## Usage
 See [src/template](src/template) for a template project.<br/>
@@ -203,6 +203,5 @@ Projects compiled with this toolchain must be distributed under the following co
 [git]: https://git-scm.com/
 [cmk]: https://cmake.org/download/
 [wix]: https://github.com/wixtoolset/wix3/releases
-[vsc]: https://code.visualstudio.com/
 [zip]: https://www.7-zip.org/
 [pkg]: https://vcpkg.io/

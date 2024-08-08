@@ -1,17 +1,18 @@
-# Visual Studio Code
-Install and configure [VS Code][vsc].
+# Editor
+Editor setup instructions.
 
-## Extensions
-1. Install required extensions.
+## VSCode/VSCodium
+1. Install and configure [VSCode][vsc] or [VSCodium][vsu].
+
+2. Install required extensions.
   - CMake Tools `ms-vscode.cmake-tools`
   - clangd `llvm-vs-code-extensions.vscode-clangd`
   - CodeLLDB `vadimcn.vscode-lldb`
 
-2. Install optional extension for license formatting.
+3. Install optional extension for license formatting.
   - Reflow Markdown `marvhen.reflow-markdown`
 
-## Configuration
-Required configuration, that must be added to the user or workspace `settings.json` file.
+4. Add required user or workspace settings.
 
 ```json5
 {
@@ -27,11 +28,11 @@ Required configuration, that must be added to the user or workspace `settings.js
     "program": "${command:cmake.launchTargetPath}",
     "args": []
   },
-  "reflowMarkdown.preferredLineLength": 76
+  "reflowMarkdown.preferredLineLength": 76,
 }
 ```
 
-Recommended configuration, that can be added to the user `settings.json` file.
+5. Add recommended user settings.
 
 ```json5
 {
@@ -80,12 +81,31 @@ Recommended configuration, that can be added to the user `settings.json` file.
     }
   },
   "debug.showInStatusBar": "never",
-  "debug.toolBarLocation": "commandCenter",
+  // When VS Code draws it's own window decorations.
+  //"debug.toolBarLocation": "commandCenter",
   "lldb.showDisassembly": "auto",
   "lldb.dereferencePointers": true,
   "lldb.consoleMode": "commands",
-  "lldb.displayFormat": "auto"
+  "lldb.displayFormat": "auto",
+}
+```
+
+6. Add recommended user settings on Linux.
+
+```json5
+{
+  "clangd.path": "/opt/ace/bin/clangd",
+  "cmake.cmakePath": "/opt/cmake/bin/cmake",
+}
+```
+
+7. Add recommended user settings on Windows.
+
+```json5
+{
+  "clangd.path": "C:/Ace/bin/clangd.exe",
 }
 ```
 
 [vsc]: https://code.visualstudio.com/
+[vsu]: https://vscodium.com/

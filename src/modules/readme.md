@@ -120,9 +120,9 @@ cmake --build build/mingw-static --config Release --target package
 
 </details>
 
-## Visual Studio Code
-1. Configure [VS Code][vsc] according to [doc/vscode.md](../../doc/vscode.md).
-2. Open project directory in VS Code.
+## Editor
+1. Configure editor according to [doc/editor.md](../../doc/editor.md).
+2. Open project directory in editor.
 
 ## Template
 Modify the project template.
