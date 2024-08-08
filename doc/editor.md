@@ -16,7 +16,11 @@ Editor setup instructions.
 
 ```json5
 {
-  "clangd.arguments": [ "--header-insertion=never" ],
+  "clangd.arguments": [
+    "--experimental-modules-support",
+    "--header-insertion=never",
+  ],
+  "clangd.onConfigChanged": "restart",
   "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
   "cmake.ctest.testExplorerIntegrationEnabled": true,
   "cmake.useCMakePresets": "always",
