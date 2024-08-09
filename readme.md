@@ -72,7 +72,7 @@ sudo chown $(id -u):$(id -g) /opt/ace
 git clone https://github.com/qis/ace /opt/ace
 
 # Install toolchain binaries.
-tar xf /tmp/ace.tar.xz -C /opt/ace
+tar xf /tmp/ace-18.1.8.tar.xz -C /opt/ace
 
 # Create toolchain environment variables.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
@@ -103,7 +103,7 @@ rem Clone toolchain repository.
 git clone https://github.com/qis/ace C:/Ace
 
 rem Install toolchain binaries.
-7z x %UserProfile%\Downloads\ace.7z -oC:\Ace
+7z x %UserProfile%\Downloads\ace-18.1.8.7z -oC:\Ace
 
 rem Modify system environment variables.
 SystemPropertiesAdvanced.exe

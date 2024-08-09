@@ -102,7 +102,9 @@ git clone https://github.com/qis/ace /opt/ace
 sh /opt/ace/src/build.sh
 ```
 
-This will create the archives `/opt/ace/ace.tar.xz` for Linux and `/opt/ace/ace.7z` for Windows.
+This will create the archives:
+* `/opt/ace/ace-<version>.tar.xz` for Linux
+* `/opt/ace/ace-<version>.7z` for Windows
 
 ## C++ Modules
 Currently, the [src/build.sh](../src/build.sh) script downloads and builds LLVM from the main

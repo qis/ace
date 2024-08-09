@@ -1589,7 +1589,13 @@ fi
 # archives
 # =================================================================================================
 
-if [ ! -f ace.tar.xz ] || [ ! -f ace.7z ]; then
+if git -C build/src/llvm describe --exact-match --tags >/dev/null 2>&1; then
+  ARCHIVE_NAME=ace-${LLVM_VER}
+else
+  ARCHIVE_NAME=ace-$(git -C build/src/llvm log --format=%cs-%h)
+fi
+
+if [ ! -f ${ARCHIVE_NAME}.tar.xz ] || [ ! -f ${ARCHIVE_NAME}.7z ]; then
   print "Fixing library search paths ..."
   find bin -type f | while read executable; do
     if file -bL --mime-type "${executable}" | grep "application/x-.*executable" >/dev/null; then
@@ -1610,13 +1616,13 @@ if [ ! -f ace.tar.xz ] || [ ! -f ace.7z ]; then
     error "Symlink in windows directory: ${link}"
   done
 
-  print "Creating linux archive: ace.tar.xz ..."
-  rm -f ace.tar.xz
-  tar cJf ace.tar.xz bin include lib share sys tools
-  chown -R "${uid}:${gid}" ace.tar.xz
+  print "Creating linux archive: ${ARCHIVE_NAME}.tar.xz ..."
+  rm -f ${ARCHIVE_NAME}.tar.xz
+  tar cJf ${ARCHIVE_NAME}.tar.xz bin include lib share sys tools
+  chown -R "${uid}:${gid}" ${ARCHIVE_NAME}.tar.xz
 
-  print "Creating windows archive: ace.7z ..."
-  rm -f ace.7z
-  env --chdir=build/windows 7z a ../../ace.7z bin include lib share sys
-  chown -R "${uid}:${gid}" ace.7z
+  print "Creating windows archive: ${ARCHIVE_NAME}.7z ..."
+  rm -f ${ARCHIVE_NAME}.7z
+  env --chdir=build/windows 7z a ../../${ARCHIVE_NAME}.7z bin include lib share sys
+  chown -R "${uid}:${gid}" ${ARCHIVE_NAME}.7z
 fi
