@@ -111,5 +111,16 @@ Editor setup instructions.
 }
 ```
 
+Recommended keyboard shortcuts.
+
+```json5
+[
+  { "key": "f5", "command": "cmake.debugTarget", "when": "!inDebugMode" },
+  { "key": "f5", "command": "workbench.action.debug.pause", "when": "inDebugMode && debugState == 'running'" },
+  { "key": "f5", "command": "workbench.action.debug.continue", "when": "inDebugMode && debugState != 'running'" },
+  { "key": "ctrl+f5", "command": "cmake.launchTarget" }
+]
+```
+
 [vsc]: https://code.visualstudio.com/
 [vsu]: https://vscodium.com/
