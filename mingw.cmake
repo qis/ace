@@ -55,6 +55,9 @@ endif()
 # DLL Export Table Generator
 find_program(CMAKE_DLLTOOL llvm-dlltool PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
 
+# Manifest Generator
+find_program(CMAKE_MT llvm-mt PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
+
 # Emulator
 if(CMAKE_HOST_UNIX AND NOT CMAKE_HOST_SYSTEM_VERSION MATCHES "WSL2")
   find_program(WINE wine PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)

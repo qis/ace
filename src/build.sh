@@ -646,6 +646,7 @@ if [ ! -f build/06-stage2-build.lock ] || [ ! -e build/stage2/bin/clang ]; then
     liblldb \
     llvm-ar \
     llvm-nm \
+    llvm-mt \
     llvm-objcopy \
     llvm-objdump \
     llvm-ranlib \
@@ -679,6 +680,7 @@ if [ ! -f build/06-stage2-install.lock ] || [ ! -e bin/clang ]; then
     install-liblldb-stripped \
     install-llvm-ar-stripped \
     install-llvm-nm-stripped \
+    install-llvm-mt-stripped \
     install-llvm-objcopy-stripped \
     install-llvm-objdump-stripped \
     install-llvm-ranlib-stripped \
@@ -1272,6 +1274,7 @@ if [ ! -f build/12-stage3-install.lock ] || [ ! -e build/windows/bin/clang.exe ]
     install-liblldb-stripped \
     install-llvm-ar-stripped \
     install-llvm-nm-stripped \
+    install-llvm-mt-stripped \
     install-llvm-objcopy-stripped \
     install-llvm-objdump-stripped \
     install-llvm-ranlib-stripped \
