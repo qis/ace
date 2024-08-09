@@ -1,6 +1,7 @@
 #include <version.h>
 #include <windows.h>
 
+1 RT_MANIFEST "main.manifest"
 101 ICON "main.ico"
 
 VS_VERSION_INFO VERSIONINFO

@@ -22,20 +22,20 @@ find_package(Threads REQUIRED)
 target_link_libraries(objects PUBLIC Threads::Threads)
 
 # Application
-add_executable(main src/main.cpp src/main.manifest src/main.rc)
+add_executable(main src/main.cpp src/main.rc)
 set_target_properties(main PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_link_libraries(main PRIVATE objects)
 
 # Benchmarks
 find_package(benchmark CONFIG REQUIRED)
-add_executable(benchmarks EXCLUDE_FROM_ALL src/benchmark.cpp src/main.manifest)
+add_executable(benchmarks EXCLUDE_FROM_ALL src/benchmark.cpp src/main.rc)
 target_link_libraries(benchmarks PRIVATE objects benchmark::benchmark)
 
 # Tests
 include(CTest)
 if(BUILD_TESTING)
   find_package(doctest CONFIG REQUIRED)
-  add_executable(tests src/test.cpp src/main.manifest)
+  add_executable(tests src/test.cpp src/main.rc)
   target_link_libraries(tests PRIVATE objects doctest::doctest)
 
   include(doctest)
