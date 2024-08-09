@@ -1,5 +1,5 @@
 # Ports
-Installation instructions for supported Vcpkg ports.
+Installation instructions for supported [Vcpkg][pkg] ports.
 
 ## Linux
 
@@ -62,3 +62,5 @@ vcpkg install --triplet=ace-mingw-static ^
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core]
 ```
+
+[pkg]: https://vcpkg.io/
