@@ -41,15 +41,19 @@ set(ACE_LINKER_FLAGS "-Xlinker /MANIFEST:NO")
 set(ACE_LINKER_FLAGS_DEBUG "-Xlinker /DEBUG -Xlinker /INCREMENTAL")
 set(ACE_LINKER_FLAGS_RELEASE "-s -Xlinker /OPT:REF -Xlinker /OPT:ICF -Xlinker /INCREMENTAL:NO")
 
-# Resource Compiler Flags
-set(CMAKE_RC_FLAGS_INIT "-I ${CMAKE_SYSROOT}/include")
-
 # Toolchain
 include(${ACE}/src/toolchain.cmake)
 
-# Tools
+# Resource Compiler
+if(CMAKE_HOST_UNIX)
+  find_program(CMAKE_RC_COMPILER windres PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
+else()
+  find_program(CMAKE_RC_COMPILER llvm-windres PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
+  set(CMAKE_RC_FLAGS_INIT "-I ${CMAKE_SYSROOT}/include")
+endif()
+
+# DLL Export Table Generator
 find_program(CMAKE_DLLTOOL llvm-dlltool PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
-find_program(CMAKE_RC_COMPILER llvm-windres PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
 
 # Emulator
 if(CMAKE_HOST_UNIX AND NOT CMAKE_HOST_SYSTEM_VERSION MATCHES "WSL2")

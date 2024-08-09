@@ -276,17 +276,17 @@ download_git "readpe" "${READPE_GIT}" "${READPE_TAG}" "build/src" "Makefile"
 
 # =================================================================================================
 
-#POWERSHELL_VER="7.4.4"
-#POWERSHELL_TAG="v${POWERSHELL_VER}"
-#POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
-#POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/${POWERSHELL_TAG}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
-#POWERSHELL_TAR="powershell.tar.gz"
+POWERSHELL_VER="7.4.4"
+POWERSHELL_TAG="v${POWERSHELL_VER}"
+POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
+POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/${POWERSHELL_TAG}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
+POWERSHELL_TAR="powershell.tar.gz"
 
-#download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "tools" "pwsh"
+download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "tools" "pwsh"
 
-#if [ ! -x tools/powershell/pwsh ]; then
-#  chmod +x tools/powershell/pwsh
-#fi
+if [ ! -x tools/powershell/pwsh ]; then
+  chmod +x tools/powershell/pwsh
+fi
 
 # =================================================================================================
 # 03: linux
@@ -707,6 +707,17 @@ if [ ! -f build/06-stage2-install.lock ] || [ ! -e bin/clang ]; then
   create build/06-stage2-install.lock
 fi
 
+tee bin/windres >/dev/null <<'EOF'
+#!/bin/sh
+set -e
+export LC_ALL=C
+SCRIPT=$(readlink -f -- "${0}" || realpath -- "${0}")
+BIN=$(dirname "${SCRIPT}")
+ACE=$(dirname "${BIN}")
+"${BIN}/llvm-windres" "-I" "${ACE}/sys/mingw/include" $*
+EOF
+chmod +x bin/windres
+
 if [ ! -f build/06-stage2-lldb-mi.lock ] || [ ! -e bin/lldb-mi ]; then
   rm -rf build/06-stage2-lldb-mi.lock build/stage2-lldb-mi
 
@@ -815,17 +826,23 @@ if [ ! -f build/08-yasm.lock ] || [ ! -e build/yasm/yasm ]; then
   create build/08-yasm.lock
 fi
 
-if [ ! -f build/08-yasm-install.lock ] || [ ! -e bin/yasm ]; then
-  rm -rf build/08-yasm-install.lock bin/yasm
+if [ ! -f build/08-yasm-install.lock ] ||
+   [ ! -e lib/libyasmstd.so ] ||
+   [ ! -e lib/libyasm.so ] ||
+   [ ! -e bin/yasm ]
+then
+  rm -rf build/08-yasm-install.lock bin/yasm lib/libyasm.so
 
   print "Installing yasm ..."
   ninja -C build/yasm install/strip
 
   cp -a build/yasm-install/bin/yasm bin/
-  cp -a build/yasm-install/bin/ytasm bin/
-  cp -a build/yasm-install/bin/vsyasm bin/
+  cp -a build/yasm-install/lib/libyasm.so lib/
+  cp -a build/yasm-install/lib/libyasmstd.so lib/
 
   verify bin/yasm
+  verify lib/libyasm.so
+  verify lib/libyasmstd.so
   create build/08-yasm-install.lock
 fi
 
@@ -1595,7 +1612,7 @@ if [ ! -f ace.tar.xz ] || [ ! -f ace.7z ]; then
 
   print "Creating linux archive: ace.tar.xz ..."
   rm -f ace.tar.xz
-  tar cJf ace.tar.xz bin include lib share sys
+  tar cJf ace.tar.xz bin include lib share sys tools
   chown -R "${uid}:${gid}" ace.tar.xz
 
   print "Creating windows archive: ace.7z ..."
