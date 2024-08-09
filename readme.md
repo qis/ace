@@ -9,7 +9,13 @@ Linux Sysroot: Debian 11
 MinGW Runtime: UCRT
 ```
 
+**This is not a general purpose toolchain!**
+
+## Sysroot
 See [doc/sysroot.md](doc/sysroot.md) for a list of evaluated Linux distributions.
+
+## Ports
+See [doc/ports.md](doc/ports.md) for a list of supported [Vcpkg][pkg] ports.
 
 ## Build
 See [doc/build.md](doc/build.md) for build instructions.
@@ -71,7 +77,7 @@ tar xf /tmp/ace.tar.xz -C /opt/ace
 # Create toolchain environment variables.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
 export ACE="/opt/ace"
-export PATH="${ACE}/bin:${PATH}"
+export PATH="${ACE}/bin:${ACE}/tools/powershell:${PATH}"
 EOF
 
 sudo chmod 0755 /etc/profile.d/ace.sh
@@ -154,10 +160,17 @@ SystemPropertiesAdvanced.exe
 * Set `VCPKG_FEATURE_FLAGS` to `-binarycaching`.
 * Set `VCPKG_FORCE_SYSTEM_BINARIES` to `1`.
 * Set `VCPKG_DISABLE_METRICS` to `1`.
-* Add `C:\Ace\vcpkg` to `PATH`.
+* Add `C:\Ace\vcpkg` to `Path`.
+* Add `C:\Ace\vcpkg\installed\ace-mingw-shared\bin` to `Path`.
 
 ## Editor
 Configure editor according to [doc/editor.md](doc/editor.md).
+
+## Optimizations
+1. Interprocedural optimizations are enabled in release builds.
+2. Everything is compiled for the `x86-64-v3` architecture with AVX2 enabled.
+3. If a `-static` Vcpkg triplet is used or `BUILD_SHARED_LIBS` not defined in CMake, then everything
+   will be compiled with `-fno-exceptions -fno-rtti` and statically linked to `libc++`.
 
 ## Usage
 See [src/template](src/template) for a template project.<br/>
