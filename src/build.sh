@@ -1315,6 +1315,15 @@ if [ ! -f build/12-stage3-install.lock ] || [ ! -e build/windows/bin/clang.exe ]
     install-libclang-headers \
     install-libclang-stripped
 
+  rm -f sys/mingw/bin/libclang.dll
+  cp build/windows/bin/libclang.dll sys/mingw/bin/libclang.dll
+
+  rm -f sys/mingw/lib/libclang.dll.a
+  cp build/windows/lib/libclang.dll.a sys/mingw/lib/libclang.dll.a
+
+  rm -rf sys/mingw/include/clang-c
+  cp -R build/windows/include/clang-c sys/mingw/include/clang-c
+
   verify build/windows/bin/clang.exe
   create build/12-stage3-install.lock
 fi
