@@ -87,7 +87,7 @@ PenaltyBreakFirstLessLess: 0
 PenaltyBreakBeforeFirstCallParameter: 10
 PenaltyExcessCharacter: 100
 PenaltyIndentedWhitespace: 10
-PenaltyReturnTypeOnItsOwnLine: 300
+PenaltyReturnTypeOnItsOwnLine: 500
 ---
 Language: Cpp
 Standard: Latest

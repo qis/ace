@@ -1,4 +1,4 @@
-# Clang-Format 18
+# Clang-Format 20
 ---
 BasedOnStyle: LLVM
 
@@ -10,14 +10,13 @@ IndentWidth: 2
 ConstructorInitializerIndentWidth: 2
 ContinuationIndentWidth: 2
 IndentExternBlock: NoIndent
-IndentPPDirectives: AfterHash
+IndentPPDirectives: None
 
 # Alignment
 AlignAfterOpenBracket: AlwaysBreak
 AlignArrayOfStructures: Right
 AlignConsecutiveMacros: Consecutive
-AlignEscapedNewlines: Left  # version <= 18
-#AlignEscapedNewlines: LeftWithLastLine  # version >= 19
+AlignEscapedNewlines: LeftWithLastLine
 AlignOperands: AlignAfterOperator
 PointerAlignment: Left
 QualifierAlignment: Left
@@ -31,7 +30,6 @@ AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: Inline
 AlwaysBreakBeforeMultilineStrings: true
-AlwaysBreakTemplateDeclarations: Yes  # version <= 18
 
 BreakBeforeBraces: Custom
 BraceWrapping:
@@ -47,7 +45,7 @@ BreakBeforeTernaryOperators: false
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
 BreakStringLiterals: true
-#BreakTemplateDeclarations: Yes  # version >= 19
+BreakTemplateDeclarations: Yes
 
 InsertNewlineAtEOF: true
 KeepEmptyLinesAtTheStartOfBlocks: false
@@ -87,7 +85,7 @@ PenaltyBreakFirstLessLess: 0
 PenaltyBreakBeforeFirstCallParameter: 10
 PenaltyExcessCharacter: 100
 PenaltyIndentedWhitespace: 10
-PenaltyReturnTypeOnItsOwnLine: 300
+PenaltyReturnTypeOnItsOwnLine: 500
 ---
 Language: Cpp
 Standard: Latest
@@ -110,7 +108,7 @@ IncludeCategories:
     Priority: 1
 
   # Project Headers
-  - Regex: '^<ace(/|\.hpp)'
+  - Regex: '^<ice(/|\.hpp)'
     Priority: 2
     SortPriority: 0
 
