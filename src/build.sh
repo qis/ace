@@ -127,7 +127,8 @@ if [ ! -f build/01-chroot-system.lock ] || [ ! -e /usr/bin/ninja ]; then
     libedit-dev libicu-dev liblzma-dev libncurses-dev libreadline-dev libtinfo-dev libxml2-dev \
     make man-db manpages-dev ninja-build openssh-client p7zip-full patchelf pax-utils perl pev \
     pkg-config python3 python3-distutils python3-lib2to3 strace swig time libtinfo5 \
-    symlinks tree tzdata unzip xz-utils yasm wine zip zlib1g-dev libpython3-dev
+    symlinks tree tzdata unzip xz-utils yasm wine zip zlib1g-dev libpython3-dev \
+    libwayland-bin
 
   print "Configuring chroot system ..."
   git config --global core.eol lf
@@ -310,6 +311,12 @@ if [ ! -f build/03-linux.lock ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
   find build/linux -name '*.deb' -exec dpkg-deb -x '{}' sys/linux ';'
 
   rm -f sys/linux/usr/lib/x86_64-linux-gnu/libwayland-server.so
+  wayland-scanner client-header \
+    sys/linux/usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
+    sys/linux/usr/include/xdg-shell.h
+  wayland-scanner private-code \
+    sys/linux/usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
+    sys/linux/usr/include/xdg-shell.c
 
   find sys/linux -name '*.a' | while read static; do
     if ls $(echo "${static}" | sed -E 's/\.a$/.so*/') 1>/dev/null 2>&1; then
