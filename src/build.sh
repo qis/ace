@@ -676,7 +676,9 @@ if [ ! -f build/06-stage2-build.lock ] || [ ! -e build/stage2/bin/clang ]; then
     clang \
     clang-format \
     clang-tidy \
-    clangd
+    clangd \
+    libclang-headers \
+    libclang
 
   verify build/stage2/bin/clang
   create build/06-stage2-build.lock
@@ -710,13 +712,18 @@ if [ ! -f build/06-stage2-install.lock ] || [ ! -e bin/clang ]; then
     install-clang-stripped \
     install-clang-format-stripped \
     install-clang-tidy-stripped \
-    install-clangd-stripped
+    install-clangd-stripped \
+    install-libclang-headers \
+    install-libclang-stripped
 
   patchelf --set-rpath '$ORIGIN' "lib/liblldb.so"
   echo "lib/liblldb.so"; readelf -d "lib/liblldb.so" | grep RUNPATH
 
   patchelf --set-rpath '$ORIGIN' "lib/libLTO.so"
   echo "lib/libLTO.so"; readelf -d "lib/libLTO.so" | grep RUNPATH
+
+  patchelf --set-rpath '$ORIGIN' "lib/libclang.so"
+  echo "lib/libclang.so"; readelf -d "lib/libclang.so" | grep RUNPATH
 
   verify bin/clang
   create build/06-stage2-install.lock
@@ -1304,7 +1311,9 @@ if [ ! -f build/12-stage3-install.lock ] || [ ! -e build/windows/bin/clang.exe ]
     install-clang-stripped \
     install-clang-format-stripped \
     install-clang-tidy-stripped \
-    install-clangd-stripped
+    install-clangd-stripped \
+    install-libclang-headers \
+    install-libclang-stripped
 
   verify build/windows/bin/clang.exe
   create build/12-stage3-install.lock
