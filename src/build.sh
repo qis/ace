@@ -297,8 +297,10 @@ if [ ! -f build/03-linux.lock ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
 
   print "Creating linux sysroot ..."
   mkdir -p build/linux sys/linux; chown _apt build/linux
-  env --chdir=build/linux apt download libc6 libc6-dev linux-libc-dev gcc-10-base libgcc-10-dev libgcc-s1 \
+  env --chdir=build/linux apt download \
+    libc6 libc6-dev linux-libc-dev gcc-10-base libgcc-10-dev libgcc-s1 \
     libgomp1 libitm1 libatomic1 libasan6 liblsan0 libtsan0 libquadmath0 \
+    libwayland-dev libwayland-client0 libwayland-cursor0 libwayland-egl1 wayland-protocols \
     libncurses-dev libncurses6 libncursesw6 \
     libtinfo-dev libtinfo6 \
     libedit-dev libedit2 \
@@ -306,6 +308,8 @@ if [ ! -f build/03-linux.lock ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
     libmd-dev libmd0
 
   find build/linux -name '*.deb' -exec dpkg-deb -x '{}' sys/linux ';'
+
+  rm -f sys/linux/usr/lib/x86_64-linux-gnu/libwayland-server.so
 
   find sys/linux -name '*.a' | while read static; do
     if ls $(echo "${static}" | sed -E 's/\.a$/.so*/') 1>/dev/null 2>&1; then
@@ -468,7 +472,8 @@ if [ ! -f build/04-stage1-install.lock ] ||
    [ ! -e ${LLVM_RES}/lib/linux/libclang_rt.builtins-x86_64.a ] ||
    [ ! -e include/c++/v1/__config ] ||
    [ ! -e lib/libc++.modules.json ] ||
-   [ ! -e lib/libc++.so.2 ]
+   [ ! -e lib/libc++.so.2 ] ||
+   [ ! -e sys/linux/lib/libc++.so.2 ]
 then
   rm -rf build/04-stage1-install.lock
 
@@ -503,6 +508,7 @@ then
   rm -f sys/linux/share/libc++
   ln -sf ../../../share/libc++ sys/linux/share/libc++
 
+  verify sys/linux/lib/libc++.so.2
   verify lib/libc++.so.2
   verify lib/libc++.modules.json
   verify include/c++/v1/__config
