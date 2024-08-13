@@ -28,7 +28,7 @@ Use archives from the build step to install this toolchain.
 
 ```sh
 # Debian
-sudo apt install curl git libncurses6 pkg-config unzip wine xz-utils zip
+sudo apt install curl git libncurses6 make pkg-config unzip wine xz-utils zip
 
 # Gentoo
 sudo emerge -avn \
@@ -36,6 +36,7 @@ sudo emerge -avn \
   app-arch/xz-utils \
   app-arch/zip \
   app-emulation/wine-proton \
+  dev-build/make \
   dev-util/pkgconf \
   net-misc/curl \
   sys-libs/ncurses

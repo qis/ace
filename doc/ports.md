@@ -11,7 +11,8 @@ vcpkg install --triplet=ace-linux-shared \
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] \
   blend2d[core,jit] shaderc[core] glslang[core,opt,rtti] spirv-tools[core,tools] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] && \
+  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
 vcpkg install --triplet=ace-linux-static \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
@@ -19,7 +20,8 @@ vcpkg install --triplet=ace-linux-static \
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering] harfbuzz[core,freetype] \
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] && \
+  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
 vcpkg install --triplet=ace-mingw-shared \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
@@ -27,7 +29,8 @@ vcpkg install --triplet=ace-mingw-shared \
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] \
   blend2d[core,jit] shaderc[core] glslang[core,opt,rtti] spirv-tools[core] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] && \
+  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
 vcpkg install --triplet=ace-mingw-static \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
@@ -35,7 +38,8 @@ vcpkg install --triplet=ace-mingw-static \
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering] harfbuzz[core,freetype] \
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core]
+  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core]
 ```
 
 ## Windows
@@ -48,7 +52,8 @@ vcpkg install --triplet=ace-mingw-shared ^
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] ^
   blend2d[core,jit] shaderc[core] glslang[core,opt,rtti] spirv-tools[core,tools] spirv-headers[core] ^
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] && ^
+  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && ^
 vcpkg install --triplet=ace-mingw-static ^
   benchmark[core] doctest[core] libxml2[core] pugixml[core] ^
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] ^
@@ -56,7 +61,8 @@ vcpkg install --triplet=ace-mingw-static ^
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering] harfbuzz[core,freetype] ^
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] ^
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core]
+  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core]
 ```
 
 [pkg]: https://vcpkg.io/en/packages
@@ -304,4 +310,50 @@ zstd provides CMake targets:
 
   find_package(zstd CONFIG REQUIRED)
   target_link_libraries(main PRIVATE zstd::libzstd)
+
+openssl is compatible with built-in CMake targets:
+
+  find_package(OpenSSL REQUIRED)
+  target_link_libraries(main PRIVATE OpenSSL::SSL)
+  target_link_libraries(main PRIVATE OpenSSL::Crypto)
+
+The package boost-json is compatible with built-in CMake targets of FindBoost.cmake:
+
+    find_package(Boost REQUIRED COMPONENTS json)
+    target_link_libraries(main PRIVATE Boost::json)
+
+or the generated cmake configs via:
+
+    find_package(boost_json REQUIRED CONFIG)
+    target_link_libraries(main PRIVATE Boost::json)
+
+The package boost-asio is compatible with built-in CMake targets of FindBoost.cmake:
+
+    find_package(Boost REQUIRED COMPONENTS asio)
+    target_link_libraries(main PRIVATE Boost::asio)
+
+or the generated cmake configs via:
+
+    find_package(boost_asio REQUIRED CONFIG)
+    target_link_libraries(main PRIVATE Boost::asio)
+
+The package boost-beast is compatible with built-in CMake targets of FindBoost.cmake:
+
+    find_package(Boost REQUIRED COMPONENTS beast)
+    target_link_libraries(main PRIVATE Boost::beast)
+
+or the generated cmake configs via:
+
+    find_package(boost_beast REQUIRED CONFIG)
+    target_link_libraries(main PRIVATE Boost::beast)
+
+The package boost-url is compatible with built-in CMake targets of FindBoost.cmake:
+
+    find_package(Boost REQUIRED COMPONENTS url)
+    target_link_libraries(main PRIVATE Boost::url)
+
+or the generated cmake configs via:
+
+    find_package(boost_url REQUIRED CONFIG)
+    target_link_libraries(main PRIVATE Boost::url)
 -->
