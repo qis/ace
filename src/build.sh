@@ -708,13 +708,15 @@ if [ ! -f build/06-stage2-install.lock ] || [ ! -e bin/clang ]; then
     install-dsymutil-stripped \
     install-core-resource-headers \
     install-clang-resource-headers \
+    install-clang-cmake-exports \
     install-clang-scan-deps-stripped \
     install-clang-stripped \
     install-clang-format-stripped \
     install-clang-tidy-stripped \
     install-clangd-stripped \
     install-libclang-headers \
-    install-libclang-stripped
+    install-libclang-stripped \
+    install-cmake-exports
 
   patchelf --set-rpath '$ORIGIN' "lib/liblldb.so"
   echo "lib/liblldb.so"; readelf -d "lib/liblldb.so" | grep RUNPATH
@@ -1307,13 +1309,15 @@ if [ ! -f build/12-stage3-install.lock ] || [ ! -e build/windows/bin/clang.exe ]
     install-dsymutil-stripped \
     install-core-resource-headers \
     install-clang-resource-headers \
+    install-clang-cmake-exports \
     install-clang-scan-deps-stripped \
     install-clang-stripped \
     install-clang-format-stripped \
     install-clang-tidy-stripped \
     install-clangd-stripped \
     install-libclang-headers \
-    install-libclang-stripped
+    install-libclang-stripped \
+    install-cmake-exports
 
   rm -f sys/mingw/bin/libclang.dll
   cp build/windows/bin/libclang.dll sys/mingw/bin/libclang.dll
