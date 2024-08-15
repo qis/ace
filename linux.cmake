@@ -19,9 +19,6 @@ set(CMAKE_CXX_COMPILER_TARGET x86_64-pc-linux-gnu CACHE STRING "" FORCE)
 set(CMAKE_ASM_COMPILER_TARGET x86_64-pc-linux-gnu CACHE STRING "" FORCE)
 set(CMAKE_ASM_NASM_COMPILER_TARGET x86_64-pc-linux-gnu CACHE STRING "" FORCE)
 
-# Compiler Flags
-set(ACE_C_FLAGS "-march=x86-64-v3 -fasm -mavx2")
-
 # Linker Flags
 set(ACE_LINKER_FLAGS "-Wl,--undefined-version")
 set(ACE_LINKER_FLAGS_DEBUG "")

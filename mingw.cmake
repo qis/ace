@@ -23,7 +23,7 @@ set(CMAKE_ASM_NASM_COMPILER_TARGET x86_64-w64-mingw32 CACHE STRING "" FORCE)
 # Visual Studio 2022 Version 17.10 sets _MSC_VER to 1940.
 # https://learn.microsoft.com/cpp/overview/compiler-versions?view=msvc-170
 # MinGW is configured to define WINVER=0x0A00 and _WIN32_WINNT=0x0A00.
-set(ACE_C_FLAGS "-march=x86-64-v3 -fasm -mavx2 -fms-compatibility-version=19.40")
+set(ACE_C_FLAGS "-fms-compatibility-version=19.40")
 
 # Embed debug information.
 cmake_policy(SET CMP0141 NEW)

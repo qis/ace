@@ -430,7 +430,7 @@ if [ ! -f build/04-stage1-configure.lock ] || [ ! -e build/stage1/build.ninja ];
     -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-flto=thin" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-mavx2;-fno-rtti;-flto=thin" \
     -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=ON \
     -DLIBCXX_ENABLE_INCOMPLETE_FEATURES=ON \
     -DLIBCXX_ENABLE_SHARED=ON \
@@ -771,7 +771,7 @@ if [ ! -f build/06-stage2-lldb-mi.lock ] || [ ! -e bin/lldb-mi ]; then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -fno-rtti" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DLLVM_ENABLE_LIBCXX=ON \
@@ -1152,7 +1152,7 @@ then
     -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-flto=thin" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-mavx2;-fno-rtti;-flto=thin" \
     -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=ON \
     -DLIBCXX_ENABLE_INCOMPLETE_FEATURES=ON \
     -DLIBCXX_ENABLE_SHARED=ON \
@@ -1359,7 +1359,7 @@ if [ ! -f build/12-stage3-lldb-mi.lock ] || [ ! -e build/windows/bin/lldb-mi.exe
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.40" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -fms-compatibility-version=19.40 -fno-rtti" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \

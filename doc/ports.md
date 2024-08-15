@@ -9,7 +9,7 @@ vcpkg install --triplet=ace-linux-shared \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
   libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] \
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] \
-  blend2d[core,jit] shaderc[core] glslang[core,opt,rtti] spirv-tools[core,tools] spirv-headers[core] \
+  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core,tools] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
   openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
@@ -27,7 +27,7 @@ vcpkg install --triplet=ace-mingw-shared \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
   libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] \
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] \
-  blend2d[core,jit] shaderc[core] glslang[core,opt,rtti] spirv-tools[core] spirv-headers[core] \
+  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
   openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
@@ -40,6 +40,9 @@ vcpkg install --triplet=ace-mingw-static \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
   openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core]
+
+rm -rf /opt/ace/vcpkg/buildtrees
+env --chdir=/opt/ace tar cJf vcpkg.tar.xz vcpkg
 ```
 
 ## Windows
@@ -50,7 +53,7 @@ vcpkg install --triplet=ace-mingw-shared ^
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] ^
   libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] ^
   freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] ^
-  blend2d[core,jit] shaderc[core] glslang[core,opt,rtti] spirv-tools[core,tools] spirv-headers[core] ^
+  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core,tools] spirv-headers[core] ^
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
   openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && ^
@@ -63,6 +66,9 @@ vcpkg install --triplet=ace-mingw-static ^
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
   openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core]
+
+rd /Q /S C:\Ace\vcpkg\buildtrees
+7z a C:\Ace\vcpkg.7z -wC:\Ace C:\Ace\vcpkg
 ```
 
 [pkg]: https://vcpkg.io/en/packages

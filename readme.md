@@ -92,6 +92,13 @@ EOF
 sudo ldconfig
 ```
 
+4. Configure `wine(1)`.
+
+```sh
+winecfg
+wine
+```
+
 ### Windows
 1. Install [Git][git].
 2. Install [CMake][cmk].
@@ -169,9 +176,9 @@ Configure editor according to [doc/editor.md](doc/editor.md).
 
 ## Optimizations
 1. Interprocedural optimizations are enabled in release builds.
-2. Everything is compiled for the `x86-64-v3` architecture with AVX2 enabled.
-3. If a `-static` Vcpkg triplet is used or `BUILD_SHARED_LIBS` not defined in CMake, then everything
-   will be compiled with `-fno-exceptions -fno-rtti` and statically linked to `libc++`.
+2. Everything is compiled with `-march=x86-64-v3 -fno-rtti -mavx2`.
+3. If a `-static` Vcpkg triplet is used or `BUILD_SHARED_LIBS` not defined in CMake,
+   then everything will be statically linked to `libc++`.
 
 ## Usage
 See [src/template](src/template) for a template project.<br/>
