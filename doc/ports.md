@@ -12,7 +12,8 @@ vcpkg install --triplet=ace-linux-shared \
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core,tools] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
+  imgui[core,docking-experimental,freetype] && \
 vcpkg install --triplet=ace-linux-static \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
@@ -21,7 +22,8 @@ vcpkg install --triplet=ace-linux-static \
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
+  imgui[core,docking-experimental,freetype] && \
 vcpkg install --triplet=ace-mingw-shared \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
@@ -30,7 +32,8 @@ vcpkg install --triplet=ace-mingw-shared \
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && \
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
+  imgui[core,docking-experimental,freetype,win32-binding] && \
 vcpkg install --triplet=ace-mingw-static \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
@@ -39,7 +42,8 @@ vcpkg install --triplet=ace-mingw-static \
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core]
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
+  imgui[core,docking-experimental,freetype,win32-binding]
 
 rm -rf /opt/ace/vcpkg/buildtrees
 env --chdir=/opt/ace tar cJf vcpkg.tar.xz vcpkg
@@ -56,7 +60,8 @@ vcpkg install --triplet=ace-mingw-shared ^
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core,tools] spirv-headers[core] ^
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] && ^
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] ^
+  imgui[core,docking-experimental,freetype,win32-binding] && ^
 vcpkg install --triplet=ace-mingw-static ^
   benchmark[core] doctest[core] libxml2[core] pugixml[core] ^
   brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] ^
@@ -65,7 +70,8 @@ vcpkg install --triplet=ace-mingw-static ^
   blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] ^
   volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core]
+  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] ^
+  imgui[core,docking-experimental,freetype,win32-binding]
 
 rd /Q /S C:\Ace\vcpkg\buildtrees
 7z a C:\Ace\vcpkg.7z -wC:\Ace C:\Ace\vcpkg
@@ -362,4 +368,10 @@ or the generated cmake configs via:
 
     find_package(boost_url REQUIRED CONFIG)
     target_link_libraries(main PRIVATE Boost::url)
+
+imgui provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(imgui CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE imgui::imgui)
 -->
