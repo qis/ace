@@ -108,7 +108,7 @@ IncludeCategories:
     Priority: 1
 
   # Project Headers
-  - Regex: '^<ice(/|\.hpp)'
+  - Regex: '^<ace(/|\.hpp)'
     Priority: 2
     SortPriority: 0
 
@@ -129,7 +129,7 @@ IncludeCategories:
     Priority: 9
 
   # Windows Headers
-  - Regex: '^<(wdf|commctrl|shellapi|tlhelp32|winsock2|ws2tcpip|mswsock|psapi|unknwn)\.h>'
+  - Regex: '^<(wdf|commctrl|shellapi|dwmapi|tlhelp32|winsock2|ws2tcpip|mswsock|psapi|unknwn)\.h>'
     Priority: 10
 
   # Benchmark Headers
