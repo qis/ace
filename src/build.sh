@@ -290,6 +290,16 @@ if [ ! -x tools/powershell/pwsh ]; then
 fi
 
 # =================================================================================================
+
+WAYLAND_PROTOCOLS_VER="1.36"
+WAYLAND_PROTOCOLS_URL="https://gitlab.freedesktop.org/wayland/wayland-protocols/-/releases"
+WAYLAND_PROTOCOLS_URL="${WAYLAND_PROTOCOLS_URL}/${WAYLAND_PROTOCOLS_VER}/downloads"
+WAYLAND_PROTOCOLS_URL="${WAYLAND_PROTOCOLS_URL}/wayland-protocols-${WAYLAND_PROTOCOLS_VER}.tar.xz"
+WAYLAND_PROTOCOLS_TAR="wayland-protocols.tar.xz"
+
+download_tar "wayland-protocols" "${WAYLAND_PROTOCOLS_URL}" "${WAYLAND_PROTOCOLS_TAR}" 1 "build" "stable/xdg-shell/xdg-shell.xml"
+
+# =================================================================================================
 # 03: linux
 # =================================================================================================
 
@@ -301,7 +311,7 @@ if [ ! -f build/03-linux.lock ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
   env --chdir=build/linux apt download \
     libc6 libc6-dev linux-libc-dev gcc-10-base libgcc-10-dev libgcc-s1 \
     libgomp1 libitm1 libatomic1 libasan6 liblsan0 libtsan0 libquadmath0 \
-    libwayland-dev libwayland-client0 libwayland-cursor0 libwayland-egl1 wayland-protocols \
+    libwayland-dev libwayland-client0 libwayland-cursor0 libwayland-egl1 \
     libncurses-dev libncurses6 libncursesw6 \
     libtinfo-dev libtinfo6 \
     libedit-dev libedit2 \
@@ -312,11 +322,29 @@ if [ ! -f build/03-linux.lock ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
 
   rm -f sys/linux/usr/lib/x86_64-linux-gnu/libwayland-server.so
   wayland-scanner client-header \
-    sys/linux/usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
+    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
     sys/linux/usr/include/xdg-shell.h
   wayland-scanner private-code \
-    sys/linux/usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
+    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
     sys/linux/usr/include/xdg-shell.c
+  wayland-scanner client-header \
+    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
+    sys/linux/usr/include/xdg-activation.h
+  wayland-scanner private-code \
+    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
+    sys/linux/usr/include/xdg-activation.c
+  wayland-scanner client-header \
+    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
+    sys/linux/usr/include/xdg-decoration.h
+  wayland-scanner private-code \
+    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
+    sys/linux/usr/include/xdg-decoration.c
+  wayland-scanner client-header \
+    build/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml \
+    sys/linux/usr/include/wp-fractional-scale.h
+  wayland-scanner private-code \
+    build/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml \
+    sys/linux/usr/include/wp-fractional-scale.c
 
   find sys/linux -name '*.a' | while read static; do
     if ls $(echo "${static}" | sed -E 's/\.a$/.so*/') 1>/dev/null 2>&1; then
