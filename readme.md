@@ -28,7 +28,8 @@ Use archives from the build step to install this toolchain.
 
 ```sh
 # Debian
-sudo apt install curl git libncurses6 make pkg-config unzip wine xz-utils zip
+sudo apt install curl git unzip wine xz-utils zip \
+  libncurses6 make pkg-config vulkan-validationlayers
 
 # Gentoo
 sudo emerge -avn \
@@ -39,21 +40,22 @@ sudo emerge -avn \
   dev-build/make \
   dev-util/pkgconf \
   net-misc/curl \
+  media-libs/vulkan-layers \
   sys-libs/ncurses
 ```
 
 2. Install [CMake][cmk].
 
 ```sh
-# Download cmake archive.
+# Download archive.
 curl -L https://github.com/Kitware/CMake/releases/download/v3.30.1/cmake-3.30.1-linux-x86_64.tar.gz \
      -o /tmp/cmake.tar.gz
 
-# Extract cmake archive.
+# Extract archive.
 sudo mkdir /opt/cmake
 sudo tar xf /tmp/cmake.tar.gz -C /opt/cmake -m --strip-components=1
 
-# Create cmake environment variables.
+# Create environment variables.
 sudo tee /etc/profile.d/cmake.sh >/dev/null <<'EOF'
 export PATH="/opt/cmake/bin:${PATH}"
 EOF
@@ -65,17 +67,17 @@ source /etc/profile.d/cmake.sh
 3. Install toolchain.
 
 ```sh
-# Create toolchain directory.
+# Create directory.
 sudo mkdir /opt/ace
 sudo chown $(id -u):$(id -g) /opt/ace
 
-# Clone toolchain repository.
+# Clone repository.
 git clone https://github.com/qis/ace /opt/ace
 
-# Install toolchain binaries.
+# Install binaries.
 tar xf /tmp/ace-18.1.8.tar.xz -C /opt/ace
 
-# Create toolchain environment variables.
+# Create environment variables.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
 export ACE="/opt/ace"
 export PATH="${ACE}/bin:${ACE}/tools/powershell:${PATH}"
@@ -84,7 +86,7 @@ EOF
 sudo chmod 0755 /etc/profile.d/ace.sh
 source /etc/profile.d/ace.sh
 
-# Register toolchain library path.
+# Register library path.
 sudo tee /etc/ld.so.conf.d/ace.conf >/dev/null <<'EOF'
 /opt/ace/sys/linux/lib
 EOF
@@ -102,15 +104,16 @@ wine
 ### Windows
 1. Install [Git][git].
 2. Install [CMake][cmk].
-3. Install [WiX Toolset][wix].
-4. Install [7-zip][zip].
-5. Install toolchain.
+3. Install [Vulakn SDK][sdk].
+4. Install [WiX Toolset][wix].
+5. Install [7-zip][zip].
+6. Install toolchain.
 
 ```bat
-rem Clone toolchain repository.
+rem Clone repository.
 git clone https://github.com/qis/ace C:/Ace
 
-rem Install toolchain binaries.
+rem Install binaries.
 7z x %UserProfile%\Downloads\ace-18.1.8.7z -oC:\Ace
 
 rem Modify system environment variables.
@@ -126,13 +129,13 @@ Install [Vcpkg][pkg].
 ### Linux
 
 ```sh
-# Clone vcpkg repository.
+# Clone repository.
 git clone -b 2024.07.12 https://github.com/microsoft/vcpkg /opt/ace/vcpkg
 
-# Install vcpkg binary.
+# Install binary.
 /opt/ace/vcpkg/bootstrap-vcpkg.sh
 
-# Create vcpkg environment variables.
+# Create environment variables.
 sudo tee /etc/profile.d/vcpkg.sh >/dev/null <<'EOF'
 export VCPKG_ROOT="/opt/ace/vcpkg"
 export VCPKG_DEFAULT_TRIPLET="ace-linux-shared"
@@ -151,10 +154,10 @@ source /etc/profile.d/vcpkg.sh
 ### Windows
 
 ```bat
-rem Clone vcpkg repository.
+rem Clone repository.
 git clone -b 2024.07.12 https://github.com/microsoft/vcpkg C:/Ace/vcpkg
 
-rem Install vcpkg binary.
+rem Install binary.
 C:\Ace\vcpkg\bootstrap-vcpkg.bat
 
 rem Modify system environment variables.
@@ -223,6 +226,7 @@ Projects compiled with this toolchain must be distributed under the following co
 
 [git]: https://git-scm.com/
 [cmk]: https://cmake.org/download/
+[sdk]: https://vulkan.lunarg.com/sdk/home
 [wix]: https://github.com/wixtoolset/wix3/releases
 [zip]: https://www.7-zip.org/
 [pkg]: https://vcpkg.io/
