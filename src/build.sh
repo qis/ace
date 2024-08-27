@@ -321,30 +321,36 @@ if [ ! -f build/03-linux.lock ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
   find build/linux -name '*.deb' -exec dpkg-deb -x '{}' sys/linux ';'
 
   rm -f sys/linux/usr/lib/x86_64-linux-gnu/libwayland-server.so
-  wayland-scanner client-header \
-    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
-    sys/linux/usr/include/xdg-shell.h
-  wayland-scanner private-code \
-    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
-    sys/linux/usr/include/xdg-shell.c
-  wayland-scanner client-header \
-    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
-    sys/linux/usr/include/xdg-activation.h
-  wayland-scanner private-code \
-    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
-    sys/linux/usr/include/xdg-activation.c
-  wayland-scanner client-header \
-    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
-    sys/linux/usr/include/xdg-decoration.h
-  wayland-scanner private-code \
-    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
-    sys/linux/usr/include/xdg-decoration.c
+
+  mkdir -p sys/linux/usr/include/wayland
+
   wayland-scanner client-header \
     build/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml \
-    sys/linux/usr/include/wp-fractional-scale.h
+    sys/linux/usr/include/wayland/fractional-scale.h
   wayland-scanner private-code \
     build/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml \
-    sys/linux/usr/include/wp-fractional-scale.c
+    sys/linux/usr/include/wayland/fractional-scale.c
+
+  wayland-scanner client-header \
+    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
+    sys/linux/usr/include/wayland/xdg-activation.h
+  wayland-scanner private-code \
+    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
+    sys/linux/usr/include/wayland/xdg-activation.c
+
+  wayland-scanner client-header \
+    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
+    sys/linux/usr/include/wayland/xdg-decoration.h
+  wayland-scanner private-code \
+    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
+    sys/linux/usr/include/wayland/xdg-decoration.c
+
+  wayland-scanner client-header \
+    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
+    sys/linux/usr/include/wayland/xdg-shell.h
+  wayland-scanner private-code \
+    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
+    sys/linux/usr/include/wayland/xdg-shell.c
 
   find sys/linux -name '*.a' | while read static; do
     if ls $(echo "${static}" | sed -E 's/\.a$/.so*/') 1>/dev/null 2>&1; then
