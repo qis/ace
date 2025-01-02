@@ -47,7 +47,7 @@ Choosing a Linux distribution for a development sysroot.
 4. Astra Linux CE 1.8.1 is based on Astra Linux SE 1.8.1.
 5. Steam Linux Runtime 3.0 is based on Debian 11.
 6. SteamOS 3.0 is based on Arch Linux.
-7. **Debian 11** is a good compromise.
+7. Bazzite is based on Fedora Atomic.
 
 This software was tested on the following Linux distributions:
 

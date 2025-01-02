@@ -48,7 +48,7 @@ sudo emerge -avn \
 
 ```sh
 # Download archive.
-curl -L https://github.com/Kitware/CMake/releases/download/v3.30.1/cmake-3.30.1-linux-x86_64.tar.gz \
+curl -L https://github.com/Kitware/CMake/releases/download/v3.31.3/cmake-3.31.3-linux-x86_64.tar.gz \
      -o /tmp/cmake.tar.gz
 
 # Extract archive.
@@ -75,7 +75,7 @@ sudo chown $(id -u):$(id -g) /opt/ace
 git clone https://github.com/qis/ace /opt/ace
 
 # Install binaries.
-tar xf /tmp/ace-18.1.8.tar.xz -C /opt/ace
+tar xf /tmp/ace-19.1.6.tar.xz -C /opt/ace
 
 # Create environment variables.
 sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
@@ -114,7 +114,7 @@ rem Clone repository.
 git clone https://github.com/qis/ace C:/Ace
 
 rem Install binaries.
-7z x %UserProfile%\Downloads\ace-18.1.8.7z -oC:\Ace
+7z x %UserProfile%\Downloads\ace-19.1.6.7z -oC:\Ace
 
 rem Modify system environment variables.
 SystemPropertiesAdvanced.exe
@@ -179,7 +179,7 @@ Configure editor according to [doc/editor.md](doc/editor.md).
 
 ## Optimizations
 1. Interprocedural optimizations are enabled in release builds.
-2. Everything is compiled with `-march=x86-64-v3 -fno-rtti -mavx2`.
+2. Everything is compiled with `-march=x86-64 -fno-rtti`.
 3. If a `-static` Vcpkg triplet is used or `BUILD_SHARED_LIBS` not defined in CMake,
    then everything will be statically linked to `libc++`.
 

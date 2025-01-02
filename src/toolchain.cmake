@@ -78,9 +78,9 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO OFF CACHE BOOL "")
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_COVERAGE OFF CACHE BOOL "")
 
 if(DEFINED ACE_C_FLAGS)
-  set(ACE_C_FLAGS "-march=x86-64-v3 -fasm -mavx2 ${ACE_C_FLAGS}")
+  set(ACE_C_FLAGS "-march=x86-64 -fasm ${ACE_C_FLAGS}")
 else()
-  set(ACE_C_FLAGS "-march=x86-64-v3 -fasm -mavx2")
+  set(ACE_C_FLAGS "-march=x86-64 -fasm")
 endif()
 
 set(ACE_C_FLAGS "${ACE_C_FLAGS} -fmerge-all-constants")
