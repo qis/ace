@@ -64,7 +64,7 @@ void test(const std::string filename)
 
   std::string glyphname(64, '\0');
   hb_font_get_glyph_name(hb_font.get(), gid, glyphname.data(), glyphname.size());
-  std::println("{}: {} ({:08X}) {}", filename, length, gid, glyphname);
+  std::println("{}: {} ({:08X}) {}", filename, length, gid, glyphname.data());
 }
 
 int main(int argc, char* argv[])
