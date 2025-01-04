@@ -4,33 +4,39 @@ Installation instructions for supported [Vcpkg Packages][pkg].
 ## Linux
 
 ```sh
+# Prevent simdjson from enabling all features.
+vcpkg install --triplet=ace-linux simdjson[core,threads]
+
 vcpkg install --triplet=ace-linux \
   benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
-  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
   libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
   lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
   glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
-  openfbx[core] ktx[core,vulkan] sqlite3[core,tool,zlib] openssl[core,tools] \
+  openfbx[core] ktx[core,vulkan] fastgltf[core] \
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] miniaudio[core] \
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
-  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] \
-  asmjit[core] blend2d[core,jit] miniaudio[core]
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
+
+# Prevent simdjson from enabling all features.
+vcpkg install --triplet=ace-mingw simdjson[core,threads]
 
 vcpkg install --triplet=ace-mingw \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
-  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
   libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
   lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
   glm[core] spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] \
-  openfbx[core] ktx[core,vulkan] sqlite3[core] openssl[core] \
+  openfbx[core] ktx[core,vulkan] fastgltf[core] \
+  sqlite3[core] openssl[core] asmjit[core] blend2d[core,jit] miniaudio[core] \
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
-  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] \
-  asmjit[core] blend2d[core,jit] miniaudio[core]
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
 
 rm -rf /opt/ace/vcpkg/buildtrees
 env --chdir=/opt/ace tar cJf vcpkg.tar.xz vcpkg
@@ -45,16 +51,16 @@ vcpkg install openssl[core,tools]:ace-mingw
 vcpkg install --triplet=ace-mingw ^
   benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] ^
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] ^
-  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] ^
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] ^
   libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] ^
   lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] ^
   glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] ^
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
   convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] ^
-  openfbx[core] ktx[core,vulkan] sqlite3[core,tool,zlib] openssl[core,tools] ^
+  openfbx[core] ktx[core,vulkan] simdjson[core,threads] fastgltf[core] ^
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] miniaudio[core] ^
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] ^
-  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] ^
-  asmjit[core] blend2d[core,jit] miniaudio[core]
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
 
 rd /Q /S C:\Ace\vcpkg\buildtrees
 7z a C:\Ace\vcpkg.7z -wC:\Ace C:\Ace\vcpkg
@@ -349,10 +355,15 @@ vcpkg build ace-test-openssl:ace-mingw
 # =============================================================================
 
 # Linux
+vcpkg remove ace-test:ace-linux ace-test-vulkan:ace-linux
+vcpkg remove ace-test:ace-mingw ace-test-vulkan:ace-mingw
+
 vcpkg install ace-test:ace-linux
 vcpkg install ace-test:ace-mingw
 
 # Windows
+vcpkg remove ace-test:ace-mingw ace-test-vulkan:ace-mingw
+
 vcpkg install ace-test:ace-mingw
 
 # =============================================================================

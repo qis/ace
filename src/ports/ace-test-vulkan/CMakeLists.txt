@@ -141,6 +141,18 @@ find_program(GLTFPACK gltfpack REQUIRED)
 # target_link_libraries(main PRIVATE unoffical::openfbx::openfbx)
 
 # =============================================================================
+# draco
+# =============================================================================
+find_package(draco CONFIG REQUIRED)
+target_link_libraries(main PRIVATE draco::draco)
+
+# =============================================================================
+# fastgltf
+# =============================================================================
+find_package(fastgltf CONFIG REQUIRED)
+target_link_libraries(main PRIVATE fastgltf::fastgltf)
+
+# =============================================================================
 # ktx
 # =============================================================================
 find_package(Ktx CONFIG REQUIRED)
