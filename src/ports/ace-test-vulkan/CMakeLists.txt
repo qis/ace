@@ -143,8 +143,6 @@ find_program(GLTFPACK gltfpack REQUIRED)
 # =============================================================================
 # ktx
 # =============================================================================
-# The following targets work, but are not directly required for now.
-#
-# find_package(Ktx CONFIG REQUIRED)
-# target_link_libraries(main PRIVATE KTX::ktx)
+find_package(Ktx CONFIG REQUIRED)
+target_link_libraries(main PRIVATE KTX::ktx)
 # target_link_libraries(main PRIVATE KTX::astcenc-avx2-static)
