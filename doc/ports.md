@@ -16,8 +16,8 @@ vcpkg install --triplet=ace-linux \
   glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
-  openfbx[core] ktx[core,vulkan] fastgltf[core] \
-  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] miniaudio[core] \
+  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
   boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
 
@@ -33,8 +33,8 @@ vcpkg install --triplet=ace-mingw \
   glm[core] spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   convectionkernels[core] meshoptimizer[core] recastnavigation[core] \
-  openfbx[core] ktx[core,vulkan] fastgltf[core] \
-  sqlite3[core] openssl[core] asmjit[core] blend2d[core,jit] miniaudio[core] \
+  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
+  sqlite3[core] openssl[core] asmjit[core] blend2d[core,jit] \
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
   boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
 
@@ -48,6 +48,9 @@ env --chdir=/opt/ace tar cJf vcpkg.tar.xz vcpkg
 rem Building everything at once might break the openssl port.
 vcpkg install openssl[core,tools]:ace-mingw
 
+rem Prevent simdjson from enabling all features.
+vcpkg install --triplet=ace-mingw simdjson[core,threads]
+
 vcpkg install --triplet=ace-mingw ^
   benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] ^
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] ^
@@ -57,8 +60,8 @@ vcpkg install --triplet=ace-mingw ^
   glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] ^
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
   convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] ^
-  openfbx[core] ktx[core,vulkan] simdjson[core,threads] fastgltf[core] ^
-  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] miniaudio[core] ^
+  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] ^
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] ^
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] ^
   boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
 
