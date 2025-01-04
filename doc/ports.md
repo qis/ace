@@ -4,46 +4,33 @@ Installation instructions for supported [Vcpkg Packages][pkg].
 ## Linux
 
 ```sh
-vcpkg install --triplet=ace-linux-shared \
+vcpkg install --triplet=ace-linux \
   benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
-  brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
-  libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] \
-  freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] \
-  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core,tools] spirv-headers[core] \
-  volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
-  imgui[core,docking-experimental,freetype] && \
-vcpkg install --triplet=ace-linux-static \
+  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] \
+  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
+  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
+  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
+  openfbx[core] ktx[core,vulkan] sqlite3[core,tool,zlib] openssl[core,tools] \
+  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] \
+  asmjit[core] blend2d[core,jit] miniaudio[core]
+
+vcpkg install --triplet=ace-mingw \
   benchmark[core] doctest[core] libxml2[core] pugixml[core] \
-  brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
-  libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] \
-  freetype[core,brotli,bzip2,zlib,png,subpixel-rendering] harfbuzz[core,freetype] \
-  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
-  volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
-  imgui[core,docking-experimental,freetype] && \
-vcpkg install --triplet=ace-mingw-shared \
-  benchmark[core] doctest[core] libxml2[core] pugixml[core] \
-  brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
-  libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] \
-  freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] \
-  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
-  volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
-  imgui[core,docking-experimental,freetype,win32-binding] && \
-vcpkg install --triplet=ace-mingw-static \
-  benchmark[core] doctest[core] libxml2[core] pugixml[core] \
-  brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] \
-  libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] \
-  freetype[core,brotli,bzip2,zlib,png,subpixel-rendering] harfbuzz[core,freetype] \
-  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] \
-  volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] \
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] \
-  imgui[core,docking-experimental,freetype,win32-binding]
+  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] \
+  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
+  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
+  glm[core] spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  convectionkernels[core] meshoptimizer[core] recastnavigation[core] \
+  openfbx[core] ktx[core,vulkan] sqlite3[core] openssl[core] \
+  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] \
+  asmjit[core] blend2d[core,jit] miniaudio[core]
 
 rm -rf /opt/ace/vcpkg/buildtrees
 env --chdir=/opt/ace tar cJf vcpkg.tar.xz vcpkg
@@ -52,26 +39,19 @@ env --chdir=/opt/ace tar cJf vcpkg.tar.xz vcpkg
 ## Windows
 
 ```bat
-vcpkg install --triplet=ace-mingw-shared ^
+vcpkg install --triplet=ace-mingw ^
   benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] ^
-  brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] ^
-  libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] ^
-  freetype[core,brotli,bzip2,zlib,png,subpixel-rendering,error-strings] harfbuzz[core,freetype] ^
-  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core,tools] spirv-headers[core] ^
-  volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] ^
-  imgui[core,docking-experimental,freetype,win32-binding] && ^
-vcpkg install --triplet=ace-mingw-static ^
-  benchmark[core] doctest[core] libxml2[core] pugixml[core] ^
-  brotli[core] bzip2[core] liblzma[core] lz4[core] zlib[core] zstd[core] ^
-  libjpeg-turbo[core] libpng[core] libyuv[core] libavif[core] lunasvg[core] ^
-  freetype[core,brotli,bzip2,zlib,png,subpixel-rendering] harfbuzz[core,freetype] ^
-  blend2d[core,jit] shaderc[core] glslang[core,opt] spirv-tools[core] spirv-headers[core] ^
-  volk[core] vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] openfbx[core] leveldb[core] ^
-  openssl[core] boost-asio[core,ssl] boost-beast[core] boost-json[core] boost-url[core] ^
-  imgui[core,docking-experimental,freetype,win32-binding]
+  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] ^
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] ^
+  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] ^
+  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] ^
+  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] ^
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
+  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] ^
+  openfbx[core] ktx[core,vulkan] sqlite3[core,tool,zlib] openssl[core,tools] ^
+  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] ^
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] ^
+  asmjit[core] blend2d[core,jit] miniaudio[core]
 
 rd /Q /S C:\Ace\vcpkg\buildtrees
 7z a C:\Ace\vcpkg.7z -wC:\Ace C:\Ace\vcpkg
@@ -80,298 +60,187 @@ rd /Q /S C:\Ace\vcpkg\buildtrees
 [pkg]: https://vcpkg.io/en/packages
 
 <!--
-benchmark provides CMake targets:
+cd /opt/ace/vcpkg
+cd C:\Ace\vcpkg
 
-  # this is heuristically generated, and may not be correct
-  find_package(benchmark CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE benchmark::benchmark benchmark::benchmark_main)
+# =============================================================================
 
-benchmark provides pkg-config modules:
+vcpkg install benchmark[core]:ace-linux
+vcpkg build ace-test-benchmark:ace-linux
+cat buildtrees/ace-test-benchmark/build-ace-linux-rel-out.log
+ldd buildtrees/ace-test-benchmark/ace-linux-rel/main
 
-  # Google microbenchmark framework
-  benchmark
+vcpkg install benchmark[core]:ace-mingw
+vcpkg build ace-test-benchmark:ace-mingw
+cat buildtrees/ace-test-benchmark/build-ace-mingw-rel-out.log
+readpe -i buildtrees/ace-test-benchmark/ace-mingw-rel/main.exe | grep -E "^ {8}Name:"
 
-blend2d provides CMake targets:
+# =============================================================================
 
-    find_package(blend2d CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE blend2d::blend2d)
+vcpkg install doctest[core]:ace-linux doctest[core]:ace-mingw
+vcpkg build ace-test-doctest:ace-linux
+vcpkg build ace-test-doctest:ace-mingw
 
-brotli provides CMake targets:
+# =============================================================================
 
-    find_package(unofficial-brotli CONFIG REQUIRED)
-    # Brotli decoder library
-    target_link_libraries(main PRIVATE unofficial::brotli::brotlidec)
-    # Brotli encoder library
-    target_link_libraries(main PRIVATE unofficial::brotli::brotlienc)
+vcpkg install libxml2[core,tools]:ace-linux libxml2[core]:ace-mingw
+vcpkg build ace-test-libxml2:ace-linux
+vcpkg build ace-test-libxml2:ace-mingw
 
-The package bzip2 is compatible with built-in CMake targets:
+grep "Parsing took" buildtrees/ace-test-libxml2/config-ace-linux-out.log
+grep "Parsing took" buildtrees/ace-test-libxml2/config-ace-mingw-out.log
 
-    find_package(BZip2 REQUIRED)
-    target_link_libraries(main PRIVATE BZip2::BZip2)
+# =============================================================================
 
-convectionkernels provides CMake targets:
+vcpkg install pugixml[core]:ace-linux pugixml[core]:ace-mingw
+vcpkg build ace-test-pugixml:ace-linux
+vcpkg build ace-test-pugixml:ace-mingw
 
-  # this is heuristically generated, and may not be correct
-  find_package(unofficial-convectionkernels CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE unofficial::convectionkernels::convectionkernels)
+# =============================================================================
 
-doctest provides CMake targets:
+vcpkg install zlib[core]:ace-linux zlib[core]:ace-mingw
+vcpkg build ace-test-zlib:ace-linux  # 604
+vcpkg build ace-test-zlib:ace-mingw  # 604
 
-  # this is heuristically generated, and may not be correct
-  find_package(doctest CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE doctest::doctest)
+# =============================================================================
 
-The package zlib is compatible with built-in CMake targets:
+vcpkg install bzip2[core]:ace-linux bzip2[core]:ace-mingw
+vcpkg build ace-test-bzip2:ace-linux  # 703
+vcpkg build ace-test-bzip2:ace-mingw  # 703
 
-    find_package(ZLIB REQUIRED)
-    target_link_libraries(main PRIVATE ZLIB::ZLIB)
+# =============================================================================
 
-The package libpng is compatible with built-in CMake targets:
+vcpkg install liblzma[core]:ace-linux liblzma[core]:ace-mingw
+vcpkg build ace-test-liblzma:ace-linux  # 680
+vcpkg build ace-test-liblzma:ace-mingw  # 680
 
-    find_package(PNG REQUIRED)
-    target_link_libraries(main PRIVATE PNG::PNG)
+# =============================================================================
 
-freetype is compatible with built-in CMake targets:
+vcpkg install lz4[core]:ace-linux lz4[core]:ace-mingw
+vcpkg build ace-test-lz4:ace-linux  # 842
+vcpkg build ace-test-lz4:ace-mingw  # 842
 
-    find_package(Freetype REQUIRED)
-    target_link_libraries(main PRIVATE Freetype::Freetype) # since CMake 3.10
+# =============================================================================
 
-spirv-headers is header-only and can be used from CMake via:
+vcpkg install brotli[core]:ace-linux brotli[core]:ace-mingw
+vcpkg build ace-test-brotli:ace-linux  # 480
+vcpkg build ace-test-brotli:ace-mingw  # 480
 
-  find_path(SPIRV_HEADERS_INCLUDE_DIRS "spirv/1.0/GLSL.std.450.h")
-  target_include_directories(main PRIVATE ${SPIRV_HEADERS_INCLUDE_DIRS})
+# =============================================================================
 
-spirv-headers provides pkg-config modules:
+vcpkg install zstd[core]:ace-linux zstd[core]:ace-mingw
+vcpkg build ace-test-zstd:ace-linux  # 620
+vcpkg build ace-test-zstd:ace-mingw  # 620
 
-  # Header files from the SPIR-V registry
-  SPIRV-Headers
+# =============================================================================
 
-spirv-tools provides CMake targets:
+vcpkg install libdeflate[core,compression,decompression,gzip,zlib]:ace-linux
+vcpkg install libdeflate[core,compression,decompression,gzip,zlib]:ace-mingw
+vcpkg build ace-test-libdeflate:ace-linux  # 594
+vcpkg build ace-test-libdeflate:ace-mingw  # 594
 
-    find_package(SPIRV-Tools CONFIG REQUIRED)
-    # The static libary is always available.
-    # It offers full public symbol visibility.
-    target_link_libraries(main PRIVATE SPIRV-Tools-static)
-    # In triplets with dynamic library linkage, there is also a shared libary.
-    target_link_libraries(main PRIVATE SPIRV-Tools-shared)
+# =============================================================================
 
-    # The following libraries are static and depend on SPIRV-Tools-static.
+vcpkg install miniz[core]:ace-linux miniz[core]:ace-mingw
+vcpkg build ace-test-miniz:ace-linux  # 610
+vcpkg build ace-test-miniz:ace-mingw  # 610
 
-    find_package(SPIRV-Tools-link CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE SPIRV-Tools-link)
+# =============================================================================
 
-    find_package(SPIRV-Tools-lint CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE SPIRV-Tools-lint)
+vcpkg install libjpeg-turbo[core]:ace-linux libjpeg-turbo[core]:ace-mingw
+vcpkg build ace-test-libjpeg-turbo:ace-linux
+vcpkg build ace-test-libjpeg-turbo:ace-mingw
+vcpkg build ace-test-libjpeg:ace-linux
+vcpkg build ace-test-libjpeg:ace-mingw
 
-    find_package(SPIRV-Tools-opt CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE SPIRV-Tools-opt)
+# =============================================================================
 
-    find_package(SPIRV-Tools-reduce CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE SPIRV-Tools-reduce)
+vcpkg install libpng[core]:ace-linux libpng[core]:ace-mingw
+vcpkg build ace-test-libpng:ace-linux
+vcpkg build ace-test-libpng:ace-mingw
 
-glslang provides CMake targets:
+# =============================================================================
 
-    find_package(glslang CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE glslang::glslang glslang::glslang-default-resource-limits glslang::SPIRV glslang::SPVRemapper)
+vcpkg install aom[core]:ace-linux aom[core]:ace-mingw
+vcpkg install libyuv[core]:ace-linux libyuv[core]:ace-mingw
+vcpkg install libavif[core,aom]:ace-linux libavif[core,aom]:ace-mingw
+vcpkg build ace-test-libavif:ace-linux
+vcpkg build ace-test-libavif:ace-mingw
+
+# =============================================================================
+
+vcpkg install lunasvg[core]:ace-linux lunasvg[core]:ace-mingw
+vcpkg build ace-test-lunasvg:ace-linux
+vcpkg build ace-test-lunasvg:ace-mingw
+
+# =============================================================================
+
+vcpkg install freetype[core,zlib,bzip2,brotli,png,subpixel-rendering]:ace-linux
+vcpkg install freetype[core,zlib,bzip2,brotli,png,subpixel-rendering]:ace-mingw
+vcpkg install harfbuzz[core,freetype]:ace-linux harfbuzz[core,freetype]:ace-mingw
+vcpkg build ace-test-fonts:ace-linux
+vcpkg build ace-test-fonts:ace-mingw
+
+# =============================================================================
+
+vcpkg install glm[core]:ace-linux glm[core]:ace-mingw
+vcpkg build ace-test-glm:ace-linux
+vcpkg build ace-test-glm:ace-mingw
+
+# =============================================================================
+
+vcpkg install spirv-headers[core]:ace-linux spirv-headers[core]:ace-mingw
+vcpkg install spirv-tools[core,tools]:ace-linux spirv-tools[core]:ace-mingw
+vcpkg install glslang[core,opt,tools]:ace-linux glslang[core,opt]:ace-mingw
+vcpkg install shaderc[core]:ace-linux shaderc[core]:ace-mingw
+vcpkg install vulkan-headers[core]:ace-linux vulkan-headers[core]:ace-mingw
+vcpkg install vulkan-utility-libraries[core]:ace-linux vulkan-utility-libraries[core]:ace-mingw
+vcpkg install vulkan-memory-allocator[core]:ace-linux vulkan-memory-allocator[core]:ace-mingw
+vcpkg install volk[core]:ace-linux volk[core]:ace-mingw
+vcpkg install convectionkernels[core]:ace-linux convectionkernels[core]:ace-mingw
+vcpkg install meshoptimizer[core,gltfpack]:ace-linux meshoptimizer[core]:ace-mingw
+vcpkg install recastnavigation[core]:ace-linux recastnavigation[core]:ace-mingw
+vcpkg install openfbx[core]:ace-linux openfbx[core]:ace-mingw
+vcpkg install ktx[core]:ace-linux ktx[core]:ace-mingw
+
+vcpkg build ace-test-vulkan:ace-linux
+vcpkg build ace-test-vulkan:ace-mingw
+
+# =============================================================================
+
+vcpkg install sqlite3[core,tool,zlib]:ace-linux sqlite3[core]:ace-mingw
+vcpkg build ace-test-sqlite3:ace-linux
+vcpkg build ace-test-sqlite3:ace-mingw
+
+# =============================================================================
+
+vcpkg install openssl[core,tools]:ace-linux openssl[core]:ace-mingw
+vcpkg build ace-test-openssl:ace-linux
+vcpkg build ace-test-openssl:ace-mingw
+
+# =============================================================================
+
+vcpkg install ace-test:ace-linux
+vcpkg install ace-test:ace-mingw
+
+# =============================================================================
+
+find_package(Boost REQUIRED COMPONENTS
+  algorithm
+  container
+  circular-buffer
+  asio
+  beast
+  url
+  json)
+
+target_link_libraries(main PRIVATE
+  Boost::algorithm
+  Boost::container
+  Boost::circular-buffer
+  Boost::asio
+  Boost::beast
+  Boost::url
+  Boost::json)
 
-The harfbuzz package provides CMake targets:
-
-    find_package(harfbuzz CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE harfbuzz::harfbuzz harfbuzz::harfbuzz-subset)
-
-leveldb provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(leveldb CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE leveldb::leveldb)
-
-libjpeg-turbo is compatible with built-in implementation-agnostic CMake targets:
-
-    find_package(JPEG REQUIRED)
-    target_include_directories(main PRIVATE JPEG::JPEG)
-
-libjpeg-turbo provides CMake targets for the TurboJPEG C API:
-
-    find_package(libjpeg-turbo CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE $<IF:$<TARGET_EXISTS:libjpeg-turbo::turbojpeg>,libjpeg-turbo::turbojpeg,libjpeg-turbo::turbojpeg-static>)
-
-libyuv provides CMake targets:
-
-    find_package(libyuv CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE yuv)
-libavif provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(libavif CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE avif)
-
-libavif provides pkg-config modules:
-
-  # Library for encoding and decoding .avif files
-  libavif
-
-liblzma is compatible with built-in CMake targets:
-
-    find_package(LibLZMA REQUIRED)
-    target_link_libraries(main PRIVATE LibLZMA::LibLZMA)
-
-liblzma provides CMake targets:
-
-    find_package(liblzma CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE liblzma::liblzma)
-
-The package libxml2 is compatible with built-in CMake targets:
-
-    find_package(LibXml2 REQUIRED)
-    target_link_libraries(main PRIVATE LibXml2::LibXml2)
-
-lunasvg provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(unofficial-lunasvg CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE unofficial::lunasvg::lunasvg)
-
-lz4 provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(lz4 CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE lz4::lz4)
-
-lz4 provides pkg-config modules:
-
-  # extremely fast lossless compression algorithm library
-  liblz4
-
-meshoptimizer provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(meshoptimizer CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE meshoptimizer::meshoptimizer)
-
-openfbx provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(unofficial-openfbx CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE unoffical::openfbx::openfbx)
-
-pugixml provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(pugixml CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE pugixml::static pugixml::pugixml)
-
-pugixml provides pkg-config modules:
-
-  # Light-weight, simple and fast XML parser for C++ with XPath support.
-  pugixml
-
-recastnavigation provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(recastnavigation CONFIG REQUIRED)
-  # note: 1 additional targets are not displayed.
-  target_link_libraries(main PRIVATE RecastNavigation::Detour RecastNavigation::Recast RecastNavigation::DebugUtils RecastNavigation::DetourCrowd)
-
-recastnavigation provides pkg-config modules:
-
-  # RecastNavigation is a cross-platform navigation mesh construction toolset for games
-  recastnavigation
-
-shaderc provides CMake targets:
-
-    find_package(unofficial-shaderc CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE unofficial::shaderc::shaderc)
-
-Vulkan-Headers provides official find_package support:
-
-    find_package(VulkanHeaders CONFIG)
-    target_link_libraries(main PRIVATE Vulkan::Headers)
-
-volk provides CMake targets:
-
-    find_package(volk CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE volk::volk volk::volk_headers)
-
-VulkanMemoryAllocator provides official find_package support. However, it requires the user to provide the include directory containing `vulkan/vulkan.h`. There are multiple ways to achieve this and VulkanMemoryAllocator is compatible with all of them.
-
-    find_package(Vulkan) # https://cmake.org/cmake/help/latest/module/FindVulkan.html, CMake 3.21+
-    find_package(VulkanMemoryAllocator CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE Vulkan::Vulkan GPUOpen::VulkanMemoryAllocator)
-
-or
-
-    find_package(Vulkan) # CMake 3.21+
-    find_package(VulkanMemoryAllocator CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE Vulkan::Headers GPUOpen::VulkanMemoryAllocator)
-
-or
-
-    find_package(VulkanHeaders CONFIG) # From the vulkan-headers port
-    find_package(VulkanMemoryAllocator CONFIG REQUIRED)
-    target_link_libraries(main PRIVATE Vulkan::Headers GPUOpen::VulkanMemoryAllocator)
-
-See the documentation for more information on setting up your project: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/index.html
-
-vulkan-utility-libraries provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(VulkanUtilityLibraries CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE Vulkan::LayerSettings Vulkan::UtilityHeaders Vulkan::CompilerConfiguration)
-
-zstd provides CMake targets:
-
-  find_package(zstd CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE zstd::libzstd)
-
-openssl is compatible with built-in CMake targets:
-
-  find_package(OpenSSL REQUIRED)
-  target_link_libraries(main PRIVATE OpenSSL::SSL)
-  target_link_libraries(main PRIVATE OpenSSL::Crypto)
-
-The package boost-json is compatible with built-in CMake targets of FindBoost.cmake:
-
-    find_package(Boost REQUIRED COMPONENTS json)
-    target_link_libraries(main PRIVATE Boost::json)
-
-or the generated cmake configs via:
-
-    find_package(boost_json REQUIRED CONFIG)
-    target_link_libraries(main PRIVATE Boost::json)
-
-The package boost-asio is compatible with built-in CMake targets of FindBoost.cmake:
-
-    find_package(Boost REQUIRED COMPONENTS asio)
-    target_link_libraries(main PRIVATE Boost::asio)
-
-or the generated cmake configs via:
-
-    find_package(boost_asio REQUIRED CONFIG)
-    target_link_libraries(main PRIVATE Boost::asio)
-
-The package boost-beast is compatible with built-in CMake targets of FindBoost.cmake:
-
-    find_package(Boost REQUIRED COMPONENTS beast)
-    target_link_libraries(main PRIVATE Boost::beast)
-
-or the generated cmake configs via:
-
-    find_package(boost_beast REQUIRED CONFIG)
-    target_link_libraries(main PRIVATE Boost::beast)
-
-The package boost-url is compatible with built-in CMake targets of FindBoost.cmake:
-
-    find_package(Boost REQUIRED COMPONENTS url)
-    target_link_libraries(main PRIVATE Boost::url)
-
-or the generated cmake configs via:
-
-    find_package(boost_url REQUIRED CONFIG)
-    target_link_libraries(main PRIVATE Boost::url)
-
-imgui provides CMake targets:
-
-  # this is heuristically generated, and may not be correct
-  find_package(imgui CONFIG REQUIRED)
-  target_link_libraries(main PRIVATE imgui::imgui)
 -->

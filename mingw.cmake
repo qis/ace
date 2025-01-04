@@ -9,9 +9,8 @@ set(CMAKE_SYSTEM_VERSION 10.0 CACHE STRING "" FORCE)
 set(CMAKE_SYSTEM_PROCESSOR AMD64 CACHE STRING "" FORCE)
 set(CMAKE_SYSROOT ${ACE}/sys/mingw CACHE PATH "" FORCE)
 
-# Prefix Path
-set(ACE_INSTALLED_SHARED "${ACE}/vcpkg/installed/ace-mingw-shared")
-set(ACE_INSTALLED_STATIC "${ACE}/vcpkg/installed/ace-mingw-static")
+# Installed Path
+set(ACE_INSTALLED_PATH "${ACE}/vcpkg/installed/ace-mingw")
 
 # Target
 set(CMAKE_C_COMPILER_TARGET x86_64-w64-mingw32 CACHE STRING "" FORCE)
@@ -59,8 +58,8 @@ find_program(CMAKE_DLLTOOL llvm-dlltool PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUI
 find_program(CMAKE_MT llvm-mt PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
 
 # Emulator
-if(CMAKE_HOST_UNIX AND NOT CMAKE_HOST_SYSTEM_VERSION MATCHES "WSL2")
+if(CMAKE_HOST_UNIX)
   find_program(WINE wine PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
-  set(WINEPATH "${CMAKE_SYSROOT}/bin\\\;${ACE}/vcpkg/installed/ace-mingw-shared/bin")
-  set(CMAKE_CROSSCOMPILING_EMULATOR "env;WINEPATH=${WINEPATH};${WINE}" CACHE STRING "")
+  # set(WINEPATH "${ACE}/vcpkg/installed/ace-mingw/bin\\\;${CMAKE_SYSROOT}/bin")
+  set(CMAKE_CROSSCOMPILING_EMULATOR "env;WINEPATH=${CMAKE_SYSROOT}/bin;${WINE}" CACHE STRING "")
 endif()

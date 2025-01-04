@@ -1,0 +1,31 @@
+{
+  "name": "ace-test",
+  "version-date": "2025-01-01",
+  "description": "Tests for ace ports.",
+  "homepage": "https://github.com/qis/ace",
+  "license": "BSL-1.0",
+  "dependencies": [
+    { "name": "ace-test-benchmark" },
+    { "name": "ace-test-doctest" },
+    { "name": "ace-test-libxml2" },
+    { "name": "ace-test-pugixml" },
+    { "name": "ace-test-zlib" },
+    { "name": "ace-test-bzip2" },
+    { "name": "ace-test-liblzma" },
+    { "name": "ace-test-lz4" },
+    { "name": "ace-test-brotli" },
+    { "name": "ace-test-zstd" },
+    { "name": "ace-test-libdeflate" },
+    { "name": "ace-test-miniz" },
+    { "name": "ace-test-libjpeg-turbo" },
+    { "name": "ace-test-libjpeg" },
+    { "name": "ace-test-libpng" },
+    { "name": "ace-test-libavif" },
+    { "name": "ace-test-lunasvg" },
+    { "name": "ace-test-fonts" },
+    { "name": "ace-test-glm" },
+    { "name": "ace-test-vulkan" },
+    { "name": "ace-test-sqlite3" },
+    { "name": "ace-test-openssl" }
+  ]
+}

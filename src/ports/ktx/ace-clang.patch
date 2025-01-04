@@ -1,0 +1,22 @@
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -336,7 +336,7 @@ if(${is_clang} AND $<VERSION_GREATER_EQU
+     add_compile_options(-ffp-model=precise)
+ endif()
+ if(${is_gnu_fe})
+-    add_compile_options(-ffp-contract=off)
++    add_compile_options(-ffp-contract=off -Wno-overriding-option)
+ endif()
+
+ set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
+--- lib/astc-encoder/Source/cmake_core.cmake
++++ lib/astc-encoder/Source/cmake_core.cmake
+@@ -245,7 +245,7 @@ macro(astcenc_set_properties ASTCENC_TAR
+                 $<${is_clangcl}:/fp:precise>
+                 $<$<AND:${is_clangcl},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,14.0.0>>:-Xclang -ffp-contract=off>
+                 $<$<AND:${is_clang},$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,10.0.0>>:-ffp-model=precise>
+-                $<${is_gnu_fe}:-ffp-contract=off>)
++                $<${is_gnu_fe}:-ffp-contract=off -Wno-overriding-option>)
+     endif()
+
+     if(${ASTCENC_CLI})

@@ -1,0 +1,17 @@
+{
+  "name": "ace-test-miniz",
+  "version-date": "2025-01-01",
+  "description": "Test for ace ports.",
+  "homepage": "https://github.com/qis/ace",
+  "license": "BSL-1.0",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}

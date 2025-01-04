@@ -1,0 +1,19 @@
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -22,6 +22,16 @@ endif()
+
+ project(libavif LANGUAGES C VERSION 1.1.1)
+
++# ACE VCPKG BEGIN
++find_package(libyuv CONFIG REQUIRED)
++add_library(yuv::yuv ALIAS yuv)
++
++find_package(aom CONFIG REQUIRED)
++add_library(aom ALIAS unofficial::aom)
++
++set(AVIF_LIBYUV_ENABLED ON CACHE BOOL "")
++# ACE VCPKG END
++
+ # The root directory of the avif source
+ set(AVIF_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+

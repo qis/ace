@@ -29,7 +29,7 @@ Use archives from the build step to install this toolchain.
 ```sh
 # Debian
 sudo apt install curl git unzip wine xz-utils zip \
-  libncurses6 make pkg-config vulkan-validationlayers
+  libncurses6 make nasm pkg-config vulkan-validationlayers
 
 # Gentoo
 sudo emerge -avn \
@@ -38,6 +38,7 @@ sudo emerge -avn \
   app-arch/zip \
   app-emulation/wine-proton \
   dev-build/make \
+  dev-lang/nasm \
   dev-util/pkgconf \
   net-misc/curl \
   media-libs/vulkan-layers \
@@ -130,7 +131,7 @@ Install [Vcpkg][pkg].
 
 ```sh
 # Clone repository.
-git clone -b 2024.07.12 https://github.com/microsoft/vcpkg /opt/ace/vcpkg
+git clone -b 2024.12.16 https://github.com/microsoft/vcpkg /opt/ace/vcpkg
 
 # Install binary.
 /opt/ace/vcpkg/bootstrap-vcpkg.sh
@@ -138,9 +139,10 @@ git clone -b 2024.07.12 https://github.com/microsoft/vcpkg /opt/ace/vcpkg
 # Create environment variables.
 sudo tee /etc/profile.d/vcpkg.sh >/dev/null <<'EOF'
 export VCPKG_ROOT="/opt/ace/vcpkg"
-export VCPKG_DEFAULT_TRIPLET="ace-linux-shared"
-export VCPKG_DEFAULT_HOST_TRIPLET="ace-linux-shared"
+export VCPKG_DEFAULT_TRIPLET="ace-linux"
+export VCPKG_DEFAULT_HOST_TRIPLET="ace-linux"
 export VCPKG_OVERLAY_TRIPLETS="/opt/ace/src/triplets"
+export VCPKG_OVERLAY_PORTS="/opt/ace/src/ports"
 export VCPKG_FEATURE_FLAGS="-binarycaching"
 export VCPKG_FORCE_SYSTEM_BINARIES=1
 export VCPKG_DISABLE_METRICS=1
@@ -155,7 +157,7 @@ source /etc/profile.d/vcpkg.sh
 
 ```bat
 rem Clone repository.
-git clone -b 2024.07.12 https://github.com/microsoft/vcpkg C:/Ace/vcpkg
+git clone -b 2024.12.16 https://github.com/microsoft/vcpkg C:/Ace/vcpkg
 
 rem Install binary.
 C:\Ace\vcpkg\bootstrap-vcpkg.bat
@@ -165,14 +167,15 @@ SystemPropertiesAdvanced.exe
 ```
 
 * Set `VCPKG_ROOT` to `C:/Ace/vcpkg`.
-* Set `VCPKG_DEFAULT_TRIPLET` to `ace-mingw-shared`.
-* Set `VCPKG_DEFAULT_HOST_TRIPLET` to `ace-mingw-shared`.
+* Set `VCPKG_DEFAULT_TRIPLET` to `ace-mingw`.
+* Set `VCPKG_DEFAULT_HOST_TRIPLET` to `ace-mingw`.
 * Set `VCPKG_OVERLAY_TRIPLETS` to `C:/Ace/src/triplets`.
+* Set `VCPKG_OVERLAY_PORTS` to `C:/Ace/src/ports`.
 * Set `VCPKG_FEATURE_FLAGS` to `-binarycaching`.
 * Set `VCPKG_FORCE_SYSTEM_BINARIES` to `1`.
 * Set `VCPKG_DISABLE_METRICS` to `1`.
 * Add `C:\Ace\vcpkg` to `Path`.
-* Add `C:\Ace\vcpkg\installed\ace-mingw-shared\bin` to `Path`.
+* Add `C:\Ace\vcpkg\installed\ace-mingw\bin` to `Path`.
 
 ## Editor
 Configure editor according to [doc/editor.md](doc/editor.md).

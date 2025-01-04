@@ -9,9 +9,8 @@ set(CMAKE_SYSTEM_VERSION 5.10.0 CACHE STRING "" FORCE)
 set(CMAKE_SYSTEM_PROCESSOR AMD64 CACHE STRING "" FORCE)
 set(CMAKE_SYSROOT ${ACE}/sys/linux CACHE PATH "" FORCE)
 
-# Prefix Path
-set(ACE_INSTALLED_SHARED "${ACE}/vcpkg/installed/ace-linux-shared")
-set(ACE_INSTALLED_STATIC "${ACE}/vcpkg/installed/ace-linux-static")
+# Installed Path
+set(ACE_INSTALLED_PATH "${ACE}/vcpkg/installed/ace-linux")
 
 # Target
 set(CMAKE_C_COMPILER_TARGET x86_64-pc-linux-gnu CACHE STRING "" FORCE)
@@ -26,12 +25,7 @@ set(ACE_LINKER_FLAGS_RELEASE "-s")
 
 # Runtime Path
 set(CMAKE_BUILD_RPATH_USE_ORIGIN ON CACHE BOOL "")
-
-if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic" OR BUILD_SHARED_LIBS)
-  set(CMAKE_BUILD_RPATH ${ACE}/vcpkg/installed/ace-linux-shared/lib ${CMAKE_SYSROOT}/lib CACHE PATH "")
-else()
-  set(CMAKE_BUILD_RPATH ${ACE}/vcpkg/installed/ace-linux-static/lib ${CMAKE_SYSROOT}/lib CACHE PATH "")
-endif()
+set(CMAKE_BUILD_RPATH ${ACE}/vcpkg/installed/ace-linux/lib ${CMAKE_SYSROOT}/lib CACHE PATH "")
 
 # Toolchain
 include(${ACE}/src/toolchain.cmake)

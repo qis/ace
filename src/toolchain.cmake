@@ -14,17 +14,17 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "" FORCE)
 # Program Paths
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
   file(GLOB ACE_INSTALLED_TOOLS_DIRECTORIES
-    ${ACE}/vcpkg/installed/ace-linux-shared/tools
-    ${ACE}/vcpkg/installed/ace-linux-shared/tools/*
+    ${ACE}/vcpkg/installed/ace-linux/tools
+    ${ACE}/vcpkg/installed/ace-linux/tools/*
     LIST_DIRECTORIES ON)
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
   file(GLOB ACE_INSTALLED_TOOLS_DIRECTORIES
-    ${ACE}/vcpkg/installed/ace-mingw-shared/tools
-    ${ACE}/vcpkg/installed/ace-mingw-shared/tools/*
+    ${ACE}/vcpkg/installed/ace-mingw/tools
+    ${ACE}/vcpkg/installed/ace-mingw/tools/*
     LIST_DIRECTORIES ON)
 endif()
 
-set(ACE_SYSTEM_PROGRAM_PATH)
+set(ACE_SYSTEM_PROGRAM_PATH ${ACE}/bin)
 foreach(path ${ACE_INSTALLED_TOOLS_DIRECTORIES})
   if(IS_DIRECTORY ${path})
     list(APPEND ACE_SYSTEM_PROGRAM_PATH ${path})
@@ -32,24 +32,16 @@ foreach(path ${ACE_INSTALLED_TOOLS_DIRECTORIES})
 endforeach()
 unset(ACE_INSTALLED_TOOLS_DIRECTORIES)
 
-set(CMAKE_SYSTEM_PROGRAM_PATH ${ACE}/bin ${ACE_SYSTEM_PROGRAM_PATH} CACHE PATH "")
+set(CMAKE_SYSTEM_PROGRAM_PATH ${ACE_SYSTEM_PROGRAM_PATH} CACHE PATH "")
 unset(ACE_SYSTEM_PROGRAM_PATH)
 
 # Prefix Path
-foreach(VAR ACE_INSTALLED_SHARED ACE_INSTALLED_STATIC)
-  if(NOT DEFINED ${VAR})
-    message(FATAL_ERROR "Missing define: ${VAR}")
-  endif()
-endforeach()
-
 if(NOT DEFINED VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
-  if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic" OR BUILD_SHARED_LIBS)
-    set(CMAKE_PREFIX_PATH ${ACE_INSTALLED_SHARED} CACHE PATH "")
-    set(ENV{PKG_CONFIG_PATH} "${ACE_INSTALLED_SHARED}/lib/pkgconfig")
-  else()
-    set(CMAKE_PREFIX_PATH ${ACE_INSTALLED_STATIC} CACHE PATH "")
-    set(ENV{PKG_CONFIG_PATH} "${ACE_INSTALLED_STATIC}/lib/pkgconfig")
+  if(NOT DEFINED ACE_INSTALLED_PATH)
+    message(FATAL_ERROR "Missing define: ACE_INSTALLED_PATH")
   endif()
+  set(CMAKE_PREFIX_PATH ${ACE_INSTALLED_PATH} CACHE PATH "")
+  set(ENV{PKG_CONFIG_PATH} "${ACE_INSTALLED_PATH}/lib/pkgconfig")
 endif()
 
 # Compiler
@@ -110,11 +102,6 @@ find_program(CMAKE_LINKER lld PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
 
 # Linker Flags
 cmake_policy(SET CMP0056 NEW)
-
-if(VCPKG_LIBRARY_LINKAGE STREQUAL "static" OR (NOT DEFINED VCPKG_CHAINLOAD_TOOLCHAIN_FILE AND NOT BUILD_SHARED_LIBS))
-  set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libstdc++" CACHE STRING "" FORCE)
-endif()
-
 foreach(VAR ACE_LINKER_FLAGS ACE_LINKER_FLAGS_DEBUG ACE_LINKER_FLAGS_RELEASE)
   if(NOT DEFINED ${VAR})
     message(FATAL_ERROR "Missing define: ${VAR}")
