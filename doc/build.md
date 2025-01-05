@@ -84,6 +84,28 @@ sudo apt clean
 
 # Install dependencies.
 sudo apt install -y curl debootstrap git sudo
+
+# Symlink Wayland socket.
+mkdir -p ~/.config/systemd/user
+
+tee ~/.config/systemd/user/symlink-wayland-socket.service >/dev/null <<'EOF'
+[Unit]
+Description=Symlink Wayland socket to XDG_RUNTIME_DIR
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0      $XDG_RUNTIME_DIR
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0.lock $XDG_RUNTIME_DIR
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl --user enable symlink-wayland-socket
+systemctl --user start symlink-wayland-socket
+
+# Install terminal emulators to test Xorg and Wayland support.
+sudo apt install -y xterm foot
 ```
 
 </details>
@@ -107,11 +129,11 @@ This will create the archives:
 * `/opt/ace/ace-<version>.7z` for Windows
 
 ## C++ Modules
-Currently, the [src/build.sh](../src/build.sh) script downloads and builds LLVM from the main
-branch on GitHub for better C++ modules support.
+Currently, the [src/build.sh](../src/build.sh) script downloads and builds LLVM
+from the master branch on GitHub for better C++ modules support.
 
 ```sh
-# Download sources for the main branch.
+# Download sources for the master branch.
 download_git "llvm" "${LLVM_GIT}" "main" "build/src" "llvm/CMakeLists.txt"
 LLVM_RES="lib/clang/20"
 ```

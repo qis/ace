@@ -1,8 +1,6 @@
 # Ports
 Installation instructions for supported [Vcpkg Packages][pkg].
 
-## Linux
-
 ```sh
 # Prevent simdjson from enabling all features.
 vcpkg install --triplet=ace-linux simdjson[core,threads]
@@ -19,54 +17,29 @@ vcpkg install --triplet=ace-linux \
   openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
   sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
-  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] \
+  libffi[core] wayland[core,force-build] wayland-protocols[core,force-build]
 
 # Prevent simdjson from enabling all features.
 vcpkg install --triplet=ace-mingw simdjson[core,threads]
 
 vcpkg install --triplet=ace-mingw \
-  benchmark[core] doctest[core] libxml2[core] pugixml[core] \
+  benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
   libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
   libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
   lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
-  glm[core] spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
+  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] \
+  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
   openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
-  sqlite3[core] openssl[core] asmjit[core] blend2d[core,jit] \
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
   boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
 
 rm -rf /opt/ace/vcpkg/buildtrees
 env --chdir=/opt/ace tar cJf vcpkg.tar.xz vcpkg
-```
-
-## Windows
-
-```bat
-rem Building everything at once might break the openssl port.
-vcpkg install openssl[core,tools]:ace-mingw
-
-rem Prevent simdjson from enabling all features.
-vcpkg install --triplet=ace-mingw simdjson[core,threads]
-
-vcpkg install --triplet=ace-mingw ^
-  benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] ^
-  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] ^
-  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] ^
-  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] ^
-  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] ^
-  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] ^
-  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
-  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] ^
-  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] ^
-  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] ^
-  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] ^
-  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
-
-rd /Q /S C:\Ace\vcpkg\buildtrees
-7z a C:\Ace\vcpkg.7z -wC:\Ace C:\Ace\vcpkg
+# TODO: Export ports and compress with 7-zip.
 ```
 
 [pkg]: https://vcpkg.io/en/packages
@@ -89,7 +62,6 @@ cat buildtrees/ace-test-benchmark/build-ace-mingw-rel-out.log
 readpe -i buildtrees/ace-test-benchmark/ace-mingw-rel/main.exe | grep -E "^ {8}Name:"
 
 # Windows
-vcpkg install benchmark[core]:ace-mingw
 vcpkg build ace-test-benchmark:ace-mingw
 type buildtrees\ace-test-benchmark\build-ace-mingw-rel-out.log
 
@@ -101,7 +73,6 @@ vcpkg build ace-test-doctest:ace-linux
 vcpkg build ace-test-doctest:ace-mingw
 
 # Windows
-vcpkg install doctest[core]:ace-mingw
 vcpkg build ace-test-doctest:ace-mingw
 
 # =============================================================================
@@ -115,9 +86,7 @@ grep "Parsing took" buildtrees/ace-test-libxml2/config-ace-linux-out.log
 grep "Parsing took" buildtrees/ace-test-libxml2/config-ace-mingw-out.log
 
 # Windows
-vcpkg install libxml2[core,tools]:ace-mingw
 vcpkg build ace-test-libxml2:ace-mingw
-
 type buildtrees\ace-test-libxml2\config-ace-mingw-out.log
 
 # =============================================================================
@@ -128,7 +97,6 @@ vcpkg build ace-test-pugixml:ace-linux
 vcpkg build ace-test-pugixml:ace-mingw
 
 # Windows
-vcpkg install pugixml[core]:ace-mingw
 vcpkg build ace-test-pugixml:ace-mingw
 
 # =============================================================================
@@ -139,7 +107,6 @@ vcpkg build ace-test-zlib:ace-linux  # 604
 vcpkg build ace-test-zlib:ace-mingw  # 604
 
 # Windows
-vcpkg install zlib[core]:ace-mingw
 vcpkg build ace-test-zlib:ace-mingw
 
 # =============================================================================
@@ -150,7 +117,6 @@ vcpkg build ace-test-bzip2:ace-linux  # 703
 vcpkg build ace-test-bzip2:ace-mingw  # 703
 
 # Windows
-vcpkg install bzip2[core]:ace-mingw
 vcpkg build ace-test-bzip2:ace-mingw
 
 # =============================================================================
@@ -161,7 +127,6 @@ vcpkg build ace-test-liblzma:ace-linux  # 680
 vcpkg build ace-test-liblzma:ace-mingw  # 680
 
 # Windows
-vcpkg install liblzma[core]:ace-mingw
 vcpkg build ace-test-liblzma:ace-mingw
 
 # =============================================================================
@@ -172,7 +137,6 @@ vcpkg build ace-test-lz4:ace-linux  # 842
 vcpkg build ace-test-lz4:ace-mingw  # 842
 
 # Windows
-vcpkg install lz4[core]:ace-mingw
 vcpkg build ace-test-lz4:ace-mingw
 
 # =============================================================================
@@ -183,7 +147,6 @@ vcpkg build ace-test-brotli:ace-linux  # 480
 vcpkg build ace-test-brotli:ace-mingw  # 480
 
 # Windows
-vcpkg install brotli[core]:ace-mingw
 vcpkg build ace-test-brotli:ace-mingw
 
 # =============================================================================
@@ -194,7 +157,6 @@ vcpkg build ace-test-zstd:ace-linux  # 620
 vcpkg build ace-test-zstd:ace-mingw  # 620
 
 # Windows
-vcpkg install zstd[core]:ace-mingw
 vcpkg build ace-test-zstd:ace-mingw
 
 # =============================================================================
@@ -206,7 +168,6 @@ vcpkg build ace-test-libdeflate:ace-linux  # 594
 vcpkg build ace-test-libdeflate:ace-mingw  # 594
 
 # Windows
-vcpkg install libdeflate[core,compression,decompression,gzip,zlib]:ace-mingw
 vcpkg build ace-test-libdeflate:ace-mingw
 
 # =============================================================================
@@ -217,7 +178,6 @@ vcpkg build ace-test-miniz:ace-linux  # 610
 vcpkg build ace-test-miniz:ace-mingw  # 610
 
 # Windows
-vcpkg install miniz[core]:ace-mingw
 vcpkg build ace-test-miniz:ace-mingw
 
 # =============================================================================
@@ -230,7 +190,6 @@ vcpkg build ace-test-libjpeg:ace-linux
 vcpkg build ace-test-libjpeg:ace-mingw
 
 # Windows
-vcpkg install libjpeg-turbo[core]:ace-mingw
 vcpkg build ace-test-libjpeg-turbo:ace-mingw
 vcpkg build ace-test-libjpeg:ace-mingw
 
@@ -242,7 +201,6 @@ vcpkg build ace-test-libpng:ace-linux
 vcpkg build ace-test-libpng:ace-mingw
 
 # Windows
-vcpkg install libpng[core]:ace-mingw
 vcpkg build ace-test-libpng:ace-mingw
 
 # =============================================================================
@@ -255,9 +213,6 @@ vcpkg build ace-test-libavif:ace-linux
 vcpkg build ace-test-libavif:ace-mingw
 
 # Windows
-vcpkg install aom[core]:ace-mingw
-vcpkg install libyuv[core]:ace-mingw
-vcpkg install libavif[core,aom]:ace-mingw
 vcpkg build ace-test-libavif:ace-mingw
 
 # =============================================================================
@@ -268,7 +223,6 @@ vcpkg build ace-test-lunasvg:ace-linux
 vcpkg build ace-test-lunasvg:ace-mingw
 
 # Windows
-vcpkg install lunasvg[core]:ace-mingw
 vcpkg build ace-test-lunasvg:ace-mingw
 
 # =============================================================================
@@ -281,8 +235,6 @@ vcpkg build ace-test-fonts:ace-linux
 vcpkg build ace-test-fonts:ace-mingw
 
 # Windows
-vcpkg install freetype[core,zlib,bzip2,brotli,png,subpixel-rendering]:ace-mingw
-vcpkg install harfbuzz[core,freetype]:ace-mingw
 vcpkg build ace-test-fonts:ace-mingw
 
 # =============================================================================
@@ -293,7 +245,6 @@ vcpkg build ace-test-glm:ace-linux
 vcpkg build ace-test-glm:ace-mingw
 
 # Windows
-vcpkg install glm[core]:ace-mingw
 vcpkg build ace-test-glm:ace-mingw
 
 # =============================================================================
@@ -317,20 +268,6 @@ vcpkg build ace-test-vulkan:ace-linux
 vcpkg build ace-test-vulkan:ace-mingw
 
 # Windows
-vcpkg install spirv-headers[core]:ace-mingw
-vcpkg install spirv-tools[core,tools]:ace-mingw
-vcpkg install glslang[core,opt,tools]:ace-mingw
-vcpkg install shaderc[core]:ace-mingw
-vcpkg install vulkan-headers[core]:ace-mingw
-vcpkg install vulkan-utility-libraries[core]:ace-mingw
-vcpkg install vulkan-memory-allocator[core]:ace-mingw
-vcpkg install volk[core]:ace-mingw
-vcpkg install convectionkernels[core]:ace-mingw
-vcpkg install meshoptimizer[core,gltfpack]:ace-mingw
-vcpkg install recastnavigation[core]:ace-mingw
-vcpkg install openfbx[core]:ace-mingw
-vcpkg install ktx[core,vulkan]:ace-mingw
-
 vcpkg build ace-test-vulkan:ace-mingw
 
 # =============================================================================
@@ -341,7 +278,6 @@ vcpkg build ace-test-sqlite3:ace-linux
 vcpkg build ace-test-sqlite3:ace-mingw
 
 # Windows
-vcpkg install sqlite3[core,tool,zlib]:ace-mingw
 vcpkg build ace-test-sqlite3:ace-mingw
 
 # =============================================================================
@@ -352,8 +288,35 @@ vcpkg build ace-test-openssl:ace-linux
 vcpkg build ace-test-openssl:ace-mingw
 
 # Windows
-vcpkg install openssl[core,tools]:ace-mingw
 vcpkg build ace-test-openssl:ace-mingw
+
+# =============================================================================
+
+# WSL2
+sudo apt install -y foot xterm
+
+mkdir -p ~/.config/systemd/user
+tee ~/.config/systemd/user/symlink-wayland-socket.service >/dev/null <<'EOF'
+[Unit]
+Description=Symlink Wayland socket to XDG_RUNTIME_DIR
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0      $XDG_RUNTIME_DIR
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0.lock $XDG_RUNTIME_DIR
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl --user enable symlink-wayland-socket
+systemctl --user start symlink-wayland-socket
+
+# Linux
+vcpkg install libffi[core]:ace-linux
+vcpkg install wayland[core,force-build]:ace-linux
+vcpkg install wayland-protocols[core,force-build]:ace-mingw
+vcpkg build ace-test-wayland:ace-linux
 
 # =============================================================================
 

@@ -60,6 +60,5 @@ find_program(CMAKE_MT llvm-mt PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
 # Emulator
 if(CMAKE_HOST_UNIX)
   find_program(WINE wine PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)
-  # set(WINEPATH "${ACE}/vcpkg/installed/ace-mingw/bin\\\;${CMAKE_SYSROOT}/bin")
   set(CMAKE_CROSSCOMPILING_EMULATOR "env;WINEPATH=${CMAKE_SYSROOT}/bin;${WINE}" CACHE STRING "")
 endif()

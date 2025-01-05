@@ -127,8 +127,7 @@ if [ ! -f build/01-chroot-system.done ] || [ ! -e /usr/bin/ninja ]; then
     libedit-dev libicu-dev liblzma-dev libncurses-dev libreadline-dev libtinfo-dev libxml2-dev \
     make man-db manpages-dev ninja-build openssh-client p7zip-full patchelf pax-utils perl pev \
     pkg-config python3 python3-distutils python3-lib2to3 strace swig time libtinfo5 \
-    symlinks tree tzdata unzip xz-utils yasm wine zip zlib1g-dev libpython3-dev \
-    libwayland-bin
+    symlinks tree tzdata unzip xz-utils yasm wine zip zlib1g-dev libpython3-dev
 
   print "Configuring chroot system ..."
   git config --global core.eol lf
@@ -202,7 +201,7 @@ LLVM_TAR="llvm.tar.xz"
 # Download sources for the release version.
 #download_git "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
 
-# Download sources for the main branch.
+# Download sources for the master branch.
 download_git "llvm" "${LLVM_GIT}" "main" "build/src" "llvm/CMakeLists.txt"
 LLVM_RES="lib/clang/20"
 
@@ -291,16 +290,6 @@ if [ ! -x tools/powershell/pwsh ]; then
 fi
 
 # =================================================================================================
-
-WAYLAND_PROTOCOLS_VER="1.39"
-WAYLAND_PROTOCOLS_URL="https://gitlab.freedesktop.org/wayland/wayland-protocols/-/releases"
-WAYLAND_PROTOCOLS_URL="${WAYLAND_PROTOCOLS_URL}/${WAYLAND_PROTOCOLS_VER}/downloads"
-WAYLAND_PROTOCOLS_URL="${WAYLAND_PROTOCOLS_URL}/wayland-protocols-${WAYLAND_PROTOCOLS_VER}.tar.xz"
-WAYLAND_PROTOCOLS_TAR="wayland-protocols.tar.xz"
-
-download_tar "wayland-protocols" "${WAYLAND_PROTOCOLS_URL}" "${WAYLAND_PROTOCOLS_TAR}" 1 "build" "stable/xdg-shell/xdg-shell.xml"
-
-# =================================================================================================
 # 03: linux
 # =================================================================================================
 
@@ -312,7 +301,6 @@ if [ ! -f build/03-linux.done ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
   env --chdir=build/linux apt download \
     libc6 libc6-dev linux-libc-dev gcc-10-base libgcc-10-dev libgcc-s1 \
     libgomp1 libitm1 libatomic1 libasan6 liblsan0 libtsan0 libquadmath0 \
-    libwayland-dev libwayland-client0 libwayland-cursor0 libwayland-egl1 \
     libncurses-dev libncurses6 libncursesw6 \
     libtinfo-dev libtinfo6 \
     libedit-dev libedit2 \
@@ -321,39 +309,6 @@ if [ ! -f build/03-linux.done ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
 
   print "Installing linux sysroot ..."
   find build/linux -name '*.deb' -exec dpkg-deb -x '{}' sys/linux ';'
-
-  rm -f sys/linux/usr/lib/x86_64-linux-gnu/libwayland-server.so
-
-  print "Generating linux sysroot wayland sources ..."
-  mkdir -p sys/linux/usr/include/wayland
-
-  wayland-scanner client-header \
-    build/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml \
-    sys/linux/usr/include/wayland/fractional-scale.h
-  wayland-scanner private-code \
-    build/wayland-protocols/staging/fractional-scale/fractional-scale-v1.xml \
-    sys/linux/usr/include/wayland/fractional-scale.c
-
-  wayland-scanner client-header \
-    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
-    sys/linux/usr/include/wayland/xdg-activation.h
-  wayland-scanner private-code \
-    build/wayland-protocols/staging/xdg-activation/xdg-activation-v1.xml \
-    sys/linux/usr/include/wayland/xdg-activation.c
-
-  wayland-scanner client-header \
-    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
-    sys/linux/usr/include/wayland/xdg-decoration.h
-  wayland-scanner private-code \
-    build/wayland-protocols/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml \
-    sys/linux/usr/include/wayland/xdg-decoration.c
-
-  wayland-scanner client-header \
-    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
-    sys/linux/usr/include/wayland/xdg-shell.h
-  wayland-scanner private-code \
-    build/wayland-protocols/stable/xdg-shell/xdg-shell.xml \
-    sys/linux/usr/include/wayland/xdg-shell.c
 
   print "Deleting linux sysroot static libraries ..."
   find sys/linux -name '*.a' | while read static; do
@@ -635,60 +590,32 @@ fi
 # =================================================================================================
 
 if [ ! -f build/05-ports-build.done ] ||
-   [ ! -e build/vcpkg/installed/ace-linux-shared/lib/liblzma.so ] ||
-   [ ! -e build/vcpkg/installed/ace-linux-shared/lib/libxml2.so ] ||
-   [ ! -e build/vcpkg/installed/ace-linux-shared/lib/libcrypto.so ] ||
-   [ ! -e build/vcpkg/installed/ace-linux-shared/lib/libssl.so ] ||
-   [ ! -e build/vcpkg/installed/ace-linux-shared/lib/libz.so ]
+   [ ! -e build/vcpkg/installed/ace-linux/lib/liblzma.a ] ||
+   [ ! -e build/vcpkg/installed/ace-linux/lib/libxml2.a ] ||
+   [ ! -e build/vcpkg/installed/ace-linux/lib/libcrypto.a ] ||
+   [ ! -e build/vcpkg/installed/ace-linux/lib/libssl.a ] ||
+   [ ! -e build/vcpkg/installed/ace-linux/lib/libz.a ]
 then
   rm -rf build/05-ports.done build/ports
 
+  print "Installing ports ..."
   VCPKG_ROOT="${ACE}/build/vcpkg" \
-  VCPKG_DEFAULT_TRIPLET="ace-linux-shared" \
-  VCPKG_DEFAULT_HOST_TRIPLET="ace-linux-shared" \
+  VCPKG_DEFAULT_TRIPLET="ace-linux" \
+  VCPKG_DEFAULT_HOST_TRIPLET="ace-linux" \
   VCPKG_OVERLAY_TRIPLETS="${ACE}/src/triplets" \
+  VCPKG_OVERLAY_PORTS="${ACE}/src/ports" \
   VCPKG_FEATURE_FLAGS="-binarycaching" \
   VCPKG_WORKS_SYSTEM_BINARIES=1 \
   VCPKG_DISABLE_METRICS=1 \
   PATH="${ACE}/build/stage1/bin:${ACE}/build/cmake/bin:${PATH}" \
   build/vcpkg/vcpkg install liblzma[core] libxml2[core,lzma,zlib] openssl[core] zlib
 
-  verify build/vcpkg/installed/ace-linux-shared/lib/libz.so
-  verify build/vcpkg/installed/ace-linux-shared/lib/libssl.so
-  verify build/vcpkg/installed/ace-linux-shared/lib/libcrypto.so
-  verify build/vcpkg/installed/ace-linux-shared/lib/libxml2.so
-  verify build/vcpkg/installed/ace-linux-shared/lib/liblzma.so
+  verify build/vcpkg/installed/ace-linux/lib/libz.a
+  verify build/vcpkg/installed/ace-linux/lib/libssl.a
+  verify build/vcpkg/installed/ace-linux/lib/libcrypto.a
+  verify build/vcpkg/installed/ace-linux/lib/libxml2.a
+  verify build/vcpkg/installed/ace-linux/lib/liblzma.a
   create build/05-ports-build.done
-fi
-
-if [ ! -f build/05-ports-install.done ] ||
-   [ ! -e lib/liblzma.so ] ||
-   [ ! -e lib/libxml2.so ] ||
-   [ ! -e lib/libcrypto.so ] ||
-   [ ! -e lib/libssl.so ] ||
-   [ ! -e lib/libz.so ]
-then
-  rm -rf build/05-ports-install.done lib/liblzma.so* lib/libxml2.so* lib/libcrypto.so* libssl.so* lib/libz.so*
-
-  print "Installing ports ..."
-  mkdir -p lib
-  cp -a build/vcpkg/installed/ace-linux-shared/lib/liblzma.so* lib/
-  cp -a build/vcpkg/installed/ace-linux-shared/lib/libxml2.so* lib/
-  cp -a build/vcpkg/installed/ace-linux-shared/lib/libcrypto.so* lib/
-  cp -a build/vcpkg/installed/ace-linux-shared/lib/libssl.so* lib/
-  cp -a build/vcpkg/installed/ace-linux-shared/lib/libz.so* lib/
-
-  for i in lzma xml2 crypto ssl z; do
-    patchelf --set-rpath '$ORIGIN' "lib/lib${i}.so"
-    echo "lib/lib${i}.so"; readelf -d "lib/lib${i}.so" | grep RUNPATH
-  done
-
-  verify lib/libz.so
-  verify lib/libssl.so
-  verify lib/libcrypto.so
-  verify lib/libxml2.so
-  verify lib/liblzma.so
-  create build/05-ports-install.done
 fi
 
 # =================================================================================================
@@ -704,7 +631,7 @@ if [ ! -f build/06-stage2-configure.done ] || [ ! -e build/stage2/build.ninja ];
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
     -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-linux-shared" \
+    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-linux" \
     -DCMAKE_CROSSCOMPILING=ON \
     -DCMAKE_SYSTEM_NAME="Linux" \
     -DCMAKE_SYSTEM_VERSION="5.10.0" \
@@ -861,7 +788,7 @@ if [ ! -f build/06-stage2-lldb-mi.done ] || [ ! -e bin/lldb-mi ]; then
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
     -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-linux-shared;${ACE}/build/stage2" \
+    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-linux;${ACE}/build/stage2" \
     -DCMAKE_CROSSCOMPILING=ON \
     -DCMAKE_SYSTEM_NAME="Linux" \
     -DCMAKE_SYSTEM_VERSION="5.10.0" \
@@ -1288,26 +1215,27 @@ fi
 # =================================================================================================
 
 if [ ! -f build/11-mingw-ports-build.done ] ||
-   [ ! -e build/vcpkg/installed/ace-mingw-static/lib/liblzma.a ] ||
-   [ ! -e build/vcpkg/installed/ace-mingw-static/lib/libxml2.a ] ||
-   [ ! -e build/vcpkg/installed/ace-mingw-static/lib/libzlib.a ]
+   [ ! -e build/vcpkg/installed/ace-mingw/lib/liblzma.a ] ||
+   [ ! -e build/vcpkg/installed/ace-mingw/lib/libxml2.a ] ||
+   [ ! -e build/vcpkg/installed/ace-mingw/lib/libzlib.a ]
 then
   rm -rf build/11-mingw-ports-build.done build/mingw-ports
 
   print "Building mingw ports ..."
   VCPKG_ROOT="${ACE}/build/vcpkg" \
-  VCPKG_DEFAULT_TRIPLET="ace-mingw-static" \
-  VCPKG_DEFAULT_HOST_TRIPLET="ace-linux-shared" \
+  VCPKG_DEFAULT_TRIPLET="ace-mingw" \
+  VCPKG_DEFAULT_HOST_TRIPLET="ace-linux" \
   VCPKG_OVERLAY_TRIPLETS="${ACE}/src/triplets" \
+  VCPKG_OVERLAY_PORTS="${ACE}/src/ports" \
   VCPKG_FEATURE_FLAGS="-binarycaching" \
   VCPKG_WORKS_SYSTEM_BINARIES=1 \
   VCPKG_DISABLE_METRICS=1 \
   PATH="${ACE}/build/cmake/bin:${PATH}" \
   build/vcpkg/vcpkg install liblzma[core] libxml2[core,lzma,zlib] zlib
 
-  verify build/vcpkg/installed/ace-mingw-static/lib/liblzma.a
-  verify build/vcpkg/installed/ace-mingw-static/lib/libxml2.a
-  verify build/vcpkg/installed/ace-mingw-static/lib/libzlib.a
+  verify build/vcpkg/installed/ace-mingw/lib/liblzma.a
+  verify build/vcpkg/installed/ace-mingw/lib/libxml2.a
+  verify build/vcpkg/installed/ace-mingw/lib/libzlib.a
   create build/11-mingw-ports-build.done
 fi
 
@@ -1344,7 +1272,7 @@ if [ ! -f build/12-stage3-configure.done ] || [ ! -e build/stage3/build.ninja ];
     -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw-static" \
+    -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw" \
     -DCMAKE_CROSSCOMPILING=ON \
     -DCMAKE_SYSTEM_NAME="Windows" \
     -DCMAKE_SYSTEM_VERSION="10.0" \
@@ -1451,7 +1379,7 @@ if [ ! -f build/12-stage3-lldb-mi.done ] || [ ! -e build/windows/bin/lldb-mi.exe
     -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw-static;${ACE}/build/stage3" \
+    -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw;${ACE}/build/stage3" \
     -DCMAKE_CROSSCOMPILING=ON \
     -DCMAKE_SYSTEM_NAME="Windows" \
     -DCMAKE_SYSTEM_VERSION="10.0" \
@@ -1709,8 +1637,8 @@ then
     OBJDUMP="${ACE}/bin/llvm-objdump" \
     STRIP="${ACE}/bin/llvm-strip" \
     SIZE="${ACE}/bin/llvm-size" \
-    LDFLAGS="-L${ACE}/lib" \
-    CFLAGS="-march=x86-64 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux-shared/include" \
+    LDFLAGS="-pthread -L${ACE}/build/vcpkg/installed/ace-linux/lib" \
+    CFLAGS="-march=x86-64 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux/include" \
     prefix="${ACE}" -j17
 
   print "Installing readpe ..."
@@ -1723,8 +1651,8 @@ then
     OBJDUMP="${ACE}/bin/llvm-objdump" \
     STRIP="${ACE}/bin/llvm-strip" \
     SIZE="${ACE}/bin/llvm-size" \
-    LDFLAGS="-L${ACE}/lib" \
-    CFLAGS="-march=x86-64 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux-shared/include" \
+    LDFLAGS="-pthread -L${ACE}/build/vcpkg/installed/ace-linux/lib" \
+    CFLAGS="-march=x86-64 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux/include" \
     prefix="${ACE}" -j17 install-strip
 
   verify bin/peldd

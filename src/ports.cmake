@@ -9,7 +9,13 @@ if(PORT STREQUAL "libpng" AND NOT VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(PORT STREQUAL "harfbuzz")
+  # Meson can randomly fail. Delete the build tree and retry.
   list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS "-DCMAKE_LINKER=")
+endif()
+
+if(PORT STREQUAL "wayland")
+  list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS "-DCMAKE_LINKER=")
+  set(ENV{NM} "llvm-nm")
 endif()
 
 if(PORT STREQUAL "libjpeg-turbo")

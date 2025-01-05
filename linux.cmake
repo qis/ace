@@ -25,7 +25,7 @@ set(ACE_LINKER_FLAGS_RELEASE "-s")
 
 # Runtime Path
 set(CMAKE_BUILD_RPATH_USE_ORIGIN ON CACHE BOOL "")
-set(CMAKE_BUILD_RPATH ${ACE}/vcpkg/installed/ace-linux/lib ${CMAKE_SYSROOT}/lib CACHE PATH "")
+set(CMAKE_BUILD_RPATH ${ACE_INSTALLED_PATH}/lib ${CMAKE_SYSROOT}/lib CACHE PATH "")
 
 # Toolchain
 include(${ACE}/src/toolchain.cmake)
