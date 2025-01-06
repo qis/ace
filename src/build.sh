@@ -125,7 +125,7 @@ if [ ! -f build/01-chroot-system.done ] || [ ! -e /usr/bin/ninja ]; then
   apt install -y -o APT::Install-Suggests=0 -o APT::Install-Recommends=0 \
     apt-file automake binutils build-essential bzip2 ca-certificates curl file git less \
     libedit-dev libicu-dev liblzma-dev libncurses-dev libreadline-dev libtinfo-dev libxml2-dev \
-    make man-db manpages-dev ninja-build openssh-client p7zip-full patchelf pax-utils perl pev \
+    make man-db manpages-dev nasm ninja-build openssh-client p7zip-full patchelf pax-utils perl pev \
     pkg-config python3 python3-distutils python3-lib2to3 strace swig time libtinfo5 \
     symlinks tree tzdata unzip xz-utils yasm wine zip zlib1g-dev libpython3-dev
 
@@ -304,6 +304,8 @@ export VCPKG_OVERLAY_PORTS="${ACE}/src/ports"
 export VCPKG_FEATURE_FLAGS="-binarycaching"
 export VCPKG_WORKS_SYSTEM_BINARIES=1
 export VCPKG_DISABLE_METRICS=1
+
+export LD_LIBRARY_PATH="${ACE}/lib"
 
 # =================================================================================================
 # 03: linux
@@ -614,7 +616,7 @@ then
 
   print "Building dependencies ..."
   PATH="${ACE}/build/stage1/bin:${PATH}" \
-  vcpkg install --triplet=ace-mingw \
+  vcpkg install --triplet=ace-linux \
     liblzma[core] libxml2[core,lzma,zlib] openssl[core] zlib
 
   verify build/vcpkg/installed/ace-linux/lib/libz.a
@@ -1219,15 +1221,15 @@ if [ ! -f build/11-mingw-dependencies.done ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/libxml2.a ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/libzlib.a ]
 then
-  rm -rf build/11-mingw-dependencies.done build/mingw-ports
+  rm -rf build/11-mingw-dependencies.done
 
   print "Building mingw dependencies ..."
   vcpkg install --triplet=ace-mingw \
     liblzma[core] libxml2[core,lzma,zlib] zlib
 
-  verify build/vcpkg/installed/ace-mingw/lib/liblzma.a
-  verify build/vcpkg/installed/ace-mingw/lib/libxml2.a
   verify build/vcpkg/installed/ace-mingw/lib/libzlib.a
+  verify build/vcpkg/installed/ace-mingw/lib/libxml2.a
+  verify build/vcpkg/installed/ace-mingw/lib/liblzma.a
   create build/11-mingw-dependencies.done
 fi
 
@@ -1259,11 +1261,14 @@ fi
 if [ ! -f build/12-stage3-configure.done ] || [ ! -e build/stage3/build.ninja ]; then
   rm -rf build/12-stage3-configure.done build/stage3
 
+  # NOTE: -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lbcrypt" is a workaround for
+  # liblldb.dll not being able to find BCryptGenRandom.
+
   print "Configuring stage 3 ..."
   cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw" \
+    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-mingw" \
     -DCMAKE_CROSSCOMPILING=ON \
     -DCMAKE_SYSTEM_NAME="Windows" \
     -DCMAKE_SYSTEM_VERSION="10.0" \
@@ -1280,6 +1285,7 @@ if [ ! -f build/12-stage3-configure.done ] || [ ! -e build/stage3/build.ninja ];
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
     -DCMAKE_C_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
     -DCMAKE_CXX_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
+    -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lbcrypt" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -1369,7 +1375,7 @@ if [ ! -f build/12-stage3-lldb-mi.done ] || [ ! -e build/windows/bin/lldb-mi.exe
   cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw;${ACE}/build/stage3" \
+    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-mingw;${ACE}/build/stage3" \
     -DCMAKE_CROSSCOMPILING=ON \
     -DCMAKE_SYSTEM_NAME="Windows" \
     -DCMAKE_SYSTEM_VERSION="10.0" \
@@ -1645,50 +1651,134 @@ then
   create build/17-readpe.done
 fi
 
-return
+# =================================================================================================
+# clean
+# =================================================================================================
+
+print "Fixing library search paths ..."
+find bin -type f | while read executable; do
+  if file -bL --mime-type "${executable}" | grep "application/x-.*executable" >/dev/null; then
+    patchelf --set-rpath '$ORIGIN/../lib' "${executable}"
+    echo "${executable}"; readelf -d "${executable}" | grep RUNPATH
+  fi
+done
 
 # =================================================================================================
 # ports
 # =================================================================================================
 
+print "Building ports ..."
+rm -rf ports build/windows/ports
+
+if [ ! -d build/ports ]; then
+  git clone build/vcpkg build/ports
+fi
+
+DEBIAN_FRONTEND=noninteractive \
+  apt install -y -o APT::Install-Suggests=0 -o APT::Install-Recommends=0 nasm
+
+# Prevent simdjson from enabling all features.
+vcpkg install --vcpkg-root=build/ports --triplet=ace-linux \
+  simdjson[core,threads]
+
+vcpkg install --vcpkg-root=build/ports --triplet=ace-linux \
+  benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
+  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
+  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
+  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
+  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
+  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
+  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] \
+  libffi[core] wayland[core,force-build] wayland-protocols[core,force-build]
+
+# Prevent simdjson from enabling all features.
+vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw \
+  simdjson[core,threads]
+
+vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw \
+  benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
+  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
+  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
+  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
+  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
+  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
+  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
+
+print "Exporting ports ..."
+rm -rf build/ports-export
+vcpkg export --vcpkg-root=build/ports --x-all-installed \
+  --raw --output-dir=build/ports-export --output=.
+
+if [ -h build/ports-export/installed/ace-linux/lib/libpng.a ]; then
+  if [ ! -f build/ports-export/installed/ace-linux/lib/libpng16.a ]; then
+    error "Missing file: build/ports-export/installed/ace-linux/lib/libpng16.a"
+  fi
+  mv build/ports-export/installed/ace-linux/lib/libpng16.a \
+     build/ports-export/installed/ace-linux/lib/libpng.a
+fi
+
+if [ -h build/ports-export/installed/ace-mingw/lib/libpng.a ]; then
+  if [ ! -f build/ports-export/installed/ace-mingw/lib/libpng16.a ]; then
+    error "Missing file: build/ports-export/installed/ace-mingw/lib/libpng16.a"
+  fi
+  mv build/ports-export/installed/ace-mingw/lib/libpng16.a \
+     build/ports-export/installed/ace-mingw/lib/libpng.a
+fi
+
+print "Installing linux ports ..."
+mkdir ports
+cp -R build/ports-export/installed/ace-linux ports/
+cp -R build/ports-export/installed/ace-mingw ports/
+
+print "Installing windows ports ..."
+mkdir build/windows/ports
+cp -R build/ports-export/installed/ace-mingw build/windows/ports/
+cp -R linux.cmake mingw.cmake readme.md build/windows/
+
 # =================================================================================================
 # archives
 # =================================================================================================
 
-if git -C build/src/llvm describe --exact-match --tags >/dev/null 2>&1; then
-  ARCHIVE_NAME=ace-${LLVM_VER}
-else
-  ARCHIVE_NAME=ace-$(git -C build/src/llvm log --format=%cs-%h)
+if [ ! -f build/ace.tar.xz ]; then
+  print "Creating linux archive: build/ace.tar.xz ..."
+  find include lib ports share sys -type d -exec chmod 0755 '{}' ';'
+  find include lib ports share sys -type f -exec chmod 0644 '{}' ';'
+  find bin ports/ace-linux/tools ports/ace-mingw/tools -exec chmod 0755 '{}' ';'
+  find bin ports/ace-mingw/tools -type f -name '*.dll' -exec chmod 0644 '{}' ';'
+  chown -R "${uid}:${gid}" bin include lib ports share sys
+
+  tar cJf build/ace.tar.xz \
+    bin include lib ports share sys \
+    linux.cmake mingw.cmake readme.md
+
+  chown "${uid}:${gid}" build/ace.tar.xz
 fi
 
-if [ ! -f ${ARCHIVE_NAME}.tar.xz ] || [ ! -f ${ARCHIVE_NAME}.7z ]; then
-  print "Fixing library search paths ..."
-  find bin -type f | while read executable; do
-    if file -bL --mime-type "${executable}" | grep "application/x-.*executable" >/dev/null; then
-      patchelf --set-rpath '$ORIGIN/../lib' "${executable}"
-      echo "${executable}"; readelf -d "${executable}" | grep RUNPATH
-    fi
-  done
+if [ ! -f build/ace.7z ]; then
+  print "Creating windows archive: build/ace.7z ..."
+  find build/windows -type d -exec chmod 0755 '{}' ';'
+  find build/windows -type f -exec chmod 0644 '{}' ';'
+  find build/windows/ports/ace-mingw/tools -exec chmod 0755 '{}' ';'
+  find build/windows/ports/ace-mingw/tools -type f -name '*.dll' -exec chmod 0644 '{}' ';'
+  chown -R "${uid}:${gid}" build/windows
 
-  print "Cleaning up permissions and ownership ..."
-  find bin -exec chmod 0755 '{}' ';'
-  find bin -type f -name '*.dll' -exec chmod 0644 '{}' ';'
-  find include lib share sys build/windows -type d -exec chmod 0755 '{}' ';'
-  find include lib share sys build/windows -type f -exec chmod 0644 '{}' ';'
-  chown -R "${uid}:${gid}" bin include lib share sys build/windows
-
-  print "Searching for symlinks in windows directory ..."
   find build/windows -type l | while read link; do
     error "Symlink in windows directory: ${link}"
   done
 
-  print "Creating linux archive: ${ARCHIVE_NAME}.tar.xz ..."
-  rm -f ${ARCHIVE_NAME}.tar.xz
-  tar cJf ${ARCHIVE_NAME}.tar.xz bin include lib share sys tools
-  chown -R "${uid}:${gid}" ${ARCHIVE_NAME}.tar.xz
+  env --chdir=build/windows 7z a ../ace.7z \
+    bin include lib ports share sys \
+    linux.cmake mingw.cmake readme.md
 
-  print "Creating windows archive: ${ARCHIVE_NAME}.7z ..."
-  rm -f ${ARCHIVE_NAME}.7z
-  env --chdir=build/windows 7z a ../../${ARCHIVE_NAME}.7z bin include lib share sys
-  chown -R "${uid}:${gid}" ${ARCHIVE_NAME}.7z
+  chown "${uid}:${gid}" build/ace.7z
 fi

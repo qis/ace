@@ -2,7 +2,7 @@
 if(VCPKG_TARGET_TRIPLET STREQUAL "ace-linux")
   include(${CMAKE_CURRENT_LIST_DIR}/../linux.cmake)
 elseif(VCPKG_TARGET_TRIPLET STREQUAL "ace-mingw")
-  include(${CMAKE_CURRENT_LIST_DIR}/../linux.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/../mingw.cmake)
 else()
   message(FATAL_ERROR "Unsupported target triplet.")
 endif()

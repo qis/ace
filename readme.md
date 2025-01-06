@@ -80,7 +80,7 @@ sudo apt clean
 
 sudo apt install -y \
   curl xz-utils wine pkg-config vulkan-validationlayers libncurses6 \
-  man-db manpages manpages-dev xdg-user-dirs
+  sudo man-db manpages manpages-dev xdg-user-dirs
 
 # Gentoo
 sudo emaint sync -a
@@ -94,6 +94,7 @@ sudo emerge -avn \
   dev-util/pkgconf \
   media-libs/vulkan-layers \
   sys-libs/ncurses \
+  app-admin/sudo \
   x11-misc/xdg-user-dirs
 ```
 
@@ -185,18 +186,26 @@ sudo apt install -y foot xterm
 ```sh
 # Debian
 sudo apt install -y \
-  git debootstrap sudo make nasm unzip zip
+  git debootstrap
 
 # Gentoo
 sudo emerge -avn \
   dev-vcs/git \
-  dev-util/debootstrap \
-  app-admin/sudo \
+  dev-util/debootstrap
+```
+
+<!--
+# Debian
+sudo apt install -y \
+  make nasm unzip zip
+
+# Gentoo
+sudo emerge -avn \
   dev-build/make \
   dev-lang/nasm \
   app-arch/unzip \
   app-arch/zip
-```
+-->
 
 2. Download source code and build toolchain.
 
