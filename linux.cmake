@@ -19,8 +19,8 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "" FORCE)
 
 # Program Paths
 file(GLOB ACE_PORTS_TOOLS_PATH
-  ${ACE}/ports/ace-linux/tools
-  ${ACE}/ports/ace-linux/tools/*
+  ${ACE}/ports/linux/tools
+  ${ACE}/ports/linux/tools/*
   LIST_DIRECTORIES ON)
 
 set(ACE_PROGRAM_PATH ${ACE}/bin)
@@ -35,8 +35,8 @@ set(CMAKE_SYSTEM_PROGRAM_PATH ${ACE_PROGRAM_PATH} CACHE PATH "")
 unset(ACE_SYSTEM_PROGRAM_PATH)
 
 # Prefix Paths
-set(CMAKE_PREFIX_PATH ${ACE}/ports/ace-linux CACHE PATH "")
-set(ENV{PKG_CONFIG_PATH} ${ACE}/ports/ace-linux/lib/pkgconfig)
+set(CMAKE_PREFIX_PATH ${ACE}/ports/linux CACHE PATH "")
+set(ENV{PKG_CONFIG_PATH} ${ACE}/ports/linux/lib/pkgconfig)
 
 # Compiler
 find_program(CMAKE_C_COMPILER clang PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)

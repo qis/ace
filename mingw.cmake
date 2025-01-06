@@ -19,8 +19,8 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "" FORCE)
 
 # Program Paths
 file(GLOB ACE_PORTS_TOOLS_PATH
-  ${ACE}/ports/ace-mingw/tools
-  ${ACE}/ports/ace-mingw/tools/*
+  ${ACE}/ports/mingw/tools
+  ${ACE}/ports/mingw/tools/*
   LIST_DIRECTORIES ON)
 
 set(ACE_PROGRAM_PATH ${ACE}/bin)
@@ -35,8 +35,8 @@ set(CMAKE_SYSTEM_PROGRAM_PATH ${ACE_PROGRAM_PATH} CACHE PATH "")
 unset(ACE_SYSTEM_PROGRAM_PATH)
 
 # Prefix Paths
-set(CMAKE_PREFIX_PATH ${ACE}/ports/ace-mingw CACHE PATH "")
-set(ENV{PKG_CONFIG_PATH} ${ACE}/ports/ace-mingw/lib/pkgconfig)
+set(CMAKE_PREFIX_PATH ${ACE}/ports/mingw CACHE PATH "")
+set(ENV{PKG_CONFIG_PATH} ${ACE}/ports/mingw/lib/pkgconfig)
 
 # Compiler
 find_program(CMAKE_C_COMPILER clang PATHS ${CMAKE_SYSTEM_PROGRAM_PATH} REQUIRED)

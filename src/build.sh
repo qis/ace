@@ -188,22 +188,15 @@ download_git() {
 
 # =================================================================================================
 
-LLVM_VER="19.1.5"
+LLVM_VER="19.1.6"
 LLVM_TAG="llvmorg-${LLVM_VER}"
 LLVM_GIT="https://github.com/llvm/llvm-project"
-LLVM_URL="${LLVM_GIT}/releases/download/${LLVM_TAG}/LLVM-${LLVM_VER}-Linux-X64.tar.xz"
-LLVM_RES="lib/clang/$(echo ${LLVM_VER} | cut -d. -f1)"
-LLVM_TAR="llvm.tar.xz"
-
-# Download binaries for the release version.
-#download_tar "llvm" "${LLVM_URL}" "${LLVM_TAR}" 1 "build" "bin/clang"
 
 # Download sources for the release version.
 #download_git "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
 
 # Download sources for the master branch.
 download_git "llvm" "${LLVM_GIT}" "main" "build/src" "llvm/CMakeLists.txt"
-LLVM_RES="lib/clang/20"
 
 # =================================================================================================
 
@@ -233,6 +226,26 @@ download_git "vcpkg" "${VCPKG_GIT}" "${VCPKG_TAG}" "build" "bootstrap-vcpkg.sh"
 if [ ! -x build/vcpkg/vcpkg ]; then
   env --chdir=build/vcpkg sh bootstrap-vcpkg.sh
 fi
+
+VCPKG_PORTS=$(echo \
+  benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
+  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
+  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
+  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
+  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
+  openfbx[core] ktx[core,vulkan] simdjson[core,threads] fastgltf[core] miniaudio[core] \
+  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
+  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
+  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core])
+
+VCPKG_PORTS_LINUX=$(echo \
+  ${VCPKG_PORTS} libffi[core] wayland[core,force-build] wayland-protocols[core,force-build])
+
+VCPKG_PORTS_MINGW=$(echo \
+  ${VCPKG_PORTS})
 
 # =================================================================================================
 
@@ -299,6 +312,7 @@ export PATH="${ACE}/bin:${PATH}"
 export VCPKG_ROOT="${ACE}/build/vcpkg"
 export VCPKG_DEFAULT_TRIPLET="ace-linux"
 export VCPKG_DEFAULT_HOST_TRIPLET="ace-linux"
+export VCPKG_DOWNLOADS="${ACE}/build/vcpkg/downloads"
 export VCPKG_OVERLAY_TRIPLETS="${ACE}/src/triplets"
 export VCPKG_OVERLAY_PORTS="${ACE}/src/ports"
 export VCPKG_FEATURE_FLAGS="-binarycaching"
@@ -370,6 +384,12 @@ if [ ! -f build/03-linux.done ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
 
   verify sys/linux/lib64/ld-linux-x86-64.so.2
   create build/03-linux.done
+fi
+
+if [ ! -f build/03-ports.done ]; then
+  vcpkg install --recurse --only-downloads --triplet=ace-linux ${VCPKG_PORTS_LINUX}
+  vcpkg install --recurse --only-downloads --triplet=ace-mingw ${VCPKG_PORTS_MINGW}
+  create build/03-ports.done
 fi
 
 if [ ! -f build/03-llvm.done ] || [ ! -e build/llvm/bin/clang ]; then
@@ -552,6 +572,8 @@ if [ ! -f build/04-stage1-build.done ] || [ ! -e build/stage1/bin/clang ]; then
   verify build/stage1/bin/clang
   create build/04-stage1-build.done
 fi
+
+LLVM_RES="lib/clang/$(cmake -P src/version.cmake)"
 
 if [ ! -f build/04-stage1-install.done ] ||
    [ ! -e ${LLVM_RES}/lib/linux/libclang_rt.builtins-x86_64.a ] ||
@@ -1674,45 +1696,21 @@ if [ ! -d build/ports ]; then
   git clone build/vcpkg build/ports
 fi
 
-DEBIAN_FRONTEND=noninteractive \
-  apt install -y -o APT::Install-Suggests=0 -o APT::Install-Recommends=0 nasm
+for port in ${VCPKG_PORTS_LINUX}; do
+  vcpkg install --vcpkg-root=build/ports --triplet=ace-linux ${port}
+done
 
-# Prevent simdjson from enabling all features.
-vcpkg install --vcpkg-root=build/ports --triplet=ace-linux \
-  simdjson[core,threads]
+for port in ${VCPKG_PORTS_MINGW}; do
+  vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw ${port}
+done
 
-vcpkg install --vcpkg-root=build/ports --triplet=ace-linux \
-  benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
-  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
-  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
-  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
-  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
-  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
-  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
-  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
-  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
-  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
-  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
-  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core] \
-  libffi[core] wayland[core,force-build] wayland-protocols[core,force-build]
-
-# Prevent simdjson from enabling all features.
-vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw \
-  simdjson[core,threads]
-
-vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw \
-  benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
-  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
-  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
-  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
-  lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
-  glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
-  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
-  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
-  openfbx[core] ktx[core,vulkan] fastgltf[core] miniaudio[core] \
-  sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
-  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
-  boost-asio[core,ssl] boost-beast[core] boost-url[core] boost-json[core]
+echo ""
+print "Installed linux ports with enabled features:"
+vcpkg list --vcpkg-root=build/ports | grep ':ace-linux' | grep -E --color=always '\[[^]]*\]'
+echo ""
+print "Installed mingw ports with enabled features:"
+vcpkg list --vcpkg-root=build/ports | grep ':ace-mingw' | grep -E --color=always '\[[^]]*\]'
+echo ""
 
 print "Exporting ports ..."
 rm -rf build/ports-export
@@ -1737,12 +1735,12 @@ fi
 
 print "Installing linux ports ..."
 mkdir ports
-cp -R build/ports-export/installed/ace-linux ports/
-cp -R build/ports-export/installed/ace-mingw ports/
+cp -R build/ports-export/installed/ace-linux ports/linux
+cp -R build/ports-export/installed/ace-mingw ports/mingw
 
 print "Installing windows ports ..."
 mkdir build/windows/ports
-cp -R build/ports-export/installed/ace-mingw build/windows/ports/
+cp -R build/ports-export/installed/ace-mingw build/windows/ports/mingw
 cp -R linux.cmake mingw.cmake readme.md build/windows/
 
 # =================================================================================================

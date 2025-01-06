@@ -269,7 +269,7 @@ tar xf "$(xdg-user-dir DOWNLOADS)/ace.tar.xz" -C /opt/ace
 This software is available under the "MIT No Attribution" license.
 
 ```
-Copyright 2024 Alexej Harm
+Copyright 2025 Alexej Harm
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
