@@ -275,4 +275,5 @@ Projects compiled with this toolchain must be distributed under the following co
 [cmk]: https://cmake.org/download/
 [sdk]: https://vulkan.lunarg.com/sdk/home
 [wix]: https://github.com/wixtoolset/wix3/releases
+[wsl]: https://learn.microsoft.com/windows/wsl/
 [zip]: https://www.7-zip.org/
