@@ -283,15 +283,15 @@ POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
 POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/${POWERSHELL_TAG}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
 POWERSHELL_TAR="powershell.tar.gz"
 
-download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "tools" "pwsh"
+download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "build" "pwsh"
 
-if [ ! -x tools/powershell/pwsh ]; then
-  chmod +x tools/powershell/pwsh
+if [ ! -x build/powershell/pwsh ]; then
+  chmod +x build/powershell/pwsh
 fi
 
 # =================================================================================================
 
-export PATH="${ACE}/tools/powershell:${PATH}"
+export PATH="${ACE}/build/powershell:${PATH}"
 export PATH="${ACE}/build/cmake/bin:${PATH}"
 export PATH="${ACE}/build/vcpkg:${PATH}"
 export PATH="${ACE}/bin:${PATH}"
