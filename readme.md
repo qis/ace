@@ -205,6 +205,11 @@ if [ -x "$(which wslpath)" ] && [ -x "$(which cmd.exe)" ]; then
 fi
 ```
 
+<!--
+# Clone toolchain repository.
+git clone git@github.com:qis/ace /opt/ace
+-->
+
 ## Install
 Use archives from the build step to install the toolchain.
 
