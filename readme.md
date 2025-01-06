@@ -48,7 +48,7 @@ Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name
 dism /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
 dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 
-# Install WSL distribution if not already installed.
+# Install WSL distribution if it is not already installed.
 # wsl --install --distribution Debian
 
 # Update WSL distribution if it is already installed.
