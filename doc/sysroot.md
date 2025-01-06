@@ -41,14 +41,17 @@ Choosing a Linux distribution for a development sysroot.
 |   Manjaro Linux                       |   2024-07-02   |       NA       |       NA       |   6.9    |   2.39   |
 |   openSUSE Tumbleweed                 |   2024-07-23   |       NA       |       NA       |   6.9    |   2.39   |
 
-1. Less popular distributions are mostly covered by Debian 12 or Ubuntu 22.04.
-2. According to the June 2024 Steam survey, Linux Mint 21.3 and Ubuntu 22.04 are the most relevant LTS distributions.
-3. Linux Mint 21.3 and Pop!\_OS 22.04 LTS are based on Ubuntu 22.04 and Ubuntu 22.04 is based on Debian 12.
+See [ABI Laboratory][abi] and the [Longterm Release Kernels][lts] list for more information.
+
+1. According to the December 2024 Steam survey, Ubuntu 24.04 and Linux Mint 22 are the most relevant LTS distributions.
+2. Less popular distributions are mostly covered by Ubuntu 22.04, which is based on Debian 12.
+3. Linux Mint 21.3 and Pop!\_OS 22.04 LTS are based on Ubuntu 22.04.
 4. Astra Linux CE 1.8.1 is based on Astra Linux SE 1.8.1.
 5. Steam Linux Runtime 3.0 is based on Debian 11.
 6. SteamOS 3.0 is based on Arch Linux.
 7. Bazzite is based on Fedora Atomic.
 
+## Distributions
 This software was tested on the following Linux distributions:
 
 * Arch Linux
@@ -61,24 +64,19 @@ This software was tested on the following Linux distributions:
 This software was tested on the following Russian Linux distributions:
 
 * ALT Linux (Альт Линукс) 10
+* Simply Linux (Симпли Линукс) 10
 * Astra Linux (Астра Линукс) CE 1.8.1
 * Calculate Linux (Scratch Edition)
-* RED OS (РЕД ОС) 8.0
 * ROSA Linux (РОСА Линукс) 12
-* Simply Linux (Симпли Линукс) 10
+* RED OS (РЕД ОС) 8.0
 
-This software was **NOT** tested, but will probably work on the following Linux distributions:
+<!--
+This software will not be tested on the following russophobic Linux distributions:
 
-* Astra Linux (Астра Линукс) SE 1.8 <!-- no access -->
-* Fedora Workstation <!-- russophobic -->
-* Linux Mint 21 (Vanessa) <!-- based on Ubuntu -->
-* Pop!\_OS 22.04 LTS <!-- based on Ubuntu -->
-* Manjaro Linux <!-- based on Arch -->
-* openSUSE Leap 15.5 <!-- russophobic -->
-* Red Hat Enterprise Linux 9 <!-- russophobic -->
-* Ubuntu 22.04 LTS <!-- russophobic -->
-
-See [ABI Laboratory][abi] and the [Longterm Release Kernels][lts] list for more information.
+* Ubuntu
+* Fedora
+* Red Hat
+* openSUSE
 
 ```sh
 # Debian 8 (Jessie)
@@ -353,13 +351,7 @@ ls opensuse-tumbleweed/x86_64/ | grep ^kernel-default-
 ls opensuse-tumbleweed/x86_64/ | grep ^glibc-
 sudo umount opensuse-tumbleweed
 ```
-
-A workaround for `debootstrap` segfaults in WSL2, is to add the following section to `%UserProfile%\.wslconfig`:
-
-```ini
-[wsl2]
-kernelCommandLine = vsyscall=emulate
-```
+-->
 
 [abi]: https://abi-laboratory.pro/?view=timeline&l=glibc
 [lts]: https://www.kernel.org/category/releases.html

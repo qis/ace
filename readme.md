@@ -1,49 +1,135 @@
 # ACE
-Toolchain for portable C++ development.
+Toolchain for portable C++ game engine development.
 
 ```
-Supported Systems: Linux, Windows
 Supported Targets: Linux, MinGW
 Supported Architectures: x86_64
 Linux Sysroot: Debian 11
 MinGW Runtime: UCRT
 ```
 
-**This is not a general purpose toolchain!**
+## Dependencies
+Install dependencies and configure the operating system.
 
-## Sysroot
-See [doc/sysroot.md](doc/sysroot.md) for a list of evaluated Linux distributions.
+### Windows
+1. Install [Git][git].
+2. Install [CMake][cmk].
+3. Install [Vulakn SDK][sdk].
+4. Install [WiX Toolset][wix].
+5. Install [7-zip][zip].
+6. Create toolchain directory.
 
-## Ports
-See [doc/ports.md](doc/ports.md) for a list of supported [Vcpkg][pkg] ports.
+```cmd
+md C:\Ace
+```
 
-## Build
-See [doc/build.md](doc/build.md) for build instructions.
+### WSL
+1. Create a [WSL][wsl] configuration file: `%UserProfile%\.wslconfig`
 
-## Install
-Use archives from the build step to install this toolchain.
+```ini
+[wsl2]
+kernelCommandLine=vsyscall=emulate
+memory=18GB
+```
+
+2. Configure the system in PowerShell as **administrator**.
+
+```ps1
+# Show known file extensions in Explorer.
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Type DWord -Value 0
+
+# Show hidden files in Explorer.
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type DWord -Value 1
+
+# Enable NTFS paths with length over 260 characters.
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Type DWord -Value 1
+
+# Enable WSL support.
+dism /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+
+# Install WSL distribution if not already installed.
+# wsl --install --distribution Debian
+
+# Update WSL distribution if it is already installed.
+# wsl --shutdown
+# wsl --update
+```
+
+3. Reboot the system.
+4. Log in and finish the WSL installation if prompted.
+5. Execute `wsl -s Debian` on the Command Line if you want Debian to be the default WSL distribution.
+6. Execute `wsl -d Debian` on the Command Line to start WSL.
+7. Configure the WSL distribution.
+
+```sh
+# Symlink Wayland socket.
+mkdir -p ~/.config/systemd/user
+
+tee ~/.config/systemd/user/symlink-wayland-socket.service >/dev/null <<'EOF'
+[Unit]
+Description=Symlink Wayland socket to XDG_RUNTIME_DIR
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0 ${XDG_RUNTIME_DIR}/
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0.lock ${XDG_RUNTIME_DIR}/
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl --user --now enable symlink-wayland-socket
+```
+
+8. Follow Linux (Debian) instructions below.
 
 ### Linux
-1. Install dependencies.
+1. Update system and install dependencies.
 
 ```sh
 # Debian
-sudo apt install curl git unzip wine xz-utils zip \
-  libncurses6 make nasm pkg-config vulkan-validationlayers
+sudo apt update
+sudo apt upgrade -y
+sudo apt autoremove --purge -y
+sudo apt clean
+
+sudo apt install -y \
+  xz-utils wine pkg-config vulkan-validationlayers libncurses6 \
+  man-db manpages manpages-dev xdg-user-dirs
 
 # Gentoo
+sudo emaint sync -a
+sudo emerge -auUD @world
+sudo emerge -ac
+
 sudo emerge -avn \
-  app-arch/unzip \
   app-arch/xz-utils \
-  app-arch/zip \
   app-emulation/wine-proton \
-  dev-build/make \
-  dev-lang/nasm \
   dev-util/pkgconf \
-  net-misc/curl \
   media-libs/vulkan-layers \
-  sys-libs/ncurses
+  sys-libs/ncurses \
+  x11-misc/xdg-user-dirs
 ```
+
+<!--
+# Configure git(1).
+USERPROFILE="$(wslpath $(cmd.exe /c '<nul set /p=%UserProfile%' 2>/dev/null))"
+ln -s ${USERPROFILE}/.gitconfig ~/.gitconfig
+
+# Configure ssh(1).
+mkdir -p ~/.ssh
+chmod 0700 ~/.ssh
+cp ${USERPROFILE}/.ssh/config ~/.ssh/
+cp ${USERPROFILE}/.ssh/id_rsa ~/.ssh/
+cp ${USERPROFILE}/.ssh/id_rsa.pub ~/.ssh/
+cp ${USERPROFILE}/.ssh/known_hosts ~/.ssh/
+chmod 0600 ~/.ssh/*
+
+# Install apt-file(1).
+sudo apt install -y apt-file
+sudo apt-file update
+-->
 
 2. Install [CMake][cmk].
 
@@ -65,152 +151,110 @@ sudo chmod 0755 /etc/profile.d/cmake.sh
 source /etc/profile.d/cmake.sh
 ```
 
-3. Install toolchain.
-
-```sh
-# Create directory.
-sudo mkdir /opt/ace
-sudo chown $(id -u):$(id -g) /opt/ace
-
-# Clone repository.
-git clone https://github.com/qis/ace /opt/ace
-
-# Install binaries.
-tar xf /tmp/ace-19.1.6.tar.xz -C /opt/ace
-
-# Create environment variables.
-sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
-export ACE="/opt/ace"
-export PATH="${ACE}/bin:${ACE}/tools/powershell:${PATH}"
-EOF
-
-sudo chmod 0755 /etc/profile.d/ace.sh
-source /etc/profile.d/ace.sh
-
-# Register library path.
-sudo tee /etc/ld.so.conf.d/ace.conf >/dev/null <<'EOF'
-/opt/ace/sys/linux/lib
-EOF
-
-sudo ldconfig
-```
-
-4. Configure `wine(1)`.
+3. Configure `wine(1)`.
 
 ```sh
 winecfg
 wine
 ```
 
-### Windows
-1. Install [Git][git].
-2. Install [CMake][cmk].
-3. Install [Vulakn SDK][sdk].
-4. Install [WiX Toolset][wix].
-5. Install [7-zip][zip].
-6. Install toolchain.
+<!--
+4. Install and use `foot(1)` and `xterm(1)` to test Wayland and Xorg support.
+-->
 
-```bat
-rem Clone repository.
-git clone https://github.com/qis/ace C:/Ace
-
-rem Install binaries.
-7z x %UserProfile%\Downloads\ace-19.1.6.7z -oC:\Ace
-
-rem Modify system environment variables.
-SystemPropertiesAdvanced.exe
-```
-
-* Set `ACE` to `C:/Ace`.
-* Add `C:\Ace\bin` to `PATH`.
-
-## Vcpkg
-Install [Vcpkg][pkg].
-
-### Linux
+## Build
+1. Install build dependencies.
 
 ```sh
-# Clone repository.
-git clone -b 2024.12.16 https://github.com/microsoft/vcpkg /opt/ace/vcpkg
+# Debian
+sudo apt install -y \
+  git curl debootstrap sudo make nasm unzip zip
 
-# Install binary.
-/opt/ace/vcpkg/bootstrap-vcpkg.sh
-
-# Create environment variables.
-sudo tee /etc/profile.d/vcpkg.sh >/dev/null <<'EOF'
-export VCPKG_ROOT="/opt/ace/vcpkg"
-export VCPKG_DEFAULT_TRIPLET="ace-linux"
-export VCPKG_DEFAULT_HOST_TRIPLET="ace-linux"
-export VCPKG_OVERLAY_TRIPLETS="/opt/ace/src/triplets"
-export VCPKG_OVERLAY_PORTS="/opt/ace/src/ports"
-export VCPKG_FEATURE_FLAGS="-binarycaching"
-export VCPKG_FORCE_SYSTEM_BINARIES=1
-export VCPKG_DISABLE_METRICS=1
-export PATH="${VCPKG_ROOT}:${PATH}"
-EOF
-
-sudo chmod 0755 /etc/profile.d/vcpkg.sh
-source /etc/profile.d/vcpkg.sh
+# Gentoo
+sudo emerge -avn \
+  dev-vcs/git \
+  net-misc/curl \
+  dev-util/debootstrap \
+  app-admin/sudo \
+  dev-build/make \
+  dev-lang/nasm \
+  app-arch/unzip \
+  app-arch/zip
 ```
+
+2. Download source code and build toolchain.
+
+```sh
+# Create toolchain directory.
+sudo mkdir /opt/ace
+sudo chown $(id -u):$(id -g) /opt/ace
+
+# Clone toolchain repository.
+git clone https://github.com/qis/ace /opt/ace
+
+# Build toolchain.
+cd /opt/ace && sh src/build.sh
+
+# Copy archives to Downloads directories.
+cp /opt/ace/build/ace.7z "$(xdg-user-dir DOWNLOADS)/"
+cp /opt/ace/build/ace.tar.xz "$(xdg-user-dir DOWNLOADS)/"
+if [ -x "$(which wslpath)" ] && [ -x "$(which cmd.exe)" ]; then
+  DOWNLOADS="$(wslpath $(cmd.exe /c '<nul set /p=%UserProfile%\Downloads' 2>/dev/null))"
+  cp /opt/ace/build/ace.tar.xz "${DOWNLOADS}/"
+  cp /opt/ace/build/ace.7z "${DOWNLOADS}/"
+fi
+```
+
+## Install
+Use archives from the build step to install the toolchain.
 
 ### Windows
+Install toolchain on Windows.
 
 ```bat
-rem Clone repository.
-git clone -b 2024.12.16 https://github.com/microsoft/vcpkg C:/Ace/vcpkg
+rem Create directory.
+md C:\Ace
 
-rem Install binary.
-C:\Ace\vcpkg\bootstrap-vcpkg.bat
-
-rem Modify system environment variables.
-SystemPropertiesAdvanced.exe
+rem Extract archive.
+7z x "%UserProfile%\Downloads\ace.7z" -oC:\Ace
 ```
 
-* Set `VCPKG_ROOT` to `C:/Ace/vcpkg`.
-* Set `VCPKG_DEFAULT_TRIPLET` to `ace-mingw`.
-* Set `VCPKG_DEFAULT_HOST_TRIPLET` to `ace-mingw`.
-* Set `VCPKG_OVERLAY_TRIPLETS` to `C:/Ace/src/triplets`.
-* Set `VCPKG_OVERLAY_PORTS` to `C:/Ace/src/ports`.
-* Set `VCPKG_FEATURE_FLAGS` to `-binarycaching`.
-* Set `VCPKG_FORCE_SYSTEM_BINARIES` to `1`.
-* Set `VCPKG_DISABLE_METRICS` to `1`.
-* Add `C:\Ace\vcpkg` to `Path`.
-* Add `C:\Ace\vcpkg\installed\ace-mingw\bin` to `Path`.
+### Linux
+Install toolchain on Linux (in case it was built on another system).
 
-## Editor
-Configure editor according to [doc/editor.md](doc/editor.md).
+```sh
+# Create directory.
+sudo mkdir -p /opt/ace
+sudo chown $(id -u):$(id -g) /opt/ace
 
-## Optimizations
-1. Interprocedural optimizations are enabled in release builds.
-2. Everything is compiled with `-march=x86-64 -fno-rtti`.
-3. If a `-static` Vcpkg triplet is used or `BUILD_SHARED_LIBS` not defined in CMake,
-   then everything will be statically linked to `libc++`.
+# Extract archive.
+tar xf "$(xdg-user-dir DOWNLOADS)/ace.tar.xz" -C /opt/ace
+```
 
 ## Usage
-See [src/template](src/template) for a template project.<br/>
-See [src/modules](src/modules) for a C++ modules template project.
+1. See [doc/editor.md](doc/editor.md) for editor configuration instructions.
+2. See [src/template](src/template) for a template project.
 
 ## License
-This is free and unencumbered software released into the public domain.
+This software is available under the "MIT No Attribution" license.
 
 ```
-Anyone is free to copy, modify, publish, use, compile, sell, or distribute
-this software, either in source code form or as a compiled binary, for any
-purpose, commercial or non-commercial, and by any means.
+Copyright 2024 Alexej Harm
 
-In jurisdictions that recognize copyright laws, the author or authors of
-this software dedicate any and all copyright interest in the software to the
-public domain. We make this dedication for the benefit of the public at
-large and to the detriment of our heirs and successors. We intend this
-dedication to be an overt act of relinquishment in perpetuity of all present
-and future rights to this software under copyright law.
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
 Projects compiled with this toolchain must be distributed under the following conditions.
@@ -224,12 +268,11 @@ Projects compiled with this toolchain must be distributed under the following co
 3. LLVM Runtime Libraries<br/>
    [src/template/res/license.txt](src/template/res/license.txt)
 
-4. Vcpkg Libraries<br/>
-   `vcpkg/installed/*/share/*/copyright`
+4. Ports Libraries<br/>
+   `ports/*/share/*/copyright`
 
 [git]: https://git-scm.com/
 [cmk]: https://cmake.org/download/
 [sdk]: https://vulkan.lunarg.com/sdk/home
 [wix]: https://github.com/wixtoolset/wix3/releases
 [zip]: https://www.7-zip.org/
-[pkg]: https://vcpkg.io/
