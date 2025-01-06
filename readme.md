@@ -34,6 +34,12 @@ memory=18GB
 
 2. Configure the system in PowerShell as **administrator**.
 
+<!--
+# Remove existing WSL distribution.
+wsl --shutdown Debian
+wsl --unregister Debian
+-->
+
 ```ps1
 # Show known file extensions in Explorer.
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Type DWord -Value 0
