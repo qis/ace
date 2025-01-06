@@ -290,6 +290,22 @@ if [ ! -x tools/powershell/pwsh ]; then
 fi
 
 # =================================================================================================
+
+export PATH="${ACE}/tools/powershell:${PATH}"
+export PATH="${ACE}/build/cmake/bin:${PATH}"
+export PATH="${ACE}/build/vcpkg:${PATH}"
+export PATH="${ACE}/bin:${PATH}"
+
+export VCPKG_ROOT="${ACE}/build/vcpkg"
+export VCPKG_DEFAULT_TRIPLET="ace-linux"
+export VCPKG_DEFAULT_HOST_TRIPLET="ace-linux"
+export VCPKG_OVERLAY_TRIPLETS="${ACE}/src/triplets"
+export VCPKG_OVERLAY_PORTS="${ACE}/src/ports"
+export VCPKG_FEATURE_FLAGS="-binarycaching"
+export VCPKG_WORKS_SYSTEM_BINARIES=1
+export VCPKG_DISABLE_METRICS=1
+
+# =================================================================================================
 # 03: linux
 # =================================================================================================
 
@@ -358,8 +374,7 @@ if [ ! -f build/03-llvm.done ] || [ ! -e build/llvm/bin/clang ]; then
   rm -rf build/03-llvm.done build/llvm build/stage0
 
   print "Configuring stage 0 ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/llvm" \
     -DLLVM_ENABLE_PROJECTS="clang;lld" \
@@ -429,8 +444,7 @@ if [ ! -f build/04-stage1-configure.done ] || [ ! -e build/stage1/build.ninja ];
   rm -rf build/04-stage1-configure.done build/stage1
 
   print "Configuring stage 1 ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
     -DCMAKE_SYSTEM_NAME="Linux" \
@@ -586,36 +600,29 @@ then
 fi
 
 # =================================================================================================
-# 05: ports
+# 05: dependencies
 # =================================================================================================
 
-if [ ! -f build/05-ports-build.done ] ||
+if [ ! -f build/05-dependencies.done ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/liblzma.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libxml2.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libcrypto.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libssl.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libz.a ]
 then
-  rm -rf build/05-ports.done build/ports
+  rm -rf build/05-dependencies.done
 
-  print "Installing ports ..."
-  VCPKG_ROOT="${ACE}/build/vcpkg" \
-  VCPKG_DEFAULT_TRIPLET="ace-linux" \
-  VCPKG_DEFAULT_HOST_TRIPLET="ace-linux" \
-  VCPKG_OVERLAY_TRIPLETS="${ACE}/src/triplets" \
-  VCPKG_OVERLAY_PORTS="${ACE}/src/ports" \
-  VCPKG_FEATURE_FLAGS="-binarycaching" \
-  VCPKG_WORKS_SYSTEM_BINARIES=1 \
-  VCPKG_DISABLE_METRICS=1 \
-  PATH="${ACE}/build/stage1/bin:${ACE}/build/cmake/bin:${PATH}" \
-  build/vcpkg/vcpkg install liblzma[core] libxml2[core,lzma,zlib] openssl[core] zlib
+  print "Building dependencies ..."
+  PATH="${ACE}/build/stage1/bin:${PATH}" \
+  vcpkg install --triplet=ace-mingw \
+    liblzma[core] libxml2[core,lzma,zlib] openssl[core] zlib
 
   verify build/vcpkg/installed/ace-linux/lib/libz.a
   verify build/vcpkg/installed/ace-linux/lib/libssl.a
   verify build/vcpkg/installed/ace-linux/lib/libcrypto.a
   verify build/vcpkg/installed/ace-linux/lib/libxml2.a
   verify build/vcpkg/installed/ace-linux/lib/liblzma.a
-  create build/05-ports-build.done
+  create build/05-dependencies.done
 fi
 
 # =================================================================================================
@@ -626,8 +633,7 @@ if [ ! -f build/06-stage2-configure.done ] || [ ! -e build/stage2/build.ninja ];
   rm -rf build/06-stage2-configure.done build/stage2
 
   print "Configuring stage 2 ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
     -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
@@ -783,8 +789,7 @@ if [ ! -f build/06-stage2-lldb-mi.done ] || [ ! -e bin/lldb-mi ]; then
   if [ ! -d build/stage2/lldb-mi ]; then
     git clone build/src/lldb-mi build/stage2/lldb-mi
   fi
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
     -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
@@ -831,8 +836,7 @@ if [ ! -f build/07-re2c.done ] || [ ! -e build/re2c/re2c ]; then
   rm -rf build/07-re2c.done build/re2c
 
   print "Configuring re2c ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
@@ -867,8 +871,7 @@ if [ ! -f build/08-yasm.done ] || [ ! -e build/yasm/yasm ]; then
   rm -rf build/08-yasm.done build/yasm
 
   print "Configuring yasm ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/yasm-install" \
@@ -912,8 +915,7 @@ if [ ! -f build/09-ninja.done ] || [ ! -e build/ninja/ninja ]; then
   rm -rf build/09-ninja.done build/ninja
 
   print "Configuring ninja ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}" \
@@ -1047,8 +1049,7 @@ if [ ! -f build/10-mingw-builtins.done ] || [ ! -e ${LLVM_RES}/lib/windows/libcl
   rm -rf build/10-mingw-builtins.done build/mingw-builtins ${LLVM_RES}/lib/windows
 
   print "Configuring mingw builtins ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/${LLVM_RES}" \
     -DCMAKE_CROSSCOMPILING=ON \
@@ -1140,8 +1141,7 @@ then
   rm -rf build/10-mingw-runtimes.done build/mingw-runtimes
 
   print "Configuring mingw runtimes ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/sys/mingw" \
     -DCMAKE_CROSSCOMPILING=ON \
@@ -1211,32 +1211,24 @@ then
 fi
 
 # =================================================================================================
-# 11: mingw ports
+# 11: mingw dependencies
 # =================================================================================================
 
-if [ ! -f build/11-mingw-ports-build.done ] ||
+if [ ! -f build/11-mingw-dependencies.done ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/liblzma.a ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/libxml2.a ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/libzlib.a ]
 then
-  rm -rf build/11-mingw-ports-build.done build/mingw-ports
+  rm -rf build/11-mingw-dependencies.done build/mingw-ports
 
-  print "Building mingw ports ..."
-  VCPKG_ROOT="${ACE}/build/vcpkg" \
-  VCPKG_DEFAULT_TRIPLET="ace-mingw" \
-  VCPKG_DEFAULT_HOST_TRIPLET="ace-linux" \
-  VCPKG_OVERLAY_TRIPLETS="${ACE}/src/triplets" \
-  VCPKG_OVERLAY_PORTS="${ACE}/src/ports" \
-  VCPKG_FEATURE_FLAGS="-binarycaching" \
-  VCPKG_WORKS_SYSTEM_BINARIES=1 \
-  VCPKG_DISABLE_METRICS=1 \
-  PATH="${ACE}/build/cmake/bin:${PATH}" \
-  build/vcpkg/vcpkg install liblzma[core] libxml2[core,lzma,zlib] zlib
+  print "Building mingw dependencies ..."
+  vcpkg install --triplet=ace-mingw \
+    liblzma[core] libxml2[core,lzma,zlib] zlib
 
   verify build/vcpkg/installed/ace-mingw/lib/liblzma.a
   verify build/vcpkg/installed/ace-mingw/lib/libxml2.a
   verify build/vcpkg/installed/ace-mingw/lib/libzlib.a
-  create build/11-mingw-ports-build.done
+  create build/11-mingw-dependencies.done
 fi
 
 # =================================================================================================
@@ -1268,8 +1260,7 @@ if [ ! -f build/12-stage3-configure.done ] || [ ! -e build/stage3/build.ninja ];
   rm -rf build/12-stage3-configure.done build/stage3
 
   print "Configuring stage 3 ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
     -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw" \
@@ -1375,8 +1366,7 @@ if [ ! -f build/12-stage3-lldb-mi.done ] || [ ! -e build/windows/bin/lldb-mi.exe
   if [ ! -d build/stage3/lldb-mi ]; then
     git clone build/src/lldb-mi build/stage3/lldb-mi
   fi
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
     -DCMAKE_PREFIX_PATH="${ACE}/build/ports/installed/ace-mingw;${ACE}/build/stage3" \
@@ -1422,8 +1412,7 @@ if [ ! -f build/13-windows-re2c.done ] || [ ! -e build/windows/bin/re2c.exe ]; t
   rm -rf build/13-windows-re2c.done build/windows-re2c build/windows/bin/re2c.exe
 
   print "Configuring windows re2c ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
@@ -1461,8 +1450,7 @@ if [ ! -f build/15-windows-ninja.done ] || [ ! -e build/windows/bin/ninja.exe ];
   rm -rf build/15-windows-ninja.done build/windows-ninja build/windows/bin/ninja.exe
 
   print "Configuring windows ninja ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
@@ -1488,8 +1476,7 @@ then
   rm -rf build/16-compiler-rt-linux.done build/compiler-rt-linux
 
   print "Configuring compiler-rt (linux) ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/${LLVM_RES}" \
     -DCMAKE_INSTALL_RPATH="\$ORIGIN/../../../.." \
@@ -1550,8 +1537,7 @@ then
   rm -rf build/16-compiler-rt-mingw.done build/compiler-rt-mingw
 
   print "Configuring compiler-rt (mingw) ..."
-  build/cmake/bin/cmake \
-    -GNinja -Wno-dev \
+  cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="${ACE}/${LLVM_RES}" \
     -DCMAKE_CROSSCOMPILING=ON \
@@ -1658,6 +1644,12 @@ then
   verify bin/peldd
   create build/17-readpe.done
 fi
+
+return
+
+# =================================================================================================
+# ports
+# =================================================================================================
 
 # =================================================================================================
 # archives
