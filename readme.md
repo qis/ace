@@ -209,7 +209,8 @@ sudo chown $(id -u):$(id -g) /opt/ace
 git clone https://github.com/qis/ace /opt/ace
 
 # Build toolchain.
-cd /opt/ace && sh src/build.sh
+cd /opt/ace
+sh src/build.sh
 
 # Copy archives to Downloads directories.
 cp /opt/ace/build/ace.7z "$(xdg-user-dir DOWNLOADS)/"
@@ -222,7 +223,6 @@ fi
 ```
 
 <!--
-# Clone toolchain repository.
 git clone git@github.com:qis/ace /opt/ace
 -->
 
