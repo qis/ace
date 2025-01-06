@@ -386,12 +386,6 @@ if [ ! -f build/03-linux.done ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
   create build/03-linux.done
 fi
 
-if [ ! -f build/03-ports.done ]; then
-  vcpkg install --recurse --only-downloads --triplet=ace-linux ${VCPKG_PORTS_LINUX}
-  vcpkg install --recurse --only-downloads --triplet=ace-mingw ${VCPKG_PORTS_MINGW}
-  create build/03-ports.done
-fi
-
 if [ ! -f build/03-llvm.done ] || [ ! -e build/llvm/bin/clang ]; then
   rm -rf build/03-llvm.done build/llvm build/stage0
 
