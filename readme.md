@@ -66,29 +66,7 @@ dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 4. Log in and finish the WSL installation if prompted.
 5. Execute `wsl -s Debian` on the Command Line if you want Debian to be the default WSL distribution.
 6. Execute `wsl -d Debian` on the Command Line to start WSL.
-7. Configure the WSL distribution.
-
-```sh
-# Symlink Wayland socket.
-mkdir -p ~/.config/systemd/user
-
-tee ~/.config/systemd/user/symlink-wayland-socket.service >/dev/null <<'EOF'
-[Unit]
-Description=Symlink Wayland socket to XDG_RUNTIME_DIR
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0 ${XDG_RUNTIME_DIR}/
-ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0.lock ${XDG_RUNTIME_DIR}/
-
-[Install]
-WantedBy=default.target
-EOF
-
-systemctl --user --now enable symlink-wayland-socket
-```
-
-8. Follow Linux (Debian) instructions below.
+7. Follow Linux (Debian) instructions below.
 
 ### Linux
 1. Update system and install dependencies.
@@ -101,7 +79,7 @@ sudo apt autoremove --purge -y
 sudo apt clean
 
 sudo apt install -y \
-  xz-utils wine pkg-config vulkan-validationlayers libncurses6 \
+  curl xz-utils wine pkg-config vulkan-validationlayers libncurses6 \
   man-db manpages manpages-dev xdg-user-dirs
 
 # Gentoo
@@ -110,6 +88,7 @@ sudo emerge -auUD @world
 sudo emerge -ac
 
 sudo emerge -avn \
+  net-misc/curl \
   app-arch/xz-utils \
   app-emulation/wine-proton \
   dev-util/pkgconf \
@@ -164,9 +143,41 @@ winecfg
 wine
 ```
 
-<!--
-4. Install and use `foot(1)` and `xterm(1)` to test Wayland and Xorg support.
--->
+### WSL: WSLg
+Configure WSLg.
+
+```sh
+# Create service.
+mkdir -p ~/.config/systemd/user
+
+tee ~/.config/systemd/user/symlink-wayland-socket.service >/dev/null <<'EOF'
+[Unit]
+Description=Symlink Wayland socket to XDG_RUNTIME_DIR
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0 ${XDG_RUNTIME_DIR}/
+ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0.lock ${XDG_RUNTIME_DIR}/
+
+[Install]
+WantedBy=default.target
+EOF
+
+exit
+```
+
+```cmd
+wsl --shutdown Debian
+wsl -d Debian
+```
+
+```sh
+# Enable and start service.
+systemctl --user --now enable symlink-wayland-socket
+
+# Install `foot(1)` and `xterm(1)` to test Wayland and Xorg support.
+sudo apt install -y foot xterm
+```
 
 ## Build
 1. Install build dependencies.
@@ -174,12 +185,11 @@ wine
 ```sh
 # Debian
 sudo apt install -y \
-  git curl debootstrap sudo make nasm unzip zip
+  git debootstrap sudo make nasm unzip zip
 
 # Gentoo
 sudo emerge -avn \
   dev-vcs/git \
-  net-misc/curl \
   dev-util/debootstrap \
   app-admin/sudo \
   dev-build/make \
