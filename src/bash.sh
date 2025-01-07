@@ -18,8 +18,9 @@ export EDITOR="vim"
 export PAGER="less"
 export LESS="-iQFR"
 
-# This requires a newer version of less(1).
-# export LESS="${LESS} --no-vbell"
+if [ "$(less --version | head -1 | cut -d' ' -f2)" -ge 633 ]; then
+  export LESS="${LESS} --no-vbell"
+fi
 
 export XZ_OPT="-T16"
 
