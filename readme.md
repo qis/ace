@@ -115,6 +115,9 @@ chmod 0600 ~/.ssh/*
 # Install apt-file(1).
 sudo apt install -y apt-file
 sudo apt-file update
+
+# Install vim(1).
+sudo apt install -y vim
 -->
 
 2. Install [CMake][cmk].
@@ -194,20 +197,15 @@ sudo emerge -avn \
   dev-util/debootstrap
 ```
 
-<!--
-# Debian
-sudo apt install -y \
-  make nasm unzip zip
-
-# Gentoo
-sudo emerge -avn \
-  dev-build/make \
-  dev-lang/nasm \
-  app-arch/unzip \
-  app-arch/zip
--->
-
 2. Download source code and build toolchain.
+
+<!--
+git clone git@github.com:qis/ace /opt/ace
+cat /opt/ace/src/bash.sh | sudo tee /etc/profile.d/bash.sh >/dev/null
+sudo chmod 0755 /etc/profile.d/bash.sh
+source /etc/profile.d/bash.sh
+rm -rf ~/.bashrc ~/.profile
+-->
 
 ```sh
 # Create toolchain directory.
@@ -230,10 +228,6 @@ if [ -x "$(which wslpath)" ] && [ -x "$(which cmd.exe)" ]; then
   cp /opt/ace/build/ace.7z "${DOWNLOADS}/"
 fi
 ```
-
-<!--
-git clone git@github.com:qis/ace /opt/ace
--->
 
 ## Install
 Use archives from the build step to install the toolchain.

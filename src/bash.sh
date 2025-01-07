@@ -16,7 +16,10 @@ export LC_NUMERIC=C.UTF-8
 # Applications
 export EDITOR="vim"
 export PAGER="less"
-export LESS="-iqFR"
+export LESS="-iQFR"
+
+# This requires a newer version of less(1).
+# export LESS="${LESS} --no-vbell"
 
 export XZ_OPT="-T16"
 
@@ -40,15 +43,16 @@ export HISTFILE="${HOME}/.history"
 export HISTCONTROL="ignoreboth:erasedups"
 shopt -s histappend
 
-if [ $(id -u) -ne 0 ]; then
-  export PS1='\[\e[32m\]\u\[\e[0m\]@\[\e[31m\]chroot\[\e[0m\] \[\e[34m\]\w\[\e[0m\] '
-else
+if [ "$(ls -di / | cut -d' ' -f1)" != "2" ]; then
   export PS1='\[\e[31m\]chroot\[\e[0m\] \[\e[34m\]\w\[\e[0m\] '
+else
+  export PS1='\[\e[32m\]\u\[\e[0m\]@\[\e[32m\]\h\[\e[0m\] \[\e[34m\]\w\[\e[0m\] '
 fi
 
 if [[ $- == *i* ]]; then
   set -o emacs
   stty werase '^_'
+  bind 'set bell-style none'
   bind '"\C-H":backward-kill-word'
   bind '"\e[Z":menu-complete-backward'
 fi
