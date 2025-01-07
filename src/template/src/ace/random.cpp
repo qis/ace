@@ -1,6 +1,4 @@
-#include "random.hpp"
-#include <format>
-#include <random>
+module ace.random;
 
 namespace ace {
 

@@ -245,9 +245,14 @@ Install toolchain on Windows.
 rem Create directory.
 md C:\Ace
 
-rem Extract archive.
+rem Extract toolchain.
 7z x "%UserProfile%\Downloads\ace.7z" -oC:\Ace
+
+rem Register toolchain.
+SystemPropertiesAdvanced.exe
 ```
+
+Create the system environment variable `ACE` and set it to `C:\Ace`.
 
 ### Linux
 Install toolchain on Linux (in case it was built on another system).
@@ -257,8 +262,16 @@ Install toolchain on Linux (in case it was built on another system).
 sudo mkdir -p /opt/ace
 sudo chown $(id -u):$(id -g) /opt/ace
 
-# Extract archive.
+# Extract toolchain.
 tar xf "$(xdg-user-dir DOWNLOADS)/ace.tar.xz" -C /opt/ace
+
+# Register toolchain.
+sudo tee /etc/profile.d/ace.sh >/dev/null <<'EOF'
+export ACE="/opt/ace"
+EOF
+
+sudo chmod 0755 /etc/profile.d/ace.sh
+source /etc/profile.d/ace.sh
 ```
 
 ## Usage

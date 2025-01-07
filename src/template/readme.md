@@ -1,30 +1,15 @@
 # Template
-C++ project template for the [Ace][ace] toolchain.
-
-## Ports
-Install [Vcpkg][pkg] ports.
-
-```sh
-# Linux
-vcpkg install --triplet=ace-linux-shared benchmark doctest
-vcpkg install --triplet=ace-linux-static benchmark doctest
-
-# Linux & Windows
-vcpkg install --triplet=ace-mingw-shared benchmark doctest
-vcpkg install --triplet=ace-mingw-static benchmark doctest
-```
+C++ project template for the [Ace][ace] toolchain with modules support.
 
 ## CMake
 Configure project.
 
 ```sh
 # Linux
-cmake --preset linux-shared
-cmake --preset linux-static
+cmake --preset linux
 
 # Linux & Windows
-cmake --preset mingw-shared
-cmake --preset mingw-static
+cmake --preset windows
 ```
 
 Build target.
@@ -37,85 +22,86 @@ Build target.
 
 ```sh
 # Linux
-cmake --build build/linux-shared --config Debug --target main tests
-cmake --build build/linux-static --config Release --target main tests benchmarks
-cmake --build build/linux-shared --config RelWithDebInfo --target main tests
-cmake --build build/linux-static --config MinSizeRel --target main tests benchmarks
-cmake --build build/linux-shared --config Coverage --target tests
+cmake --build build/linux --config Debug --target main tests
+cmake --build build/linux --config Release --target main tests benchmarks
+cmake --build build/linux --config RelWithDebInfo --target main tests
+cmake --build build/linux --config MinSizeRel --target main tests benchmarks
+cmake --build build/linux --config Coverage --target tests
 
 # Linux & Windows
-cmake --build build/mingw-shared --config Debug --target main tests
-cmake --build build/mingw-static --config Release --target main tests benchmarks
-cmake --build build/mingw-shared --config RelWithDebInfo --target main tests
-cmake --build build/mingw-static --config MinSizeRel --target main tests benchmarks
-cmake --build build/mingw-shared --config Coverage --target tests
+cmake --build build/windows --config Debug --target main tests
+cmake --build build/windows --config Release --target main tests benchmarks
+cmake --build build/windows --config RelWithDebInfo --target main tests
+cmake --build build/windows --config MinSizeRel --target main tests benchmarks
+cmake --build build/windows --config Coverage --target tests
 ```
 
 Run application.
 
 ```sh
 # Linux
-build/linux-shared/Debug/ace
+build/linux/Debug/ace
 
 # Linux Emulator
-WINEPATH="/opt/ace/sys/mingw/bin;/opt/ace/vcpkg/installed/ace-mingw-shared/bin" \
-wine build/mingw-shared/Debug/ace.exe
-
-# Windows WSL2
-build/mingw-shared/Debug/ace.exe
+WINEDEBUG=-all \
+WINEPATH=${ACE}/sys/mingw/bin \
+wine build/windows/Debug/ace.exe
 
 # Windows
-build\mingw-shared\Debug\ace.exe
+build\windows\Debug\ace.exe
 ```
 
 Run benchmarks.
 
 ```sh
 # Linux
-build/linux-static/Release/benchmarks
+build/linux/Release/benchmarks
 
 # Linux Emulator
-wine build/mingw-static/Release/benchmarks.exe
-
-# Windows WSL2
-build/mingw-static/Release/benchmarks.exe
+WINEDEBUG=-all \
+wine build/windows/Release/benchmarks.exe
 
 # Windows
-build\mingw-static\Release\benchmarks.exe
+build\windows\Release\benchmarks.exe
 ```
 
 Run tests.
 
 ```sh
 # Linux
-ctest --test-dir build/linux-shared -C Debug
+ctest --test-dir build/linux -C Debug
 
 # Linux & Windows
-ctest --test-dir build/mingw-shared -C Debug
+ctest --test-dir build/windows -C Debug
 ```
 
 Analyze [Code Coverage][cov].
 
 ```sh
 # Linux
-ctest --test-dir build/linux-shared -C Coverage
-llvm-profdata merge -sparse build/linux-shared/default.profraw -o build/linux-shared/default.profdata
-llvm-cov show build/linux-shared/Coverage/tests -instr-profile=build/linux-shared/default.profdata
+ctest --test-dir build/linux -C Coverage
+${ACE}/bin/llvm-profdata merge -sparse build/linux/default.profraw -o build/linux/default.profdata
+${ACE}/bin/llvm-cov show build/linux/Coverage/tests -instr-profile=build/linux/default.profdata
 
-# Linux & Windows
-ctest --test-dir build/mingw-shared -C Coverage
-llvm-profdata merge -sparse build/mingw-shared/default.profraw -o build/mingw-shared/default.profdata
-llvm-cov show build/mingw-shared/Coverage/tests.exe -instr-profile=build/mingw-shared/default.profdata
+# Linux Emulator
+ctest --test-dir build/windows -C Coverage
+${ACE}/bin/llvm-profdata merge -sparse build/windows/default.profraw -o build/windows/default.profdata
+${ACE}/bin/llvm-cov show build/windows/Coverage/tests.exe -instr-profile=build/windows/default.profdata
+
+# Windows
+ctest --test-dir build/windows -C Coverage
+%ACE%\bin\llvm-profdata.exe merge -sparse build/windows/default.profraw -o build/windows/default.profdata
+%ACE%\bin\llvm-cov.exe show build/windows/Coverage/tests.exe -instr-profile=build/windows/default.profdata
 ```
 
 Create package.
 
 ```sh
 # Linux
-cmake --build build/linux-static --config Release --target package
+cmake --build build/linux --config Release --target package
 
 # Windows
-cmake --build build/mingw-static --config Release --target package
+cmake --build build/windows --config Release --target package
 ```
 
 </details>
@@ -137,5 +123,6 @@ Modify the project template.
    - [res/license.rtf](res/license.rtf) for Windows
 
 [ace]: https://github.com/qis/ace
+[vsc]: https://code.visualstudio.com/
 [cov]: https://clang.llvm.org/docs/SourceBasedCodeCoverage.html
 [pkg]: https://vcpkg.io/

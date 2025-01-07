@@ -1,5 +1,5 @@
-#include "benchmark/benchmark.h"
-#include <ace/random.hpp>
+#include <benchmark/benchmark.h>
+import ace.random;
 
 static void random(benchmark::State& state)
 {

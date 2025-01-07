@@ -1,5 +1,5 @@
-#include <ace/random.hpp>
-#include <print>
+import ace.random;
+import std;
 #include <cstdio>
 #include <cstdlib>
 

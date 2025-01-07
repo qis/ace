@@ -1,6 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT
-#include "doctest/doctest.h"
-#include <ace/random.hpp>
+#include <doctest/doctest.h>
+import ace.random;
 
 TEST_CASE("ace::random")
 {
