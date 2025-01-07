@@ -1745,8 +1745,8 @@ if [ ! -f build/ace.tar.xz ]; then
   print "Creating linux archive: build/ace.tar.xz ..."
   find include lib ports share sys -type d -exec chmod 0755 '{}' ';'
   find include lib ports share sys -type f -exec chmod 0644 '{}' ';'
-  find bin ports/ace-linux/tools ports/ace-mingw/tools -exec chmod 0755 '{}' ';'
-  find bin ports/ace-mingw/tools -type f -name '*.dll' -exec chmod 0644 '{}' ';'
+  find bin ports/linux/tools ports/mingw/tools -exec chmod 0755 '{}' ';'
+  find bin ports/mingw/tools -type f -name '*.dll' -exec chmod 0644 '{}' ';'
   chown -R "${uid}:${gid}" bin include lib ports share sys
 
   tar cJf build/ace.tar.xz \
@@ -1760,8 +1760,8 @@ if [ ! -f build/ace.7z ]; then
   print "Creating windows archive: build/ace.7z ..."
   find build/windows -type d -exec chmod 0755 '{}' ';'
   find build/windows -type f -exec chmod 0644 '{}' ';'
-  find build/windows/ports/ace-mingw/tools -exec chmod 0755 '{}' ';'
-  find build/windows/ports/ace-mingw/tools -type f -name '*.dll' -exec chmod 0644 '{}' ';'
+  find build/windows/ports/mingw/tools -exec chmod 0755 '{}' ';'
+  find build/windows/ports/mingw/tools -type f -name '*.dll' -exec chmod 0644 '{}' ';'
   chown -R "${uid}:${gid}" build/windows
 
   find build/windows -type l | while read link; do
