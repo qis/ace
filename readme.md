@@ -79,8 +79,8 @@ sudo apt autoremove --purge -y
 sudo apt clean
 
 sudo apt install -y \
-  curl xz-utils wine pkg-config vulkan-validationlayers libncurses6 \
-  sudo man-db manpages manpages-dev xdg-user-dirs
+  curl xz-utils wine pkg-config vulkan-validationlayers binutils \
+  sudo man-db manpages manpages-dev xdg-user-dirs libncurses6
 
 # Gentoo
 sudo emaint sync -a
@@ -93,9 +93,10 @@ sudo emerge -avn \
   app-emulation/wine-proton \
   dev-util/pkgconf \
   media-libs/vulkan-layers \
-  sys-libs/ncurses \
+  sys-devel/binutils \
   app-admin/sudo \
-  x11-misc/xdg-user-dirs
+  x11-misc/xdg-user-dirs \
+  sys-libs/ncurses
 ```
 
 <!--
