@@ -85,6 +85,7 @@ Editor setup instructions.
   // Extension: CMake Tools
   "cmake.buildBeforeRun": true,
   "cmake.configureOnOpen": true,
+  "cmake.deleteBuildDirOnCleanConfigure": true,
   "cmake.enableAutomaticKitScan": false,
   "cmake.ignoreCMakeListsMissing": true,
   "cmake.launchBehavior": "breakAndReuseTerminal",
