@@ -18,10 +18,17 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM BOTH CACHE STRING "" FORCE)
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "" FORCE)
 
 # Program Paths
-file(GLOB ACE_PORTS_TOOLS_PATH
-  ${ACE}/ports/mingw/tools
-  ${ACE}/ports/mingw/tools/*
-  LIST_DIRECTORIES ON)
+if(CMAKE_HOST_WIN32)
+  file(GLOB ACE_PORTS_TOOLS_PATH
+    ${ACE}/ports/mingw/tools
+    ${ACE}/ports/mingw/tools/*
+    LIST_DIRECTORIES ON)
+else()
+  file(GLOB ACE_PORTS_TOOLS_PATH
+    ${ACE}/ports/linux/tools
+    ${ACE}/ports/linux/tools/*
+    LIST_DIRECTORIES ON)
+endif()
 
 set(ACE_PROGRAM_PATH ${ACE}/bin)
 foreach(path ${ACE_PORTS_TOOLS_PATH})
