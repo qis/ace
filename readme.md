@@ -113,11 +113,11 @@ cp ${USERPROFILE}/.ssh/known_hosts ~/.ssh/
 chmod 0600 ~/.ssh/*
 
 # Install apt-file(1).
-sudo apt install -y apt-file
-sudo apt-file update
+# sudo apt install -y apt-file
+# sudo apt-file update
 
 # Install vim(1).
-sudo apt install -y vim
+# sudo apt install -y vim
 -->
 
 2. Install [CMake][cmk].
@@ -200,7 +200,10 @@ sudo emerge -avn \
 2. Download source code and build toolchain.
 
 <!--
+# Clone toolchain repository.
 git clone git@github.com:qis/ace /opt/ace
+
+# Install bash(1) config.
 cat /opt/ace/src/bash.sh | sudo tee /etc/profile.d/bash.sh >/dev/null
 sudo chmod 0755 /etc/profile.d/bash.sh
 source /etc/profile.d/bash.sh
