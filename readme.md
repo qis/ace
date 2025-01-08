@@ -230,7 +230,7 @@ fi
 ```
 
 ## Install
-Use archives from the build step to install the toolchain.
+Use archives from the build step.
 
 ### Windows
 Install toolchain on Windows.
@@ -246,7 +246,8 @@ rem Register toolchain.
 SystemPropertiesAdvanced.exe
 ```
 
-Create the system environment variable `ACE` and set it to `C:\Ace`.
+1. Create the system environment variable `ACE` and set it to `C:\Ace`.
+2. Add `C:\Ace\bin` to the `Path` system environment variable.
 
 ### Linux
 Install toolchain on Linux (in case it was built on another system).

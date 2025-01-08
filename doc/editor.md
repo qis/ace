@@ -7,7 +7,7 @@ Editor setup instructions.
 2. Install required extensions.
    * CMake Tools `ms-vscode.cmake-tools`
    * clangd `llvm-vs-code-extensions.vscode-clangd`
-   * CodeLLDB `vadimcn.vscode-lldb`
+   * LLDB DAP `llvm-vs-code-extensions.lldb-dap`
 
 3. Install optional extension for license formatting.
    * Reflow Markdown `marvhen.reflow-markdown`
@@ -16,23 +16,60 @@ Editor setup instructions.
 
 ```json5
 {
+  // Extension: CMake Tools
+  "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+  "cmake.ctest.testExplorerIntegrationEnabled": true,
+  "cmake.showConfigureWithDebuggerNotification": false,
+  "cmake.showNotAllDocumentsSavedQuestion": false,
+  "cmake.showOptionsMovedNotification": false,
+  "cmake.useCMakePresets": "always",
+  "cmake.pinnedCommands": [
+    "workbench.action.tasks.configureTaskRunner",
+    "workbench.action.tasks.runTask",
+    "workbench.action.tasks.debug"
+  ],
+
+  "cmake.debugConfig": {
+    "name": "LLDB",
+    "type": "lldb-dap",
+    "request": "launch",
+    "program": "${command:cmake.launchTargetPath}",
+    "cwd": "${workspaceRoot}",
+    "args": [],
+    "env": []
+  },
+
+  // Extension: clangd
+  // Linux: /opt/ace/bin/clangd
+  // Windows: C:/Ace/bin/clangd.exe
+  "clangd.path": "C:/Ace/bin/clangd.exe",
+  "clangd.onConfigChanged": "restart",
   "clangd.arguments": [
     "--experimental-modules-support",
     "--header-insertion=never",
   ],
-  "clangd.onConfigChanged": "restart",
-  "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
-  "cmake.ctest.testExplorerIntegrationEnabled": true,
-  "cmake.useCMakePresets": "always",
-  "cmake.debugConfig": {
-    "name": "LLDB",
-    "type": "lldb",
-    "request": "launch",
-    "cwd": "${workspaceFolder}",
-    "program": "${command:cmake.launchTargetPath}",
-    "args": []
-  },
+
+  // Extension: LLDB DAP
+  // Linux: /opt/ace/bin/lldb-dap
+  // Windows: C:/Ace/bin/lldb-dap.exe
+  "lldb-dap.executable-path": "C:/Ace/bin/lldb-dap.exe",
+
+  // Extension: Reflow Markdown
   "reflowMarkdown.preferredLineLength": 76,
+
+  // Preferences: Open Remote Settings
+  // "clangd.path": "/opt/ace/bin/clangd",
+  // "lldb-dap.executable-path": "/opt/ace/bin/lldb-dap",
+  // "cmake.ctest.testExplorerIntegrationEnabled": true,
+  // "cmake.debugConfig": {
+  //   "name": "LLDB",
+  //   "type": "lldb-dap",
+  //   "request": "launch",
+  //   "program": "${command:cmake.launchTargetPath}",
+  //   "cwd": "${workspaceRoot}",
+  //   "args": [],
+  //   "env": []
+  // }
 }
 ```
 
@@ -40,15 +77,22 @@ Editor setup instructions.
 
 ```json5
 {
+  "debug.showInStatusBar": "never",
+  "debug.toolBarLocation": "commandCenter",
+  "window.commandCenter": true,
+  "window.titleBarStyle": "custom",
+
+  // Extension: CMake Tools
   "cmake.buildBeforeRun": true,
   "cmake.configureOnOpen": true,
-  "cmake.options.statusBarVisibility": "compact",
+  "cmake.enableAutomaticKitScan": false,
+  "cmake.ignoreCMakeListsMissing": true,
+  "cmake.launchBehavior": "breakAndReuseTerminal",
+
+  "cmake.options.statusBarVisibility": "hidden",
   "cmake.options.advanced": {
     "configurePreset": {
       "statusBarVisibility": "compact"
-    },
-    "build": {
-      "statusBarVisibility": "icon"
     },
     "buildPreset": {
       "statusBarVisibility": "compact"
@@ -56,62 +100,26 @@ Editor setup instructions.
     "buildTarget": {
       "statusBarVisibility": "compact"
     },
+    "launchTarget": {
+      "statusBarVisibility": "compact"
+    },
+    "build": {
+      "statusBarVisibility": "hidden"
+    },
     "debug": {
-      "statusBarVisibility": "hidden",
+      "statusBarVisibility": "hidden"
     },
     "launch": {
       "statusBarVisibility": "icon"
     },
-    "launchTarget": {
-      "statusBarVisibility": "compact"
-    },
-    "testPreset": {
-      "statusBarVisibility": "hidden"
-    },
     "ctest": {
       "statusBarVisibility": "icon"
     },
-    "packagePreset": {
-      "statusBarVisibility": "hidden"
-    },
-    "cpack": {
-      "statusBarVisibility": "icon"
-    },
-    "workflowPreset": {
-      "statusBarVisibility": "hidden"
-    },
-    "workflow": {
-      "statusBarVisibility": "hidden"
-    }
   },
-  "debug.showInStatusBar": "never",
-  // When VS Code draws it's own window decorations.
-  //"debug.toolBarLocation": "commandCenter",
-  "lldb.showDisassembly": "auto",
-  "lldb.dereferencePointers": true,
-  "lldb.consoleMode": "commands",
-  "lldb.displayFormat": "auto",
 }
 ```
 
-6. Add recommended user settings on Linux.
-
-```json5
-{
-  "clangd.path": "/opt/ace/bin/clangd",
-  "cmake.cmakePath": "/opt/cmake/bin/cmake",
-}
-```
-
-7. Add recommended user settings on Windows.
-
-```json5
-{
-  "clangd.path": "C:/Ace/bin/clangd.exe",
-}
-```
-
-Recommended keyboard shortcuts.
+6. Add recommended keyboard shortcuts.
 
 ```json5
 [

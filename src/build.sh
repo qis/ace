@@ -117,8 +117,10 @@ login() {
   /bin/bash --init-file src/bash.sh
 }
 
-if [ ! -f build/01-chroot-system.done ] || [ ! -e /usr/bin/ninja ]; then
-  rm -f build/01-chroot-system.done
+if [ ! -f build/01-chroot.done ] ||
+   [ ! -e /usr/bin/ninja ]
+then
+  rm -f build/01-chroot.done
 
   print "Installing chroot packages ..."
   DEBIAN_FRONTEND=noninteractive \
@@ -137,7 +139,7 @@ if [ ! -f build/01-chroot-system.done ] || [ ! -e /usr/bin/ninja ]; then
   apt-file update
 
   verify /usr/bin/ninja
-  create build/01-chroot-system.done
+  create build/01-chroot.done
 fi
 
 # =================================================================================================
@@ -197,13 +199,6 @@ LLVM_GIT="https://github.com/llvm/llvm-project"
 
 # Download sources for the master branch.
 download_git "llvm" "${LLVM_GIT}" "main" "build/src" "llvm/CMakeLists.txt"
-
-# =================================================================================================
-
-LLDB_MI_TAG="main"
-LLDB_MI_GIT="https://github.com/lldb-tools/lldb-mi"
-
-download_git "lldb-mi" "${LLDB_MI_GIT}" "${LLDB_MI_TAG}" "build/src" "CMakeLists.txt"
 
 # =================================================================================================
 
@@ -325,7 +320,9 @@ export LD_LIBRARY_PATH="${ACE}/lib"
 # 03: linux
 # =================================================================================================
 
-if [ ! -f build/03-linux.done ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]; then
+if [ ! -f build/03-linux.done ] ||
+   [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
+then
   rm -rf build/03-linux.done build/linux sys/linux
 
   print "Creating linux sysroot ..."
@@ -386,8 +383,14 @@ if [ ! -f build/03-linux.done ] || [ ! -f sys/linux/lib64/ld-linux-x86-64.so.2 ]
   create build/03-linux.done
 fi
 
-if [ ! -f build/03-llvm.done ] || [ ! -e build/llvm/bin/clang ]; then
-  rm -rf build/03-llvm.done build/llvm build/stage0
+# =================================================================================================
+# 04: stage 0
+# =================================================================================================
+
+if [ ! -f build/04-stage0.done ] ||
+   [ ! -e build/llvm/bin/clang ]
+then
+  rm -rf build/04-stage0.done build/llvm build/stage0
 
   print "Configuring stage 0 ..."
   cmake -GNinja -Wno-dev \
@@ -449,15 +452,17 @@ if [ ! -f build/03-llvm.done ] || [ ! -e build/llvm/bin/clang ]; then
   ninja -C build/stage0 install
 
   verify build/llvm/bin/clang
-  create build/03-llvm.done
+  create build/04-stage0.done
 fi
 
 # =================================================================================================
-# 04: stage 1
+# 05: stage 1
 # =================================================================================================
 
-if [ ! -f build/04-stage1-configure.done ] || [ ! -e build/stage1/build.ninja ]; then
-  rm -rf build/04-stage1-configure.done build/stage1
+if [ ! -f build/05-stage1-configure.done ] ||
+   [ ! -e build/stage1/build.ninja ]
+then
+  rm -rf build/05-stage1-configure.done build/stage1
 
   print "Configuring stage 1 ..."
   cmake -GNinja -Wno-dev \
@@ -538,11 +543,13 @@ if [ ! -f build/04-stage1-configure.done ] || [ ! -e build/stage1/build.ninja ];
     -B build/stage1 build/src/llvm/llvm
 
   verify build/stage1/build.ninja
-  create build/04-stage1-configure.done
+  create build/05-stage1-configure.done
 fi
 
-if [ ! -f build/04-stage1-build.done ] || [ ! -e build/stage1/bin/clang ]; then
-  rm -rf build/04-stage1-build.done
+if [ ! -f build/05-stage1-build.done ] ||
+   [ ! -e build/stage1/bin/clang ]
+then
+  rm -rf build/05-stage1-build.done
 
   print "Building stage 1 ..."
   ninja -C build/stage1 \
@@ -564,19 +571,19 @@ if [ ! -f build/04-stage1-build.done ] || [ ! -e build/stage1/bin/clang ]; then
     runtimes
 
   verify build/stage1/bin/clang
-  create build/04-stage1-build.done
+  create build/05-stage1-build.done
 fi
 
 LLVM_RES="lib/clang/$(cmake -P src/version.cmake)"
 
-if [ ! -f build/04-stage1-install.done ] ||
+if [ ! -f build/05-stage1-install.done ] ||
    [ ! -e ${LLVM_RES}/lib/linux/libclang_rt.builtins-x86_64.a ] ||
    [ ! -e include/c++/v1/__config ] ||
    [ ! -e lib/libc++.modules.json ] ||
    [ ! -e lib/libc++.so.2 ] ||
    [ ! -e sys/linux/lib/libc++.so.2 ]
 then
-  rm -rf build/04-stage1-install.done
+  rm -rf build/05-stage1-install.done
 
   print "Installing stage 1 ..."
   CC="clang" \
@@ -614,21 +621,21 @@ then
   verify lib/libc++.modules.json
   verify include/c++/v1/__config
   verify ${LLVM_RES}/lib/linux/libclang_rt.builtins-x86_64.a
-  create build/04-stage1-install.done
+  create build/05-stage1-install.done
 fi
 
 # =================================================================================================
-# 05: dependencies
+# 06: dependencies
 # =================================================================================================
 
-if [ ! -f build/05-dependencies.done ] ||
+if [ ! -f build/06-dependencies.done ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/liblzma.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libxml2.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libcrypto.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libssl.a ] ||
    [ ! -e build/vcpkg/installed/ace-linux/lib/libz.a ]
 then
-  rm -rf build/05-dependencies.done
+  rm -rf build/06-dependencies.done
 
   print "Building dependencies ..."
   PATH="${ACE}/build/stage1/bin:${PATH}" \
@@ -640,15 +647,17 @@ then
   verify build/vcpkg/installed/ace-linux/lib/libcrypto.a
   verify build/vcpkg/installed/ace-linux/lib/libxml2.a
   verify build/vcpkg/installed/ace-linux/lib/liblzma.a
-  create build/05-dependencies.done
+  create build/06-dependencies.done
 fi
 
 # =================================================================================================
-# 06: stage 2
+# 07: stage 2
 # =================================================================================================
 
-if [ ! -f build/06-stage2-configure.done ] || [ ! -e build/stage2/build.ninja ]; then
-  rm -rf build/06-stage2-configure.done build/stage2
+if [ ! -f build/07-stage2-configure.done ] ||
+   [ ! -e build/stage2/build.ninja ]
+then
+  rm -rf build/07-stage2-configure.done build/stage2
 
   print "Configuring stage 2 ..."
   cmake -GNinja -Wno-dev \
@@ -702,11 +711,13 @@ if [ ! -f build/06-stage2-configure.done ] || [ ! -e build/stage2/build.ninja ];
     -B build/stage2 build/src/llvm/llvm
 
   verify build/stage2/build.ninja
-  create build/06-stage2-configure.done
+  create build/07-stage2-configure.done
 fi
 
-if [ ! -f build/06-stage2-build.done ] || [ ! -e build/stage2/bin/clang ]; then
-  rm -rf build/06-stage2-build.done
+if [ ! -f build/07-stage2-build.done ] ||
+   [ ! -e build/stage2/bin/clang ]
+then
+  rm -rf build/07-stage2-build.done
 
   print "Building stage 2 ..."
   ninja -C build/stage2 \
@@ -714,6 +725,8 @@ if [ ! -f build/06-stage2-build.done ] || [ ! -e build/stage2/bin/clang ]; then
     LTO \
     lld \
     lldb \
+    lldb-dap \
+    lldb-server \
     liblldb \
     llvm-ar \
     llvm-nm \
@@ -739,17 +752,21 @@ if [ ! -f build/06-stage2-build.done ] || [ ! -e build/stage2/bin/clang ]; then
     libclang
 
   verify build/stage2/bin/clang
-  create build/06-stage2-build.done
+  create build/07-stage2-build.done
 fi
 
-if [ ! -f build/06-stage2-install.done ] || [ ! -e bin/clang ]; then
-  rm -rf build/06-stage2-install.done
+if [ ! -f build/07-stage2-install.done ] ||
+   [ ! -e bin/clang ]
+then
+  rm -rf build/07-stage2-install.done
 
   print "Installing stage 2 ..."
   ninja -C build/stage2 \
     install-LTO-stripped \
     install-lld-stripped \
     install-lldb-stripped \
+    install-lldb-dap-stripped \
+    install-lldb-server-stripped \
     install-liblldb-stripped \
     install-llvm-ar-stripped \
     install-llvm-nm-stripped \
@@ -786,7 +803,7 @@ if [ ! -f build/06-stage2-install.done ] || [ ! -e bin/clang ]; then
   echo "lib/libclang.so"; readelf -d "lib/libclang.so" | grep RUNPATH
 
   verify bin/clang
-  create build/06-stage2-install.done
+  create build/07-stage2-install.done
 fi
 
 tee bin/windres >/dev/null <<'EOF'
@@ -800,58 +817,14 @@ ACE=$(dirname "${BIN}")
 EOF
 chmod +x bin/windres
 
-if [ ! -f build/06-stage2-lldb-mi.done ] || [ ! -e bin/lldb-mi ]; then
-  rm -rf build/06-stage2-lldb-mi.done build/stage2-lldb-mi
-
-  print "Configuring stage2 lldb-mi ..."
-  if [ ! -d build/stage2/lldb-mi ]; then
-    git clone build/src/lldb-mi build/stage2/lldb-mi
-  fi
-  cmake -GNinja -Wno-dev \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${ACE}" \
-    -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-linux;${ACE}/build/stage2" \
-    -DCMAKE_CROSSCOMPILING=ON \
-    -DCMAKE_SYSTEM_NAME="Linux" \
-    -DCMAKE_SYSTEM_VERSION="5.10.0" \
-    -DCMAKE_SYSTEM_PROCESSOR="AMD64" \
-    -DCMAKE_SYSROOT="${ACE}/sys/linux" \
-    -DCMAKE_FIND_ROOT_PATH="${ACE}" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE="ONLY" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY="ONLY" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE="ONLY" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM="BOTH" \
-    -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON \
-    -DCMAKE_BUILD_RPATH="${ACE}/lib" \
-    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
-    -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64 -fno-rtti" \
-    -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
-    -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
-    -DLLVM_ENABLE_LIBCXX=ON \
-    -DLLVM_ENABLE_LTO="Thin" \
-    -DLLVM_ENABLE_MODULES=OFF \
-    -DLLVM_ENABLE_WARNINGS=OFF \
-    -DLLVM_TARGETS_TO_BUILD="X86" \
-    -DLLVM_USE_LINKER="lld" \
-    -B build/stage2-lldb-mi build/stage2/lldb-mi
-
-  print "Installing stage2 lldb-mi ..."
-  ninja -C build/stage2-lldb-mi install/strip
-
-  verify bin/lldb-mi
-  create build/06-stage2-lldb-mi.done
-fi
-
 # =================================================================================================
-# 07: re2c
+# 08: re2c
 # =================================================================================================
 
-if [ ! -f build/07-re2c.done ] || [ ! -e build/re2c/re2c ]; then
-  rm -rf build/07-re2c.done build/re2c
+if [ ! -f build/08-re2c.done ] ||
+   [ ! -e build/re2c/re2c ]
+then
+  rm -rf build/08-re2c.done build/re2c
 
   print "Configuring re2c ..."
   cmake -GNinja -Wno-dev \
@@ -868,25 +841,29 @@ if [ ! -f build/07-re2c.done ] || [ ! -e build/re2c/re2c ]; then
   ninja -C build/re2c
 
   verify build/re2c/re2c
-  create build/07-re2c.done
+  create build/08-re2c.done
 fi
 
-if [ ! -f build/07-re2c-install.done ] || [ ! -e bin/re2c ]; then
-  rm -rf build/07-re2c-install.done bin/re2c
+if [ ! -f build/08-re2c-install.done ] ||
+   [ ! -e bin/re2c ]
+then
+  rm -rf build/08-re2c-install.done bin/re2c
 
   print "Installing re2c ..."
   ninja -C build/re2c install/strip
 
   verify bin/re2c
-  create build/07-re2c-install.done
+  create build/08-re2c-install.done
 fi
 
 # =================================================================================================
-# 08: yasm
+# 09: yasm
 # =================================================================================================
 
-if [ ! -f build/08-yasm.done ] || [ ! -e build/yasm/yasm ]; then
-  rm -rf build/08-yasm.done build/yasm
+if [ ! -f build/09-yasm.done ] ||
+   [ ! -e build/yasm/yasm ]
+then
+  rm -rf build/09-yasm.done build/yasm
 
   print "Configuring yasm ..."
   cmake -GNinja -Wno-dev \
@@ -902,15 +879,15 @@ if [ ! -f build/08-yasm.done ] || [ ! -e build/yasm/yasm ]; then
   ninja -C build/yasm
 
   verify build/yasm/yasm
-  create build/08-yasm.done
+  create build/09-yasm.done
 fi
 
-if [ ! -f build/08-yasm-install.done ] ||
+if [ ! -f build/09-yasm-install.done ] ||
    [ ! -e lib/libyasmstd.so ] ||
    [ ! -e lib/libyasm.so ] ||
    [ ! -e bin/yasm ]
 then
-  rm -rf build/08-yasm-install.done bin/yasm lib/libyasm.so
+  rm -rf build/09-yasm-install.done bin/yasm lib/libyasm.so
 
   print "Installing yasm ..."
   ninja -C build/yasm install/strip
@@ -922,15 +899,17 @@ then
   verify bin/yasm
   verify lib/libyasm.so
   verify lib/libyasmstd.so
-  create build/08-yasm-install.done
+  create build/09-yasm-install.done
 fi
 
 # =================================================================================================
-# 09: ninja
+# 10: ninja
 # =================================================================================================
 
-if [ ! -f build/09-ninja.done ] || [ ! -e build/ninja/ninja ]; then
-  rm -rf build/09-ninja.done build/ninja
+if [ ! -f build/10-ninja.done ] ||
+   [ ! -e build/ninja/ninja ]
+then
+  rm -rf build/10-ninja.done build/ninja
 
   print "Configuring ninja ..."
   cmake -GNinja -Wno-dev \
@@ -946,29 +925,33 @@ if [ ! -f build/09-ninja.done ] || [ ! -e build/ninja/ninja ]; then
   ninja -C build/ninja
 
   verify build/ninja/ninja
-  create build/09-ninja.done
+  create build/10-ninja.done
 fi
 
-if [ ! -f build/09-ninja-install.done ] || [ ! -e bin/ninja ]; then
-  rm -rf build/09-ninja-install.done bin/ninja
+if [ ! -f build/10-ninja-install.done ] ||
+   [ ! -e bin/ninja ]
+then
+  rm -rf build/10-ninja-install.done bin/ninja
 
   print "Installing ninja ..."
   ninja -C build/ninja install/strip
 
   verify bin/ninja
-  create build/09-ninja-install.done
+  create build/10-ninja-install.done
 fi
 
 # =================================================================================================
-# 10: mingw
+# 11: mingw
 # =================================================================================================
 
 MINGW_LFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw"
 MINGW_CFLAGS="-O3 -march=x86-64 ${MINGW_LFLAGS} -fms-compatibility-version=19.40"
 MINGW_RFLAGS="-I${ACE}/sys/mingw/include"
 
-if [ ! -f build/10-mingw.done ] || [ ! -e bin/genidl ]; then
-  rm -rf build/10-mingw.done \
+if [ ! -f build/11-mingw.done ] ||
+   [ ! -e bin/genidl ]
+then
+  rm -rf build/11-mingw.done \
     build/mingw-headers \
     build/mingw-crt \
     build/mingw-tools \
@@ -1060,11 +1043,13 @@ if [ ! -f build/10-mingw.done ] || [ ! -e bin/genidl ]; then
     > build/mingw-tools-install.log 2>&1
 
   verify bin/genidl
-  create build/10-mingw.done
+  create build/11-mingw.done
 fi
 
-if [ ! -f build/10-mingw-builtins.done ] || [ ! -e ${LLVM_RES}/lib/windows/libclang_rt.builtins-x86_64.a ]; then
-  rm -rf build/10-mingw-builtins.done build/mingw-builtins ${LLVM_RES}/lib/windows
+if [ ! -f build/11-mingw-builtins.done ] ||
+   [ ! -e ${LLVM_RES}/lib/windows/libclang_rt.builtins-x86_64.a ]
+then
+  rm -rf build/11-mingw-builtins.done build/mingw-builtins ${LLVM_RES}/lib/windows
 
   print "Configuring mingw builtins ..."
   cmake -GNinja -Wno-dev \
@@ -1115,11 +1100,13 @@ if [ ! -f build/10-mingw-builtins.done ] || [ ! -e ${LLVM_RES}/lib/windows/libcl
   ninja -C build/mingw-builtins install/strip
 
   verify ${LLVM_RES}/lib/windows/libclang_rt.builtins-x86_64.a
-  create build/10-mingw-builtins.done
+  create build/11-mingw-builtins.done
 fi
 
-if [ ! -f build/10-mingw-pthread.done ] || [ ! -e sys/mingw/lib/libwinpthread.a ]; then
-  rm -rf build/10-mingw-pthread.done build/mingw-pthread
+if [ ! -f build/11-mingw-pthread.done ] ||
+   [ ! -e sys/mingw/lib/libwinpthread.a ]
+then
+  rm -rf build/11-mingw-pthread.done build/mingw-pthread
 
   print "Configuring mingw pthread ..."
   mkdir -p build/mingw-pthread
@@ -1148,15 +1135,15 @@ if [ ! -f build/10-mingw-pthread.done ] || [ ! -e sys/mingw/lib/libwinpthread.a 
     > build/mingw-pthread-install.log 2>&1
 
   verify sys/mingw/lib/libwinpthread.a
-  create build/10-mingw-pthread.done
+  create build/11-mingw-pthread.done
 fi
 
-if [ ! -f build/10-mingw-runtimes.done ] ||
+if [ ! -f build/11-mingw-runtimes.done ] ||
    [ ! -e sys/mingw/include/c++/v1/__config ] ||
    [ ! -e sys/mingw/lib/libc++.modules.json ] ||
    [ ! -e sys/mingw/bin/libc++.dll ]
 then
-  rm -rf build/10-mingw-runtimes.done build/mingw-runtimes
+  rm -rf build/11-mingw-runtimes.done build/mingw-runtimes
 
   print "Configuring mingw runtimes ..."
   cmake -GNinja -Wno-dev \
@@ -1225,19 +1212,19 @@ then
   verify sys/mingw/include/c++/v1/__config
   verify sys/mingw/lib/libc++.modules.json
   verify sys/mingw/bin/libc++.dll
-  create build/10-mingw-runtimes.done
+  create build/11-mingw-runtimes.done
 fi
 
 # =================================================================================================
-# 11: mingw dependencies
+# 12: mingw dependencies
 # =================================================================================================
 
-if [ ! -f build/11-mingw-dependencies.done ] ||
+if [ ! -f build/12-mingw-dependencies.done ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/liblzma.a ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/libxml2.a ] ||
    [ ! -e build/vcpkg/installed/ace-mingw/lib/libzlib.a ]
 then
-  rm -rf build/11-mingw-dependencies.done
+  rm -rf build/12-mingw-dependencies.done
 
   print "Building mingw dependencies ..."
   vcpkg install --triplet=ace-mingw \
@@ -1246,18 +1233,18 @@ then
   verify build/vcpkg/installed/ace-mingw/lib/libzlib.a
   verify build/vcpkg/installed/ace-mingw/lib/libxml2.a
   verify build/vcpkg/installed/ace-mingw/lib/liblzma.a
-  create build/11-mingw-dependencies.done
+  create build/12-mingw-dependencies.done
 fi
 
 # =================================================================================================
-# 12: stage 3
+# 13: stage 3
 # =================================================================================================
 
-if [ ! -f build/12-stage3-prepare.done ] ||
+if [ ! -f build/13-stage3-prepare.done ] ||
    [ ! -f build/windows/bin/libc++.dll ] ||
    [ ! -f build/windows/${LLVM_RES}/lib/windows/libclang_rt.builtins-x86_64.a ]
 then
-  rm -rf build/12-stage3-prepare.done build/windows
+  rm -rf build/13-stage3-prepare.done build/windows
 
   print "Preparing stage 3 ..."
   mkdir -p build/windows/bin
@@ -1271,11 +1258,13 @@ then
 
   verify build/windows/${LLVM_RES}/lib/windows/libclang_rt.builtins-x86_64.a
   verify build/windows/bin/libc++.dll
-  create build/12-stage3-prepare.done
+  create build/13-stage3-prepare.done
 fi
 
-if [ ! -f build/12-stage3-configure.done ] || [ ! -e build/stage3/build.ninja ]; then
-  rm -rf build/12-stage3-configure.done build/stage3
+if [ ! -f build/13-stage3-configure.done ] ||
+   [ ! -e build/stage3/build.ninja ]
+then
+  rm -rf build/13-stage3-configure.done build/stage3
 
   # NOTE: -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lbcrypt" is a workaround for
   # liblldb.dll not being able to find BCryptGenRandom.
@@ -1331,17 +1320,21 @@ if [ ! -f build/12-stage3-configure.done ] || [ ! -e build/stage3/build.ninja ];
     -B build/stage3 build/src/llvm/llvm
 
   verify build/stage3/build.ninja
-  create build/12-stage3-configure.done
+  create build/13-stage3-configure.done
 fi
 
-if [ ! -f build/12-stage3-install.done ] || [ ! -e build/windows/bin/clang.exe ]; then
-  rm -rf build/12-stage3-install.done
+if [ ! -f build/13-stage3-install.done ] ||
+   [ ! -e build/windows/bin/clang.exe ]
+then
+  rm -rf build/13-stage3-install.done
 
   print "Installing stage 3 ..."
   ninja -C build/stage3 \
     install-LTO-stripped \
     install-lld-stripped \
     install-lldb-stripped \
+    install-lldb-dap-stripped \
+    install-lldb-server-stripped \
     install-liblldb-stripped \
     install-llvm-ar-stripped \
     install-llvm-nm-stripped \
@@ -1378,60 +1371,17 @@ if [ ! -f build/12-stage3-install.done ] || [ ! -e build/windows/bin/clang.exe ]
   cp -R build/windows/include/clang-c sys/mingw/include/clang-c
 
   verify build/windows/bin/clang.exe
-  create build/12-stage3-install.done
-fi
-
-if [ ! -f build/12-stage3-lldb-mi.done ] || [ ! -e build/windows/bin/lldb-mi.exe ]; then
-  rm -rf build/12-stage3-lldb-mi.done build/stage3-lldb-mi
-
-  print "Configuring stage3 lldb-mi ..."
-  if [ ! -d build/stage3/lldb-mi ]; then
-    git clone build/src/lldb-mi build/stage3/lldb-mi
-  fi
-  cmake -GNinja -Wno-dev \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_INSTALL_PREFIX="${ACE}/build/windows" \
-    -DCMAKE_PREFIX_PATH="${ACE}/build/vcpkg/installed/ace-mingw;${ACE}/build/stage3" \
-    -DCMAKE_CROSSCOMPILING=ON \
-    -DCMAKE_SYSTEM_NAME="Windows" \
-    -DCMAKE_SYSTEM_VERSION="10.0" \
-    -DCMAKE_SYSTEM_PROCESSOR="AMD64" \
-    -DCMAKE_SYSROOT="${ACE}/sys/mingw" \
-    -DCMAKE_FIND_ROOT_PATH="${ACE}" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE="ONLY" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY="ONLY" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE="ONLY" \
-    -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM="BOTH" \
-    -DCMAKE_C_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
-    -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
-    -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40 -fno-rtti" \
-    -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
-    -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
-    -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
-    -DLLVM_ENABLE_LIBCXX=ON \
-    -DLLVM_ENABLE_LTO="Thin" \
-    -DLLVM_ENABLE_MODULES=OFF \
-    -DLLVM_ENABLE_WARNINGS=OFF \
-    -DLLVM_TARGETS_TO_BUILD="X86" \
-    -DLLVM_USE_LINKER="lld" \
-    -B build/stage3-lldb-mi build/stage3/lldb-mi
-
-  print "Installing stage3 lldb-mi ..."
-  ninja -C build/stage3-lldb-mi install/strip
-
-  verify build/windows/bin/lldb-mi.exe
-  create build/12-stage3-lldb-mi.done
+  create build/13-stage3-install.done
 fi
 
 # =================================================================================================
-# 13: windows re2c
+# 14: windows re2c
 # =================================================================================================
 
-if [ ! -f build/13-windows-re2c.done ] || [ ! -e build/windows/bin/re2c.exe ]; then
-  rm -rf build/13-windows-re2c.done build/windows-re2c build/windows/bin/re2c.exe
+if [ ! -f build/14-windows-re2c.done ] ||
+   [ ! -e build/windows/bin/re2c.exe ]
+then
+  rm -rf build/14-windows-re2c.done build/windows-re2c build/windows/bin/re2c.exe
 
   print "Configuring windows re2c ..."
   cmake -GNinja -Wno-dev \
@@ -1447,29 +1397,33 @@ if [ ! -f build/13-windows-re2c.done ] || [ ! -e build/windows/bin/re2c.exe ]; t
   ninja -C build/windows-re2c install/strip
 
   verify build/windows/bin/re2c.exe
-  create build/13-windows-re2c.done
+  create build/14-windows-re2c.done
 fi
 
 # =================================================================================================
-# 14: windows yasm
+# 15: windows yasm
 # =================================================================================================
 
-if [ ! -f build/14-windows-yasm.done ] || [ ! -e build/windows/bin/yasm.exe ]; then
-  rm -rf build/14-windows-yasm.done build/windows/bin/yasm.exe
+if [ ! -f build/15-windows-yasm.done ] ||
+   [ ! -e build/windows/bin/yasm.exe ]
+then
+  rm -rf build/15-windows-yasm.done build/windows/bin/yasm.exe
 
   print "Downloading windows yasm ..."
   curl -o "build/windows/bin/yasm.exe" -L "${YASM_EXE}" || error "Download failed."
 
   verify build/windows/bin/yasm.exe
-  create build/14-windows-yasm.done
+  create build/15-windows-yasm.done
 fi
 
 # =================================================================================================
-# 15: windows ninja
+# 16: windows ninja
 # =================================================================================================
 
-if [ ! -f build/15-windows-ninja.done ] || [ ! -e build/windows/bin/ninja.exe ]; then
-  rm -rf build/15-windows-ninja.done build/windows-ninja build/windows/bin/ninja.exe
+if [ ! -f build/16-windows-ninja.done ] ||
+   [ ! -e build/windows/bin/ninja.exe ]
+then
+  rm -rf build/16-windows-ninja.done build/windows-ninja build/windows/bin/ninja.exe
 
   print "Configuring windows ninja ..."
   cmake -GNinja -Wno-dev \
@@ -1484,18 +1438,18 @@ if [ ! -f build/15-windows-ninja.done ] || [ ! -e build/windows/bin/ninja.exe ];
   ninja -C build/windows-ninja install/strip
 
   verify build/windows/bin/ninja.exe
-  create build/15-windows-ninja.done
+  create build/16-windows-ninja.done
 fi
 
 # =================================================================================================
-# 16: compiler-rt
+# 17: compiler-rt
 # =================================================================================================
 
-if [ ! -f build/16-compiler-rt-linux.done ] ||
+if [ ! -f build/17-compiler-rt-linux.done ] ||
    [ ! -f ${LLVM_RES}/lib/linux/liborc_rt-x86_64.a ] ||
    [ ! -f ${LLVM_RES}/lib/linux/libclang_rt.profile-x86_64.a ]
 then
-  rm -rf build/16-compiler-rt-linux.done build/compiler-rt-linux
+  rm -rf build/17-compiler-rt-linux.done build/compiler-rt-linux
 
   print "Configuring compiler-rt (linux) ..."
   cmake -GNinja -Wno-dev \
@@ -1547,16 +1501,16 @@ then
 
   verify ${LLVM_RES}/lib/linux/libclang_rt.profile-x86_64.a
   verify ${LLVM_RES}/lib/linux/liborc_rt-x86_64.a
-  create build/16-compiler-rt-linux.done
+  create build/17-compiler-rt-linux.done
 fi
 
-if [ ! -f build/16-compiler-rt-mingw.done ] ||
+if [ ! -f build/17-compiler-rt-mingw.done ] ||
    [ ! -f ${LLVM_RES}/lib/windows/liborc_rt-x86_64.a ] ||
    [ ! -f ${LLVM_RES}/lib/windows/libclang_rt.profile-x86_64.a ] ||
    [ ! -f build/windows/${LLVM_RES}/lib/windows/liborc_rt-x86_64.a ] ||
    [ ! -f build/windows/${LLVM_RES}/lib/windows/libclang_rt.profile-x86_64.a ]
 then
-  rm -rf build/16-compiler-rt-mingw.done build/compiler-rt-mingw
+  rm -rf build/17-compiler-rt-mingw.done build/compiler-rt-mingw
 
   print "Configuring compiler-rt (mingw) ..."
   cmake -GNinja -Wno-dev \
@@ -1622,17 +1576,17 @@ then
 
   verify build/windows/${LLVM_RES}/lib/windows/libclang_rt.profile-x86_64.a
   verify build/windows/${LLVM_RES}/lib/windows/liborc_rt-x86_64.a
-  create build/16-compiler-rt-mingw.done
+  create build/17-compiler-rt-mingw.done
 fi
 
 # =================================================================================================
-# 17: readpe
+# 18: readpe
 # =================================================================================================
 
-if [ ! -f build/17-readpe.done ] ||
+if [ ! -f build/18-readpe.done ] ||
    [ ! -f bin/peldd ]
 then
-  rm -rf build/17-readpe.done build/readpe
+  rm -rf build/18-readpe.done build/readpe
   cp -a build/src/readpe build/readpe
 
   print "Building readpe ..."
@@ -1664,7 +1618,7 @@ then
     prefix="${ACE}" -j17 install-strip
 
   verify bin/peldd
-  create build/17-readpe.done
+  create build/18-readpe.done
 fi
 
 # =================================================================================================
@@ -1698,14 +1652,6 @@ for port in ${VCPKG_PORTS_MINGW}; do
   vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw ${port}
 done
 
-echo ""
-print "Installed linux ports with enabled features:"
-vcpkg list --vcpkg-root=build/ports | grep ':ace-linux' | grep -E --color=always '\[[^]]*\]'
-echo ""
-print "Installed mingw ports with enabled features:"
-vcpkg list --vcpkg-root=build/ports | grep ':ace-mingw' | grep -E --color=always '\[[^]]*\]'
-echo ""
-
 print "Exporting ports ..."
 rm -rf build/ports-export
 vcpkg export --vcpkg-root=build/ports --x-all-installed \
@@ -1736,6 +1682,14 @@ print "Installing windows ports ..."
 mkdir build/windows/ports
 cp -R build/ports-export/installed/ace-mingw build/windows/ports/mingw
 cp -R linux.cmake mingw.cmake readme.md build/windows/
+
+echo ""
+print "Installed linux ports with enabled features:"
+vcpkg list --vcpkg-root=build/ports | grep ':ace-linux' | grep -E --color=always '\[[^]]*\]'
+echo ""
+print "Installed mingw ports with enabled features:"
+vcpkg list --vcpkg-root=build/ports | grep ':ace-mingw' | grep -E --color=always '\[[^]]*\]'
+echo ""
 
 # =================================================================================================
 # archives

@@ -28,6 +28,12 @@ add_executable(main src/main.cpp src/main.rc)
 set_target_properties(main PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_link_libraries(main PRIVATE objects)
 
+if(CMAKE_HOST_UNIX AND WIN32)
+  add_custom_target(wine
+    COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:main>
+    USES_TERMINAL)
+endif()
+
 # Benchmarks
 find_package(benchmark CONFIG REQUIRED)
 add_executable(benchmarks EXCLUDE_FROM_ALL src/benchmark.cpp src/main.rc)
