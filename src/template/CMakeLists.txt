@@ -36,14 +36,14 @@ endif()
 
 # Benchmarks
 find_package(benchmark CONFIG REQUIRED)
-add_executable(benchmarks EXCLUDE_FROM_ALL src/benchmark.cpp src/main.rc)
+add_executable(benchmarks EXCLUDE_FROM_ALL src/benchmarks.cpp src/main.rc)
 target_link_libraries(benchmarks PRIVATE objects benchmark::benchmark)
 
 # Tests
 include(CTest)
 if(BUILD_TESTING)
   find_package(doctest CONFIG REQUIRED)
-  add_executable(tests src/test.cpp src/main.rc)
+  add_executable(tests src/tests.cpp src/main.rc)
   target_link_libraries(tests PRIVATE objects doctest::doctest)
 
   include(doctest)

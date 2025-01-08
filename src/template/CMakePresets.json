@@ -33,10 +33,7 @@
       "name": "windows",
       "displayName": "Windows",
       "toolchainFile": "$env{ACE}/mingw.cmake",
-      "inherits": "default",
-      "environment": {
-        "PATH": "$env{ACE}/bin:$penv{PATH}"
-      }
+      "inherits": "default"
     }
   ],
   "buildPresets": [
