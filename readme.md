@@ -232,6 +232,14 @@ if [ -x "$(which wslpath)" ] && [ -x "$(which cmd.exe)" ]; then
 fi
 ```
 
+<!--
+# Exit WSL shell.
+exit
+
+# Make sure, that chroot is fully unmounted.
+wsl --shutdown
+-->
+
 ## Install
 Use archives from the build step.
 
