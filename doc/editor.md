@@ -113,9 +113,6 @@ Editor setup instructions.
     "launch": {
       "statusBarVisibility": "icon"
     },
-    "ctest": {
-      "statusBarVisibility": "icon"
-    },
   },
 }
 ```
