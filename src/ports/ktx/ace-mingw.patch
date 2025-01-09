@@ -1,0 +1,10 @@
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -605,7 +605,6 @@ macro(common_libktx_settings target enable_write library_type)
+             # the necessary dlls will be missing. If we statically link
+             # them instead it's fine. This does not cause any abberations if
+             # the mingw toolchain targets msvcrt instead.
+-            target_link_options(${target} PUBLIC -static-libgcc -static-libstdc++)
+         else()
+             target_sources(
+                 ${target}

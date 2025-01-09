@@ -12,6 +12,7 @@ vcpkg_from_github(
         0005-no-vendored-libs.patch
         0006-fix-ios-install.patch
         ace-clang.patch
+        ace-mingw.patch
         ace-pthreads.patch
 )
 file(REMOVE "${SOURCE_PATH}/other_include/zstd_errors.h")
