@@ -1693,7 +1693,7 @@ cp -R build/ports-export/installed/ace-mingw ports/mingw
 print "Installing windows ports ..."
 mkdir build/windows/ports
 cp -R build/ports-export/installed/ace-mingw build/windows/ports/mingw
-cp -R linux.cmake mingw.cmake readme.md build/windows/
+cp -R linux.cmake mingw.cmake build/windows/
 
 echo ""
 print "Installed linux ports with enabled features:"
@@ -1717,7 +1717,7 @@ if [ ! -f build/ace.tar.xz ]; then
 
   tar cJf build/ace.tar.xz \
     bin include lib ports share sys \
-    linux.cmake mingw.cmake readme.md
+    linux.cmake mingw.cmake
 
   chown "${uid}:${gid}" build/ace.tar.xz
 fi
@@ -1736,7 +1736,7 @@ if [ ! -f build/ace.7z ]; then
 
   env --chdir=build/windows 7z a ../ace.7z \
     bin include lib ports share sys \
-    linux.cmake mingw.cmake readme.md
+    linux.cmake mingw.cmake
 
   chown "${uid}:${gid}" build/ace.7z
 fi
