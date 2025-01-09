@@ -128,7 +128,19 @@ set(CMAKE_TRY_COMPILE_PLATFORM_VARIABLES
   CMAKE_TOOLCHAIN_FILE
   CACHE STRING "")
 
-# Ports Workaround
+# Ports
 macro(_add_library)
   add_library(${ARGV})
 endmacro()
+
+if(NOT DEFINED VCPKG_TARGET_TRIPLET)
+  set(VCPKG_TARGET_TRIPLET linux)
+endif()
+
+if(NOT DEFINED VCPKG_INSTALLED_DIR)
+  set(VCPKG_INSTALLED_DIR ${ACE}/ports)
+endif()
+
+if(NOT DEFINED _VCPKG_INSTALLED_DIR)
+  set(_VCPKG_INSTALLED_DIR ${VCPKG_INSTALLED_DIR})
+endif()
