@@ -1103,40 +1103,42 @@ then
   create build/11-mingw-builtins.done
 fi
 
-if [ ! -f build/11-mingw-pthread.done ] ||
-   [ ! -e sys/mingw/lib/libwinpthread.a ]
-then
-  rm -rf build/11-mingw-pthread.done build/mingw-pthread
-
-  print "Configuring mingw pthread ..."
-  mkdir -p build/mingw-pthread
-  env --chdir=build/mingw-pthread ../src/mingw/mingw-w64-libraries/winpthreads/configure \
-    CC="${ACE}/bin/clang ${MINGW_LFLAGS}" \
-    AR="${ACE}/bin/llvm-ar" \
-    NM="${ACE}/bin/llvm-nm" \
-    RC="${ACE}/bin/llvm-windres" \
-    RANLIB="${ACE}/bin/llvm-ranlib" \
-    OBJCOPY="${ACE}/bin/llvm-objcopy" \
-    OBJDUMP="${ACE}/bin/llvm-objdump" \
-    DLLTOOL="${ACE}/bin/llvm-dlltool" \
-    DSYMUTIL="${ACE}/bin/dsymutil" \
-    STRIP="${ACE}/bin/llvm-strip" \
-    SIZE="${ACE}/bin/llvm-size" \
-    CFLAGS="${MINGW_CFLAGS}" \
-    LDFLAGS="${MINGW_LFLAGS}" \
-    LIBTOOLFLAGS="${MINGW_LFLAGS}" \
-    RCFLAGS="${MINGW_RFLAGS}" \
-    --prefix="${ACE}/sys/mingw" \
-    --host="x86_64-w64-mingw32" \
-    > build/mingw-pthread.log 2>&1
-
-  print "Installing mingw pthread ..."
-  env --chdir=build/mingw-pthread make -j17 install-strip \
-    > build/mingw-pthread-install.log 2>&1
-
-  verify sys/mingw/lib/libwinpthread.a
-  create build/11-mingw-pthread.done
-fi
+# if [ ! -f build/11-mingw-pthread.done ] ||
+#    [ ! -e sys/mingw/lib/libwinpthread.a ]
+# then
+#   rm -rf build/11-mingw-pthread.done build/mingw-pthread
+#
+#   print "Configuring mingw pthread ..."
+#   mkdir -p build/mingw-pthread
+#   env --chdir=build/mingw-pthread ../src/mingw/mingw-w64-libraries/winpthreads/configure \
+#     CC="${ACE}/bin/clang ${MINGW_LFLAGS}" \
+#     AR="${ACE}/bin/llvm-ar" \
+#     NM="${ACE}/bin/llvm-nm" \
+#     RC="${ACE}/bin/llvm-windres" \
+#     RANLIB="${ACE}/bin/llvm-ranlib" \
+#     OBJCOPY="${ACE}/bin/llvm-objcopy" \
+#     OBJDUMP="${ACE}/bin/llvm-objdump" \
+#     DLLTOOL="${ACE}/bin/llvm-dlltool" \
+#     DSYMUTIL="${ACE}/bin/dsymutil" \
+#     STRIP="${ACE}/bin/llvm-strip" \
+#     SIZE="${ACE}/bin/llvm-size" \
+#     CFLAGS="${MINGW_CFLAGS}" \
+#     LDFLAGS="${MINGW_LFLAGS}" \
+#     LIBTOOLFLAGS="${MINGW_LFLAGS}" \
+#     RCFLAGS="${MINGW_RFLAGS}" \
+#     --prefix="${ACE}/sys/mingw" \
+#     --host="x86_64-w64-mingw32" \
+#     --enable-static=yes \
+#     --enable-shared=no \
+#     > build/mingw-pthread.log 2>&1
+#
+#   print "Installing mingw pthread ..."
+#   env --chdir=build/mingw-pthread make -j17 install-strip \
+#     > build/mingw-pthread-install.log 2>&1
+#
+#   verify sys/mingw/lib/libwinpthread.a
+#   create build/11-mingw-pthread.done
+# fi
 
 if [ ! -f build/11-mingw-runtimes.done ] ||
    [ ! -e sys/mingw/include/c++/v1/__config ] ||
@@ -1657,23 +1659,31 @@ rm -rf build/ports-export
 vcpkg export --vcpkg-root=build/ports --x-all-installed \
   --raw --output-dir=build/ports-export --output=.
 
-rm -rf build/ports-export/installed/ace-linux/share/png
 if [ -h build/ports-export/installed/ace-linux/lib/libpng.a ]; then
-  if [ ! -f build/ports-export/installed/ace-linux/lib/libpng16.a ]; then
-    error "Missing file: build/ports-export/installed/ace-linux/lib/libpng16.a"
-  fi
-  mv build/ports-export/installed/ace-linux/lib/libpng16.a \
-     build/ports-export/installed/ace-linux/lib/libpng.a
+  rm -f build/ports-export/installed/ace-linux/lib/libpng.a
 fi
 
-rm -rf build/ports-export/installed/ace-mingw/share/png
 if [ -h build/ports-export/installed/ace-mingw/lib/libpng.a ]; then
-  if [ ! -f build/ports-export/installed/ace-mingw/lib/libpng16.a ]; then
-    error "Missing file: build/ports-export/installed/ace-mingw/lib/libpng16.a"
-  fi
-  mv build/ports-export/installed/ace-mingw/lib/libpng16.a \
-     build/ports-export/installed/ace-mingw/lib/libpng.a
+  rm -f build/ports-export/installed/ace-mingw/lib/libpng.a
 fi
+
+# rm -rf build/ports-export/installed/ace-linux/share/png
+# if [ -h build/ports-export/installed/ace-linux/lib/libpng.a ]; then
+#   if [ ! -f build/ports-export/installed/ace-linux/lib/libpng16.a ]; then
+#     error "Missing file: build/ports-export/installed/ace-linux/lib/libpng16.a"
+#   fi
+#   mv build/ports-export/installed/ace-linux/lib/libpng16.a \
+#      build/ports-export/installed/ace-linux/lib/libpng.a
+# fi
+#
+# rm -rf build/ports-export/installed/ace-mingw/share/png
+# if [ -h build/ports-export/installed/ace-mingw/lib/libpng.a ]; then
+#   if [ ! -f build/ports-export/installed/ace-mingw/lib/libpng16.a ]; then
+#     error "Missing file: build/ports-export/installed/ace-mingw/lib/libpng16.a"
+#   fi
+#   mv build/ports-export/installed/ace-mingw/lib/libpng16.a \
+#      build/ports-export/installed/ace-mingw/lib/libpng.a
+# fi
 
 print "Installing linux ports ..."
 mkdir ports

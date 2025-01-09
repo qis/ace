@@ -1,0 +1,11 @@
+--- /lib/astc_encode.cpp
++++ /lib/astc_encode.cpp
+@@ -39,7 +39,7 @@
+ #else
+ // Provide pthreads support on windows
+ #define WIN32_LEAN_AND_MEAN
+-#include <Windows.h>
++#include <windows.h>
+
+ typedef HANDLE pthread_t;
+ typedef int pthread_attr_t;
