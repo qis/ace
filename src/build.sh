@@ -1716,7 +1716,7 @@ if [ ! -f build/ace.tar.xz ]; then
   chown -R "${uid}:${gid}" bin include lib ports share sys
 
   tar cJf build/ace.tar.xz \
-    bin include lib ports share sys \
+    bin cmake include lib ports share sys \
     linux.cmake mingw.cmake
 
   chown "${uid}:${gid}" build/ace.tar.xz
@@ -1735,7 +1735,7 @@ if [ ! -f build/ace.7z ]; then
   done
 
   env --chdir=build/windows 7z a ../ace.7z \
-    bin include lib ports share sys \
+    bin cmake include lib ports share sys \
     linux.cmake mingw.cmake
 
   chown "${uid}:${gid}" build/ace.7z
