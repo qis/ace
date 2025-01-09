@@ -1657,6 +1657,7 @@ rm -rf build/ports-export
 vcpkg export --vcpkg-root=build/ports --x-all-installed \
   --raw --output-dir=build/ports-export --output=.
 
+rm -rf build/ports-export/installed/ace-linux/share/png
 if [ -h build/ports-export/installed/ace-linux/lib/libpng.a ]; then
   if [ ! -f build/ports-export/installed/ace-linux/lib/libpng16.a ]; then
     error "Missing file: build/ports-export/installed/ace-linux/lib/libpng16.a"
@@ -1665,6 +1666,7 @@ if [ -h build/ports-export/installed/ace-linux/lib/libpng.a ]; then
      build/ports-export/installed/ace-linux/lib/libpng.a
 fi
 
+rm -rf build/ports-export/installed/ace-mingw/share/png
 if [ -h build/ports-export/installed/ace-mingw/lib/libpng.a ]; then
   if [ ! -f build/ports-export/installed/ace-mingw/lib/libpng16.a ]; then
     error "Missing file: build/ports-export/installed/ace-mingw/lib/libpng16.a"
