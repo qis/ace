@@ -1,5 +1,5 @@
 CompileFlags:
-  Add: [ -std=c++23, -fexperimental-library ]
+  Add: [ -std=c++2c, -fexperimental-library ]
   CompilationDatabase: build
 Diagnostics:
   MissingIncludes: None
