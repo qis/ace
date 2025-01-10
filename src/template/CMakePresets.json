@@ -68,31 +68,31 @@
       "configurePreset": "linux"
     },
     {
-      "name": "windows-debug",
+      "name": "mingw-debug",
       "displayName": "Debug",
       "configuration": "Debug",
       "configurePreset": "mingw"
     },
     {
-      "name": "windows-release",
+      "name": "mingw-release",
       "displayName": "Release",
       "configuration": "Release",
       "configurePreset": "mingw"
     },
     {
-      "name": "windows-relwithdebinfo",
+      "name": "mingw-relwithdebinfo",
       "displayName": "RelWithDebInfo",
       "configuration": "RelWithDebInfo",
       "configurePreset": "mingw"
     },
     {
-      "name": "windows-minsizerel",
+      "name": "mingw-minsizerel",
       "displayName": "MinSizeRel",
       "configuration": "MinSizeRel",
       "configurePreset": "mingw"
     },
     {
-      "name": "windows-coverage",
+      "name": "mingw-coverage",
       "displayName": "Coverage",
       "configuration": "Coverage",
       "configurePreset": "mingw"
