@@ -242,7 +242,9 @@ wsl --shutdown
 
 # Delete build files and installed binaries.
 # wsl -d Debian
-# cd /opt/ace && sudo git clean -fdX
+# cd /opt/ace || exit 1
+# sudo rm -rf build
+# sudo git clean -fdX
 -->
 
 ## Install
