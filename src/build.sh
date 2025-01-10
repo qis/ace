@@ -1640,7 +1640,7 @@ done
 # =================================================================================================
 
 print "Building ports ..."
-rm -rf ports build/windows/ports
+rm -rf ports build/windows/ports build/windows/cmake
 
 if [ ! -d build/ports ]; then
   git clone build/vcpkg build/ports
@@ -1693,7 +1693,7 @@ cp -R build/ports-export/installed/ace-mingw ports/mingw
 print "Installing windows ports ..."
 mkdir build/windows/ports
 cp -R build/ports-export/installed/ace-mingw build/windows/ports/mingw
-cp -R linux.cmake mingw.cmake build/windows/
+cp -R cmake mingw.cmake build/windows/
 
 echo ""
 print "Installed linux ports with enabled features:"
@@ -1736,7 +1736,7 @@ if [ ! -f build/ace.7z ]; then
 
   env --chdir=build/windows 7z a ../ace.7z \
     bin cmake include lib ports share sys \
-    linux.cmake mingw.cmake
+    mingw.cmake
 
   chown "${uid}:${gid}" build/ace.7z
 fi

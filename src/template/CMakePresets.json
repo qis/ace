@@ -30,7 +30,7 @@
       "inherits": "default"
     },
     {
-      "name": "windows",
+      "name": "mingw",
       "displayName": "Windows",
       "toolchainFile": "$env{ACE}/mingw.cmake",
       "inherits": "default"
@@ -71,31 +71,31 @@
       "name": "windows-debug",
       "displayName": "Debug",
       "configuration": "Debug",
-      "configurePreset": "windows"
+      "configurePreset": "mingw"
     },
     {
       "name": "windows-release",
       "displayName": "Release",
       "configuration": "Release",
-      "configurePreset": "windows"
+      "configurePreset": "mingw"
     },
     {
       "name": "windows-relwithdebinfo",
       "displayName": "RelWithDebInfo",
       "configuration": "RelWithDebInfo",
-      "configurePreset": "windows"
+      "configurePreset": "mingw"
     },
     {
       "name": "windows-minsizerel",
       "displayName": "MinSizeRel",
       "configuration": "MinSizeRel",
-      "configurePreset": "windows"
+      "configurePreset": "mingw"
     },
     {
       "name": "windows-coverage",
       "displayName": "Coverage",
       "configuration": "Coverage",
-      "configurePreset": "windows"
+      "configurePreset": "mingw"
     }
   ]
 }

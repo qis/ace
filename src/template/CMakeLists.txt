@@ -19,10 +19,6 @@ if(WIN32)
   target_compile_definitions(objects PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN)
 endif()
 
-# Dependencies
-find_package(Threads REQUIRED)
-target_link_libraries(objects PUBLIC Threads::Threads)
-
 # Application
 add_executable(main src/main.cpp src/main.rc)
 set_target_properties(main PROPERTIES OUTPUT_NAME ${PROJECT_NAME})

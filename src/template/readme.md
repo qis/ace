@@ -9,7 +9,7 @@ Configure project.
 cmake --preset linux
 
 # Linux & Windows
-cmake --preset windows
+cmake --preset mingw
 ```
 
 Build target.
@@ -29,11 +29,11 @@ cmake --build build/linux --config MinSizeRel --target main tests benchmarks
 cmake --build build/linux --config Coverage --target tests
 
 # Linux & Windows
-cmake --build build/windows --config Debug --target main tests
-cmake --build build/windows --config Release --target main tests benchmarks
-cmake --build build/windows --config RelWithDebInfo --target main tests
-cmake --build build/windows --config MinSizeRel --target main tests benchmarks
-cmake --build build/windows --config Coverage --target tests
+cmake --build build/mingw --config Debug --target main tests
+cmake --build build/mingw --config Release --target main tests benchmarks
+cmake --build build/mingw --config RelWithDebInfo --target main tests
+cmake --build build/mingw --config MinSizeRel --target main tests benchmarks
+cmake --build build/mingw --config Coverage --target tests
 ```
 
 Run application.
@@ -45,10 +45,10 @@ build/linux/Debug/ace
 # Linux Emulator
 WINEDEBUG=-all \
 WINEPATH=${ACE}/sys/mingw/bin \
-wine build/windows/Debug/ace.exe
+wine build/mingw/Debug/ace.exe
 
 # Windows
-build\windows\Debug\ace.exe
+build\mingw\Debug\ace.exe
 ```
 
 Run benchmarks.
@@ -59,10 +59,10 @@ build/linux/Release/benchmarks
 
 # Linux Emulator
 WINEDEBUG=-all \
-wine build/windows/Release/benchmarks.exe
+wine build/mingw/Release/benchmarks.exe
 
 # Windows
-build\windows\Release\benchmarks.exe
+build\mingw\Release\benchmarks.exe
 ```
 
 Run tests.
@@ -72,7 +72,7 @@ Run tests.
 ctest --test-dir build/linux -C Debug
 
 # Linux & Windows
-ctest --test-dir build/windows -C Debug
+ctest --test-dir build/mingw -C Debug
 ```
 
 Analyze [Code Coverage][cov].
@@ -84,14 +84,14 @@ ${ACE}/bin/llvm-profdata merge -sparse build/linux/default.profraw -o build/linu
 ${ACE}/bin/llvm-cov show build/linux/Coverage/tests -instr-profile=build/linux/default.profdata
 
 # Linux Emulator
-ctest --test-dir build/windows -C Coverage
-${ACE}/bin/llvm-profdata merge -sparse build/windows/default.profraw -o build/windows/default.profdata
-${ACE}/bin/llvm-cov show build/windows/Coverage/tests.exe -instr-profile=build/windows/default.profdata
+ctest --test-dir build/mingw -C Coverage
+${ACE}/bin/llvm-profdata merge -sparse build/mingw/default.profraw -o build/mingw/default.profdata
+${ACE}/bin/llvm-cov show build/mingw/Coverage/tests.exe -instr-profile=build/mingw/default.profdata
 
 # Windows
-ctest --test-dir build/windows -C Coverage
-%ACE%\bin\llvm-profdata.exe merge -sparse build/windows/default.profraw -o build/windows/default.profdata
-%ACE%\bin\llvm-cov.exe show build/windows/Coverage/tests.exe -instr-profile=build/windows/default.profdata
+ctest --test-dir build/mingw -C Coverage
+%ACE%\bin\llvm-profdata.exe merge -sparse build/mingw/default.profraw -o build/mingw/default.profdata
+%ACE%\bin\llvm-cov.exe show build/mingw/Coverage/tests.exe -instr-profile=build/mingw/default.profdata
 ```
 
 Create package.
@@ -101,7 +101,7 @@ Create package.
 cmake --build build/linux --config Release --target package
 
 # Windows
-cmake --build build/windows --config Release --target package
+cmake --build build/mingw --config Release --target package
 ```
 
 </details>
