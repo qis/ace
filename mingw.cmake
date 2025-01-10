@@ -19,7 +19,7 @@ set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON CACHE BOOL "" FORCE)
 
 set(ENV{PKG_CONFIG_PATH} ${ACE}/ports/mingw/lib/pkgconfig)
 set(CMAKE_PREFIX_PATH ${ACE}/ports/mingw CACHE PATH "")
-set(CMAKE_MODULE_PATH ${ACE}/cmake CACHE PATH "")
+list(APPEND CMAKE_MODULE_PATH ${ACE}/cmake)
 
 # Program Paths
 if(CMAKE_HOST_WIN32)
