@@ -222,15 +222,6 @@ git clone https://github.com/qis/ace /opt/ace
 # Build toolchain.
 cd /opt/ace
 sh src/build.sh
-
-# Copy archives to Downloads directories.
-cp /opt/ace/build/ace.7z "$(xdg-user-dir DOWNLOADS)/"
-cp /opt/ace/build/ace.tar.xz "$(xdg-user-dir DOWNLOADS)/"
-if [ -x "$(which wslpath)" ] && [ -x "$(which cmd.exe)" ]; then
-  DOWNLOADS="$(wslpath $(cmd.exe /c '<nul set /p=%UserProfile%\Downloads' 2>/dev/null))"
-  cp /opt/ace/build/ace.tar.xz "${DOWNLOADS}/"
-  cp /opt/ace/build/ace.7z "${DOWNLOADS}/"
-fi
 ```
 
 <!--

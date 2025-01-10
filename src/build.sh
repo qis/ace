@@ -77,6 +77,7 @@ execute_chroot() {
 unmount_chroot() {
   local error=0
   print "Unmounting chroot directories ..."
+  sudo umount build/chroot/opt/ace || error=1
   sleep 1
   sudo umount build/chroot/dev/shm || error=1
   sudo umount build/chroot/dev/pts || error=1
@@ -85,7 +86,6 @@ unmount_chroot() {
   sudo umount -R build/chroot/sys || error=1
   sudo umount -R build/chroot/run || error=1
   sudo umount -R build/chroot/proc || error=1
-  sudo umount build/chroot/opt/ace || error=1
   return ${error}
 }
 
@@ -93,6 +93,21 @@ if [ "$1" != "chroot" ]; then
   prepare_chroot || ((unmount_chroot || true); error "Could not prepare chroot.")
   execute_chroot || ((unmount_chroot || true); error "Errors inside chroot environment.")
   unmount_chroot || error "Could not unmount chroot directories."
+  if [ -x "$(which xdg-user-dir)" ]; then
+    print "Copying archive to $(xdg-user-dir DOWNLOADS)/ace.7z ..."
+    cp -u build/ace.7z "$(xdg-user-dir DOWNLOADS)/"
+    print "Copying archive to $(xdg-user-dir DOWNLOADS)/ace.tar.xz ..."
+    cp -u build/ace.tar.xz "$(xdg-user-dir DOWNLOADS)/"
+    if [ -x "$(which wslpath)" ] && [ -x "$(which cmd.exe)" ]; then
+      DOWNLOADS="$(wslpath $(cmd.exe /c '<nul set /p=%UserProfile%\Downloads' 2>/dev/null))"
+      if [ -d "${DOWNLOADS}" ]; then
+        print "Copying archive to ${DOWNLOADS}/ace.7z ..."
+        cp -u build/ace.7z "${DOWNLOADS}/"
+        print "Copying archive to ${DOWNLOADS}/ace.tar.xz ..."
+        cp -u build/ace.tar.xz "${DOWNLOADS}/"
+      fi
+    fi
+  fi
   exit
 fi
 
