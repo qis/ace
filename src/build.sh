@@ -249,7 +249,7 @@ VCPKG_PORTS=$(echo \
   openfbx[core] ktx[core,vulkan] simdjson[core,threads] fastgltf[core] miniaudio[core] \
   sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
   boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
-  boost-json[core] boost-url[core])
+  boost-static-string[core] boost-json[core] boost-url[core])
 
 VCPKG_PORTS_LINUX=$(echo \
   ${VCPKG_PORTS} libffi[core] wayland[core,force-build] wayland-protocols[core,force-build])
