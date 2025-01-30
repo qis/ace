@@ -77,7 +77,7 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_COVERAGE OFF CACHE BOOL "")
 # Visual Studio 2022 Version 17.10 sets _MSC_VER to 1940.
 # https://learn.microsoft.com/cpp/overview/compiler-versions?view=msvc-170
 # MinGW is already configured to define WINVER=0x0A00 and _WIN32_WINNT=0x0A00.
-set(CMAKE_C_FLAGS_INIT "-march=x86-64 -fasm -fms-compatibility-version=19.40")
+set(CMAKE_C_FLAGS_INIT "-march=x86-64-v2 -fasm -fms-compatibility-version=19.40")
 set(CMAKE_C_FLAGS_DEBUG_INIT "")
 set(CMAKE_C_FLAGS_RELEASE_INIT "")
 set(CMAKE_C_FLAGS_MINSIZEREL_INIT "")

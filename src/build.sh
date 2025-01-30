@@ -189,7 +189,7 @@ download_tar() {
   fi
 }
 
-download_git() {
+download_tag() {
   local name="${1}"
   local url="${2}"
   local tag="${3}"
@@ -203,17 +203,33 @@ download_git() {
   fi
 }
 
+download_sha() {
+  local name="${1}"
+  local url="${2}"
+  local sha="${3}"
+  local dst="${4}/${name}"
+  local file="${dst}/${5}"
+  if [ ! -e "${file}" ]; then
+    print "Cloning ${name} ..."
+    rm -rf "${dst}"
+    mkdir "${dst}" || error "Could not create directory: ${dst}"
+    env --chdir="${dst}" git init -b master || error "Could not initialize repository."
+    env --chdir="${dst}" git remote add origin "${url}" || error "Could not add origin."
+    env --chdir="${dst}" git fetch origin "${sha}" || error "Could not fetch commit: ${sha}"
+    env --chdir="${dst}" git reset --hard FETCH_HEAD || error "Could not reset to fetch head."
+    verify "${file}"
+  fi
+}
+
 # =================================================================================================
 
 LLVM_VER="19.1.6"
 LLVM_TAG="llvmorg-${LLVM_VER}"
+LLVM_SHA="15412d735a4f3e85b1c68025ca28d5671fde7b47"  # 2025-01-29
 LLVM_GIT="https://github.com/llvm/llvm-project"
 
-# Download sources for the release version.
-#download_git "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
-
-# Download sources for the master branch.
-download_git "llvm" "${LLVM_GIT}" "main" "build/src" "llvm/CMakeLists.txt"
+#download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
+download_sha "llvm" "${LLVM_GIT}" "${LLVM_SHA}" "build/src" "llvm/CMakeLists.txt"
 
 # =================================================================================================
 
@@ -227,11 +243,13 @@ download_tar "cmake" "${CMAKE_URL}" "${CMAKE_TAR}" 1 "build" "bin/cmake"
 
 # =================================================================================================
 
-VCPKG_VER="2024.12.16"
+VCPKG_VER="2025.01.13"
 VCPKG_TAG="${VCPKG_VER}"
+VCPKG_SHA="0b4805abfa6ad4c5a4f7fe7d067fdab8449fb915"  # 2025-01-30
 VCPKG_GIT="https://github.com/microsoft/vcpkg"
 
-download_git "vcpkg" "${VCPKG_GIT}" "${VCPKG_TAG}" "build" "bootstrap-vcpkg.sh"
+#download_tag "vcpkg" "${VCPKG_GIT}" "${VCPKG_TAG}" "build" "bootstrap-vcpkg.sh"
+download_sha "vcpkg" "${VCPKG_GIT}" "${VCPKG_SHA}" "build" "bootstrap-vcpkg.sh"
 
 if [ ! -x build/vcpkg/vcpkg ]; then
   env --chdir=build/vcpkg sh bootstrap-vcpkg.sh
@@ -263,7 +281,7 @@ RE2C_VER="4.0.2"
 RE2C_TAG="${RE2C_VER}"
 RE2C_GIT="https://github.com/skvadrik/re2c"
 
-download_git "re2c" "${RE2C_GIT}" "${RE2C_TAG}" "build/src" "CMakeLists.txt"
+download_tag "re2c" "${RE2C_GIT}" "${RE2C_TAG}" "build/src" "CMakeLists.txt"
 
 # =================================================================================================
 
@@ -272,7 +290,7 @@ YASM_TAG="v${YASM_VER}"
 YASM_GIT="https://github.com/yasm/yasm"
 YASM_EXE="http://www.tortall.net/projects/yasm/releases/yasm-${YASM_VER}-win64.exe"
 
-download_git "yasm" "${YASM_GIT}" "${YASM_TAG}" "build/src" "CMakeLists.txt"
+download_tag "yasm" "${YASM_GIT}" "${YASM_TAG}" "build/src" "CMakeLists.txt"
 
 # =================================================================================================
 
@@ -280,7 +298,7 @@ NINJA_VER="1.12.1"
 NINJA_TAG="v${NINJA_VER}"
 NINJA_GIT="https://github.com/ninja-build/ninja"
 
-download_git "ninja" "${NINJA_GIT}" "${NINJA_TAG}" "build/src" "CMakeLists.txt"
+download_tag "ninja" "${NINJA_GIT}" "${NINJA_TAG}" "build/src" "CMakeLists.txt"
 
 # =================================================================================================
 
@@ -288,7 +306,7 @@ MINGW_VER="12.0.0"
 MINGW_TAG="v${MINGW_VER}"
 MINGW_GIT="https://github.com/mingw-w64/mingw-w64"
 
-download_git "mingw" "${MINGW_GIT}" "${MINGW_TAG}" "build/src" "configure"
+download_tag "mingw" "${MINGW_GIT}" "${MINGW_TAG}" "build/src" "configure"
 
 # =================================================================================================
 
@@ -296,7 +314,7 @@ READPE_VER="0.84"
 READPE_TAG="v${READPE_VER}"
 READPE_GIT="https://github.com/mentebinaria/readpe"
 
-download_git "readpe" "${READPE_GIT}" "${READPE_TAG}" "build/src" "Makefile"
+download_tag "readpe" "${READPE_GIT}" "${READPE_TAG}" "build/src" "Makefile"
 
 # =================================================================================================
 
@@ -492,8 +510,8 @@ then
     -DCMAKE_CXX_COMPILER="${ACE}/build/llvm/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/build/llvm/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/build/llvm/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-unknown-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-unknown-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-unknown-linux-gnu" \
@@ -542,7 +560,7 @@ then
     -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64;-fno-rtti;-flto=thin" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v2;-fno-rtti;-flto=thin" \
     -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=ON \
     -DLIBCXX_ENABLE_INCOMPLETE_FEATURES=ON \
     -DLIBCXX_ENABLE_SHARED=ON \
@@ -696,8 +714,8 @@ then
     -DCMAKE_CXX_COMPILER="${ACE}/build/stage1/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/build/stage1/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/build/stage1/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-pc-linux-gnu" \
@@ -887,6 +905,8 @@ then
     -DCMAKE_INSTALL_PREFIX="${ACE}/build/yasm-install" \
     -DCMAKE_TOOLCHAIN_FILE="${ACE}/linux.cmake" \
     -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
+    -DCMAKE_CXX_VISIBILITY_PRESET="default" \
+    -DCMAKE_C_VISIBILITY_PRESET="default" \
     -DYASM_BUILD_TESTS=OFF \
     -B build/yasm build/src/yasm
 
@@ -960,7 +980,7 @@ fi
 # =================================================================================================
 
 MINGW_LFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw"
-MINGW_CFLAGS="-O3 -march=x86-64 ${MINGW_LFLAGS} -fms-compatibility-version=19.40"
+MINGW_CFLAGS="-O3 -march=x86-64-v2 ${MINGW_LFLAGS} -fms-compatibility-version=19.40"
 MINGW_RFLAGS="-I${ACE}/sys/mingw/include"
 
 if [ ! -f build/11-mingw.done ] ||
@@ -1043,7 +1063,7 @@ then
     OBJDUMP="${ACE}/bin/llvm-objdump" \
     STRIP="${ACE}/bin/llvm-strip" \
     SIZE="${ACE}/bin/llvm-size" \
-    CFLAGS="-O3 -march=x86-64 -flto=thin" \
+    CFLAGS="-O3 -march=x86-64-v2 -flto=thin" \
     --with-default-win32-winnt="0x0A00" \
     --with-default-msvcrt="ucrt" \
     --prefix="${ACE}" \
@@ -1087,8 +1107,8 @@ then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40 -nostdlib++" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -nostdlib++" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -1181,8 +1201,8 @@ then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -1209,7 +1229,7 @@ then
     -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64;-fno-rtti;-flto=thin" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v2;-fno-rtti;-flto=thin" \
     -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=ON \
     -DLIBCXX_ENABLE_INCOMPLETE_FEATURES=ON \
     -DLIBCXX_ENABLE_SHARED=ON \
@@ -1305,8 +1325,8 @@ then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
     -DCMAKE_SHARED_LINKER_FLAGS_INIT="-lbcrypt" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -1489,8 +1509,8 @@ then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-pc-linux-gnu" \
@@ -1547,8 +1567,8 @@ then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64 -fms-compatibility-version=19.40" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -1617,7 +1637,7 @@ then
     STRIP="${ACE}/bin/llvm-strip" \
     SIZE="${ACE}/bin/llvm-size" \
     LDFLAGS="-pthread -L${ACE}/build/vcpkg/installed/ace-linux/lib" \
-    CFLAGS="-march=x86-64 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux/include" \
+    CFLAGS="-march=x86-64-v2 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux/include" \
     prefix="${ACE}" -j17
 
   print "Installing readpe ..."
@@ -1631,7 +1651,7 @@ then
     STRIP="${ACE}/bin/llvm-strip" \
     SIZE="${ACE}/bin/llvm-size" \
     LDFLAGS="-pthread -L${ACE}/build/vcpkg/installed/ace-linux/lib" \
-    CFLAGS="-march=x86-64 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux/include" \
+    CFLAGS="-march=x86-64-v2 -flto=thin -I${ACE}/build/vcpkg/installed/ace-linux/include" \
     prefix="${ACE}" -j17 install-strip
 
   verify bin/peldd
