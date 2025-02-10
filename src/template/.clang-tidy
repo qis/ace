@@ -47,7 +47,7 @@ HeaderFilterRegex: '\.hpp$'
 FormatStyle: file
 CheckOptions:
   - key: bugprone-exception-escape.FunctionsThatShouldNotThrow
-    value:
+    value: 1
   - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
     value: 1
   - key: modernize-loop-convert.NamingStyle
