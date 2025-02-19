@@ -6,9 +6,13 @@ clang-analyzer-*,\
 -clang-analyzer-deadcode.DeadStores,\
 bugprone-*,\
 -bugprone-dynamic-static-initializers,\
+-bugprone-easily-swappable-parameters,\
 -bugprone-forward-declaration-namespace,\
 -bugprone-macro-parentheses,\
 cppcoreguidelines-*,\
+-cppcoreguidelines-avoid-capturing-lambda-coroutines,\
+-cppcoreguidelines-avoid-do-while,\
+-cppcoreguidelines-avoid-reference-coroutine-parameters,\
 -cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
 -cppcoreguidelines-avoid-goto,\
 -cppcoreguidelines-avoid-magic-numbers,\
@@ -25,6 +29,7 @@ fuchsia-trailing-return,\
 fuchsia-virtual-inheritance,\
 llvm-namespace-comment,\
 misc-*,\
+-misc-include-cleaner,\
 -misc-unused-alias-decls,\
 -misc-unused-parameters,\
 -misc-unused-using-decls,\
@@ -35,6 +40,7 @@ modernize-*,\
 -modernize-use-trailing-return-type,\
 performance-*,\
 readability-*,\
+-readability-function-cognitive-complexity,\
 -readability-function-size,\
 -readability-qualified-auto,\
 -readability-magic-numbers,\
@@ -42,6 +48,7 @@ readability-*,\
 -readability-else-after-return,\
 -readability-identifier-length,\
 -readability-implicit-bool-conversion,\
+-readability-static-accessed-through-instance,\
 -readability-uppercase-literal-suffix"
 HeaderFilterRegex: '\.hpp$'
 FormatStyle: file

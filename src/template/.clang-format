@@ -26,6 +26,7 @@ ReferenceAlignment: Left
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowBreakBeforeNoexceptSpecifier: OnlyWithParen
+AllowShortCompoundRequirementOnASingleLine: true
 AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: Inline
@@ -34,7 +35,7 @@ AlwaysBreakBeforeMultilineStrings: true
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterControlStatement: MultiLine
-  AfterFunction: true
+  AfterFunction: false
   BeforeCatch: true
   BeforeWhile: false
   SplitEmptyFunction: false
@@ -53,7 +54,6 @@ KeepEmptyLinesAtEOF: false
 LineEnding: LF
 
 MaxEmptyLinesToKeep: 2
-RequiresClausePosition: WithPreceding
 SeparateDefinitionBlocks: Always
 
 # Packing
@@ -73,6 +73,11 @@ SpaceBeforeParensOptions:
 
 # Sorting
 SortUsingDeclarations: Never
+
+# Requires
+IndentRequiresClause: false
+RequiresClausePosition: SingleLine
+RequiresExpressionIndentation: OuterScope
 
 # Comments
 CommentPragmas: '^ (NOTE|TODO):'

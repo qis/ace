@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
-project(ace DESCRIPTION "Ace" VERSION 0.1.0 LANGUAGES CXX)
+project(ace DESCRIPTION "Ace" VERSION 0.1.0 LANGUAGES C CXX)
 
 # Version
 set(PROJECT_VENDOR "Vendor")
@@ -10,7 +10,6 @@ file(GLOB_RECURSE modules CONFIGURE_DEPENDS src/${PROJECT_NAME}/*.ccm)
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS src/${PROJECT_NAME}/*.cpp)
 
 add_library(objects OBJECT ${sources})
-target_compile_features(objects PUBLIC cxx_std_26)
 target_sources(objects PUBLIC FILE_SET CXX_MODULES FILES ${modules})
 target_include_directories(objects PRIVATE src PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/src)
 target_link_options(objects PUBLIC $<$<CONFIG:Release>:-static-libstdc++>)
