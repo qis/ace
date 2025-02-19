@@ -10,6 +10,7 @@ bugprone-*,\
 -bugprone-forward-declaration-namespace,\
 -bugprone-macro-parentheses,\
 cppcoreguidelines-*,\
+-cppcoreguidelines-avoid-c-arrays,\
 -cppcoreguidelines-avoid-capturing-lambda-coroutines,\
 -cppcoreguidelines-avoid-do-while,\
 -cppcoreguidelines-avoid-reference-coroutine-parameters,\
@@ -25,7 +26,6 @@ cppcoreguidelines-*,\
 -cppcoreguidelines-pro-type-union-access,\
 -cppcoreguidelines-special-member-functions,\
 fuchsia-multiple-inheritance,\
-fuchsia-trailing-return,\
 fuchsia-virtual-inheritance,\
 llvm-namespace-comment,\
 misc-*,\
@@ -35,6 +35,7 @@ misc-*,\
 -misc-unused-using-decls,\
 -misc-throw-by-value-catch-by-reference,\
 modernize-*,\
+-modernize-avoid-c-arrays,\
 -modernize-raw-string-literal,\
 -modernize-use-nodiscard,\
 -modernize-use-trailing-return-type,\
