@@ -22,12 +22,20 @@ PointerAlignment: Left
 QualifierAlignment: Left
 ReferenceAlignment: Left
 
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+  AlignCaseColons: false
+
 # Line Breaks
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowBreakBeforeNoexceptSpecifier: OnlyWithParen
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: true
 AllowShortCompoundRequirementOnASingleLine: true
-AllowShortEnumsOnASingleLine: false
+AllowShortEnumsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: Inline
 AlwaysBreakBeforeMultilineStrings: true
