@@ -30,6 +30,7 @@ fuchsia-virtual-inheritance,\
 llvm-namespace-comment,\
 misc-*,\
 -misc-include-cleaner,\
+-misc-use-internal-linkage,\
 -misc-unused-alias-decls,\
 -misc-unused-parameters,\
 -misc-unused-using-decls,\
