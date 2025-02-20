@@ -46,6 +46,7 @@ readability-*,\
 -readability-function-size,\
 -readability-qualified-auto,\
 -readability-magic-numbers,\
+-readability-math-missing-parentheses,\
 -readability-named-parameter,\
 -readability-else-after-return,\
 -readability-identifier-length,\
