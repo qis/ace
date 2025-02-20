@@ -7,6 +7,7 @@ clang-analyzer-*,\
 bugprone-*,\
 -bugprone-dynamic-static-initializers,\
 -bugprone-easily-swappable-parameters,\
+-bugprone-empty-catch,\
 -bugprone-forward-declaration-namespace,\
 -bugprone-macro-parentheses,\
 cppcoreguidelines-*,\
@@ -57,13 +58,15 @@ HeaderFilterRegex: '\.hpp$'
 FormatStyle: file
 CheckOptions:
   - key: bugprone-exception-escape.FunctionsThatShouldNotThrow
-    value: 1
+    value: true
   - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
-    value: 1
+    value: true
+  - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value: true
   - key: modernize-loop-convert.NamingStyle
     value: lower_case
   - key: modernize-use-default-member-init.UseAssignment
-    value: 1
+    value: true
   - key: readability-identifier-naming.EnumCase
     value: lower_case
   - key: readability-identifier-naming.EnumConstantCase
