@@ -771,6 +771,7 @@ then
     llvm-size \
     llvm-cov \
     llvm-profdata \
+    llvm-symbolizer \
     llvm-dlltool \
     llvm-windres \
     dsymutil \
@@ -811,6 +812,7 @@ then
     install-llvm-size-stripped \
     install-llvm-cov-stripped \
     install-llvm-profdata-stripped \
+    install-llvm-symbolizer-stripped \
     install-llvm-dlltool-stripped \
     install-llvm-windres-stripped \
     install-dsymutil-stripped \
@@ -1383,6 +1385,7 @@ then
     install-llvm-size-stripped \
     install-llvm-cov-stripped \
     install-llvm-profdata-stripped \
+    install-llvm-symbolizer-stripped \
     install-llvm-dlltool-stripped \
     install-llvm-windres-stripped \
     install-dsymutil-stripped \
