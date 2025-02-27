@@ -223,17 +223,17 @@ download_sha() {
 
 # =================================================================================================
 
-LLVM_VER="19.1.6"
+LLVM_VER="20.1.0-rc3"
 LLVM_TAG="llvmorg-${LLVM_VER}"
-LLVM_SHA="15412d735a4f3e85b1c68025ca28d5671fde7b47"  # 2025-01-29
+LLVM_SHA="a69568efe6c4972e71af295c6577b3412dd57c22"  # 20.1.0-rc3
 LLVM_GIT="https://github.com/llvm/llvm-project"
 
-#download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
-download_sha "llvm" "${LLVM_GIT}" "${LLVM_SHA}" "build/src" "llvm/CMakeLists.txt"
+download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
+#download_sha "llvm" "${LLVM_GIT}" "${LLVM_SHA}" "build/src" "llvm/CMakeLists.txt"
 
 # =================================================================================================
 
-CMAKE_VER="3.31.3"
+CMAKE_VER="4.0.0-rc2"
 CMAKE_TAG="v${CMAKE_VER}"
 CMAKE_GIT="https://github.com/Kitware/CMake"
 CMAKE_URL="${CMAKE_GIT}/releases/download/${CMAKE_TAG}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz"
@@ -241,15 +241,17 @@ CMAKE_TAR="cmake.tar.gz"
 
 download_tar "cmake" "${CMAKE_URL}" "${CMAKE_TAR}" 1 "build" "bin/cmake"
 
+export PATH="${ACE}/build/cmake/bin:${PATH}"
+
 # =================================================================================================
 
-VCPKG_VER="2025.01.13"
+VCPKG_VER="2025.02.14"
 VCPKG_TAG="${VCPKG_VER}"
-VCPKG_SHA="0b4805abfa6ad4c5a4f7fe7d067fdab8449fb915"  # 2025-01-30
+VCPKG_SHA="d5ec528843d29e3a52d745a64b469f810b2cedbf"  # 2025.02.14
 VCPKG_GIT="https://github.com/microsoft/vcpkg"
 
-#download_tag "vcpkg" "${VCPKG_GIT}" "${VCPKG_TAG}" "build" "bootstrap-vcpkg.sh"
-download_sha "vcpkg" "${VCPKG_GIT}" "${VCPKG_SHA}" "build" "bootstrap-vcpkg.sh"
+download_tag "vcpkg" "${VCPKG_GIT}" "${VCPKG_TAG}" "build" "bootstrap-vcpkg.sh"
+#download_sha "vcpkg" "${VCPKG_GIT}" "${VCPKG_SHA}" "build" "bootstrap-vcpkg.sh"
 
 if [ ! -x build/vcpkg/vcpkg ]; then
   env --chdir=build/vcpkg sh bootstrap-vcpkg.sh
@@ -275,9 +277,11 @@ VCPKG_PORTS_LINUX=$(echo \
 VCPKG_PORTS_MINGW=$(echo \
   ${VCPKG_PORTS})
 
+export PATH="${ACE}/build/vcpkg:${PATH}"
+
 # =================================================================================================
 
-RE2C_VER="4.0.2"
+RE2C_VER="4.1"
 RE2C_TAG="${RE2C_VER}"
 RE2C_GIT="https://github.com/skvadrik/re2c"
 
@@ -318,23 +322,22 @@ download_tag "readpe" "${READPE_GIT}" "${READPE_TAG}" "build/src" "Makefile"
 
 # =================================================================================================
 
-POWERSHELL_VER="7.4.6"
-POWERSHELL_TAG="v${POWERSHELL_VER}"
-POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
-POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/${POWERSHELL_TAG}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
-POWERSHELL_TAR="powershell.tar.gz"
-
-download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "build" "pwsh"
-
-if [ ! -x build/powershell/pwsh ]; then
-  chmod +x build/powershell/pwsh
-fi
+# POWERSHELL_VER="7.5.0"
+# POWERSHELL_TAG="v${POWERSHELL_VER}"
+# POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
+# POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/${POWERSHELL_TAG}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
+# POWERSHELL_TAR="powershell.tar.gz"
+#
+# download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "build" "pwsh"
+#
+# if [ ! -x build/powershell/pwsh ]; then
+#   chmod +x build/powershell/pwsh
+# fi
+#
+# export PATH="${ACE}/build/powershell:${PATH}"
 
 # =================================================================================================
 
-export PATH="${ACE}/build/powershell:${PATH}"
-export PATH="${ACE}/build/cmake/bin:${PATH}"
-export PATH="${ACE}/build/vcpkg:${PATH}"
 export PATH="${ACE}/bin:${PATH}"
 
 export VCPKG_ROOT="${ACE}/build/vcpkg"
