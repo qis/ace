@@ -13,12 +13,12 @@ vcpkg_from_github(
         0006-fix-ios-install.patch
         ace-clang.patch
         ace-mingw.patch
-        ace-pthreads.patch
+	ace-pthreads.patch
 )
 file(REMOVE "${SOURCE_PATH}/other_include/zstd_errors.h")
 
 vcpkg_list(SET OPTIONS)
-if(VCPKG_HOST_IS_WINDOWS AND VCPKG_TARGET_IS_WINDOWS)
+if(VCPKG_TARGET_IS_WINDOWS)
     vcpkg_acquire_msys(MSYS_ROOT
         PACKAGES
             bash

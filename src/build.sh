@@ -233,7 +233,7 @@ download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt
 
 # =================================================================================================
 
-CMAKE_VER="4.0.0-rc2"
+CMAKE_VER="3.31.6"
 CMAKE_TAG="v${CMAKE_VER}"
 CMAKE_GIT="https://github.com/Kitware/CMake"
 CMAKE_URL="${CMAKE_GIT}/releases/download/${CMAKE_TAG}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz"
@@ -322,19 +322,19 @@ download_tag "readpe" "${READPE_GIT}" "${READPE_TAG}" "build/src" "Makefile"
 
 # =================================================================================================
 
-# POWERSHELL_VER="7.5.0"
-# POWERSHELL_TAG="v${POWERSHELL_VER}"
-# POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
-# POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/${POWERSHELL_TAG}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
-# POWERSHELL_TAR="powershell.tar.gz"
-#
-# download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "build" "pwsh"
-#
-# if [ ! -x build/powershell/pwsh ]; then
-#   chmod +x build/powershell/pwsh
-# fi
-#
-# export PATH="${ACE}/build/powershell:${PATH}"
+POWERSHELL_VER="7.5.0"
+POWERSHELL_TAG="v${POWERSHELL_VER}"
+POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
+POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/${POWERSHELL_TAG}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
+POWERSHELL_TAR="powershell.tar.gz"
+
+download_tar "powershell" "${POWERSHELL_URL}" "${POWERSHELL_TAR}" 0 "build" "pwsh"
+
+if [ ! -x build/powershell/pwsh ]; then
+  chmod +x build/powershell/pwsh
+fi
+
+export PATH="${ACE}/build/powershell:${PATH}"
 
 # =================================================================================================
 

@@ -7,7 +7,7 @@ vcpkg_from_github(
     PATCHES
         dependencies.diff
         disable-source-utf8.patch
-        ace-vcpkg.patch
+	ace-vcpkg.patch
 )
 file(REMOVE_RECURSE "${SOURCE_PATH}/third_party")
 
