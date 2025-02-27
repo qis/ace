@@ -13,7 +13,7 @@ tab_width = 8
 [*.{rc,cmd,rtf}]
 end_of_line = crlf
 
-[res/license.txt]
+[{,res/}license.txt]
 max_line_length = 76
 
 [makefile]

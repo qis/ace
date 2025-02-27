@@ -1,7 +1,9 @@
 CompileFlags:
-  Add: [ -std=c++2c, -fexperimental-library ]
+  Add: [ -xc++, -std=c++26, -fexperimental-library, -DCLANGD ]
   CompilationDatabase: build
 Diagnostics:
+  ClangTidy:
+    FastCheckFilter: None
   MissingIncludes: None
   UnusedIncludes: Strict
 InlayHints:
