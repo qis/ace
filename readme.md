@@ -29,6 +29,7 @@ md C:\Ace
 ```ini
 [wsl2]
 kernelCommandLine=vsyscall=emulate
+maxCrashDumpCount=-1
 memory=18GB
 ```
 
@@ -151,8 +152,8 @@ winecfg
 wine
 ```
 
-### WSL: WSLg
-Configure WSLg.
+### WSL2
+Configure Wayland and Xorg support.
 
 ```sh
 # Create service.
@@ -170,20 +171,53 @@ ExecStart=/usr/bin/ln -s /mnt/wslg/runtime-dir/wayland-0.lock ${XDG_RUNTIME_DIR}
 [Install]
 WantedBy=default.target
 EOF
+```
 
+Configure core dumps for Bash.
+
+```sh
+sudo sed -i -e "1i ulimit -c unlimited" /etc/bash.bashrc
+
+sudo tee -a /etc/sysctl.conf >/dev/null <<'EOF'
+kernel.core_pattern=/tmp/core.%e
+EOF
+```
+
+Configure core dumps for Code.
+
+```sh
+mkdir -p ~/.vscode-server
+
+tee ~/.vscode-server/server-env-setup >/dev/null <<'EOF'
+#!/bin/bash
+ulimit -c unlimited
+EOF
+
+chmod +x ~/.vscode-server/server-env-setup
+```
+
+Exit shell.
+
+```sh
 exit
 ```
+
+Restart WSL2 server.
 
 ```cmd
 wsl --shutdown Debian
 wsl -d Debian
 ```
 
-```sh
-# Enable and start service.
-systemctl --user --now enable symlink-wayland-socket
+Enable services.
 
-# Install `foot(1)` and `xterm(1)` to test Wayland and Xorg support.
+```sh
+systemctl --user --now enable symlink-wayland-socket
+```
+
+Install `foot(1)` and `xterm(1)` to test Wayland and Xorg support.
+
+```sh
 sudo apt install -y foot xterm
 ```
 
