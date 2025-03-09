@@ -1,20 +1,4 @@
 #!/bin/sh
-
-# List include directories.
-# bin/clang++ main.cpp -v
-
-# List library directories.
-# bin/clang++ -print-search-dirs
-
-# Show builtins library path.
-# bin/clang++ -print-libgcc-file-name
-
-# Overwrite libc++ include directory.
-# bin/clang++ -stdlib++-isystem include/c++/v1 -L lib main.cpp
-
-# Compile for Windows.
-# bin/clang++ --target=x86_64-w64-mingw32 --sysroot=sys/mingw -fms-compatibility-version=19.40 main.cpp
-
 set -e
 export LC_ALL=C
 SCRIPT=$(readlink -f -- "${0}" || realpath -- "${0}")
@@ -223,9 +207,9 @@ download_sha() {
 
 # =================================================================================================
 
-LLVM_VER="20.1.0-rc3"
+LLVM_VER="20.1.0"
 LLVM_TAG="llvmorg-${LLVM_VER}"
-LLVM_SHA="a69568efe6c4972e71af295c6577b3412dd57c22"  # 20.1.0-rc3
+LLVM_SHA="24a30daaa559829ad079f2ff7f73eb4e18095f88"  # 20.1.0
 LLVM_GIT="https://github.com/llvm/llvm-project"
 
 download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
@@ -268,8 +252,8 @@ VCPKG_PORTS=$(echo \
   convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
   openfbx[core] ktx[core,vulkan] simdjson[core,threads] fastgltf[core] miniaudio[core] \
   sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
-  boost-algorithm[core] boost-container[core] boost-circular-buffer[core] \
-  boost-static-string[core] boost-json[core] boost-url[core])
+  boost-container boost-circular-buffer boost-lockfree boost-static-string \
+  boost-algorithm boost-intrusive boost-thread boost-json boost-url)
 
 VCPKG_PORTS_LINUX=$(echo \
   ${VCPKG_PORTS} libffi[core] wayland[core,force-build] wayland-protocols[core,force-build])
