@@ -171,6 +171,8 @@ WantedBy=default.target
 EOF
 ```
 
+<!--
+
 Configure core dumps for Bash.
 
 ```sh
@@ -193,6 +195,8 @@ EOF
 
 chmod +x ~/.vscode-server/server-env-setup
 ```
+
+-->
 
 Exit shell.
 
