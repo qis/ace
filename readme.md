@@ -35,28 +35,26 @@ memory=18GB
 
 2. Configure the system in PowerShell as **administrator**.
 
-<!--
-# Remove existing WSL distribution.
-wsl --shutdown Debian
-wsl --unregister Debian
--->
-
 ```ps1
+# Optional: Remove WSL distribution and delete all associated data.
+# wsl --shutdown Debian
+# wsl --unregister Debian
+
 # Show known file extensions in Explorer.
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Type DWord -Value 0
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" `
+  -Name "HideFileExt" -Type DWord -Value 0
 
 # Show hidden files in Explorer.
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Type DWord -Value 1
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" `
+  -Name "Hidden" -Type DWord -Value 1
 
 # Enable NTFS paths with length over 260 characters.
-Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Type DWord -Value 1
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+  -Name "LongPathsEnabled" -Type DWord -Value 1
 
 # Enable WSL support.
 dism /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
 dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
-
-# Remove WSL distribution and delete all of the data associated with it (optional).
-# wsl --unregister Debian
 
 # Install WSL distribution if it is not already installed.
 # wsl --install --distribution Debian
@@ -69,7 +67,7 @@ dism /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 3. Reboot the system.
 4. Log in and finish the WSL installation if prompted.
 5. Execute `wsl -s Debian` on the Command Line if you want Debian to be the default WSL distribution.
-6. Execute `wsl -d Debian` on the Command Line to start WSL.
+6. Execute `wsl -d Debian` on the Command Line to start the Debian WSL distribution.
 7. Follow Linux (Debian) instructions below.
 
 ### Linux
@@ -237,17 +235,6 @@ sudo emerge -avn \
 
 2. Download source code and build toolchain.
 
-<!--
-# Clone toolchain repository.
-git clone git@github.com:qis/ace /opt/ace
-
-# Install bash(1) config.
-cat /opt/ace/src/bash.sh | sudo tee /etc/profile.d/bash.sh >/dev/null
-sudo chmod 0755 /etc/profile.d/bash.sh
-source /etc/profile.d/bash.sh
-rm -rf ~/.bashrc ~/.profile
--->
-
 ```sh
 # Create toolchain directory.
 sudo mkdir /opt/ace
@@ -256,24 +243,16 @@ sudo chown $(id -u):$(id -g) /opt/ace
 # Clone toolchain repository.
 git clone https://github.com/qis/ace /opt/ace
 
+# Optional: Install bash(1) config.
+# cat /opt/ace/src/bash.sh | sudo tee /etc/profile.d/bash.sh >/dev/null
+# sudo chmod 0755 /etc/profile.d/bash.sh
+# source /etc/profile.d/bash.sh
+# rm -rf ~/.bashrc ~/.profile
+
 # Build toolchain.
 cd /opt/ace
 sh src/build.sh
 ```
-
-<!--
-# Exit WSL shell.
-exit
-
-# Make sure, that chroot is fully unmounted.
-wsl --shutdown
-
-# Delete build files and installed binaries.
-# wsl -d Debian
-# cd /opt/ace || exit 1
-# sudo rm -rf build
-# sudo git clean -fdX
--->
 
 ## Install
 Use archives from the build step.
