@@ -1677,12 +1677,11 @@ for port in ${VCPKG_PORTS_LINUX}; do
   vcpkg install --vcpkg-root=build/ports --triplet=ace-linux ${port}
 done
 
-vcpkg install --vcpkg-root=build/ports --triplet=ace-linux sdl3[core]
-
 for port in ${VCPKG_PORTS_MINGW}; do
   vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw ${port}
 done
 
+vcpkg install --vcpkg-root=build/ports --triplet=ace-linux sdl3[core]
 vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw sdl3[core]
 
 print "Exporting ports ..."
