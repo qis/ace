@@ -251,7 +251,8 @@ git clone https://github.com/qis/ace /opt/ace
 # cat /opt/ace/src/bash.sh | sudo tee /etc/profile.d/bash.sh >/dev/null
 # sudo chmod 0755 /etc/profile.d/bash.sh
 # source /etc/profile.d/bash.sh
-# rm -rf ~/.bashrc ~/.profile
+# rm -f ~/.bashrc ~/.profile
+# ln -s /etc/profile.d/bash.sh ~/.bashrc
 
 # Build toolchain.
 cd /opt/ace

@@ -127,8 +127,9 @@ then
     apt-file automake binutils build-essential bzip2 ca-certificates curl file git less \
     libedit-dev libicu-dev liblzma-dev libncurses-dev libreadline-dev libtinfo-dev libxml2-dev \
     make man-db manpages-dev nasm ninja-build openssh-client p7zip-full patchelf pax-utils perl pev \
-    pkg-config python3 python3-distutils python3-lib2to3 strace swig time libtinfo5 \
-    symlinks tree tzdata unzip xz-utils yasm wine zip zlib1g-dev libpython3-dev
+    libtool pkg-config python3 python3-distutils python3-lib2to3 strace swig time libtinfo5 \
+    symlinks tree tzdata unzip xz-utils yasm wine zip zlib1g-dev libpython3-dev libltdl-dev \
+    libxkbcommon-dev libxkbcommon0 libegl-dev libegl1 libegl-mesa0
 
   print "Configuring chroot system ..."
   git config --global core.eol lf
@@ -255,11 +256,10 @@ VCPKG_PORTS=$(echo \
   boost-container boost-circular-buffer boost-lockfree boost-static-string \
   boost-algorithm boost-intrusive boost-thread boost-json boost-url)
 
-VCPKG_PORTS_LINUX=$(echo \
-  ${VCPKG_PORTS} libffi[core] wayland[core,force-build] wayland-protocols[core,force-build])
+VCPKG_PORTS_LINUX=$(echo ${VCPKG_PORTS} libffi[core] \
+  wayland[core,force-build] wayland-protocols[core,force-build])
 
-VCPKG_PORTS_MINGW=$(echo \
-  ${VCPKG_PORTS})
+VCPKG_PORTS_MINGW=$(echo ${VCPKG_PORTS})
 
 export PATH="${ACE}/build/vcpkg:${PATH}"
 
@@ -354,7 +354,9 @@ then
     libtinfo-dev libtinfo6 \
     libedit-dev libedit2 \
     libbsd-dev libbsd0 \
-    libmd-dev libmd0
+    libmd-dev libmd0 \
+    libxkbcommon-dev libxkbcommon0 \
+    libegl-dev libegl1 libegl-mesa0
 
   print "Installing linux sysroot ..."
   find build/linux -name '*.deb' -exec dpkg-deb -x '{}' sys/linux ';'
@@ -1675,9 +1677,13 @@ for port in ${VCPKG_PORTS_LINUX}; do
   vcpkg install --vcpkg-root=build/ports --triplet=ace-linux ${port}
 done
 
+vcpkg install --vcpkg-root=build/ports --triplet=ace-linux sdl3[core]
+
 for port in ${VCPKG_PORTS_MINGW}; do
   vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw ${port}
 done
+
+vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw sdl3[core]
 
 print "Exporting ports ..."
 rm -rf build/ports-export
