@@ -116,6 +116,8 @@ login() {
   /bin/bash --init-file src/bash.sh
 }
 
+mkdir -p build/src
+
 if [ ! -f build/01-chroot.done ] ||
    [ ! -e /usr/bin/ninja ]
 then
@@ -210,11 +212,11 @@ download_sha() {
 
 LLVM_VER="20.1.0"
 LLVM_TAG="llvmorg-${LLVM_VER}"
-LLVM_SHA="24a30daaa559829ad079f2ff7f73eb4e18095f88"  # 20.1.0
+LLVM_SHA="58a0c9570c69ecdf23e998637d2b82cfa455bf14"  # 2025-03-27
 LLVM_GIT="https://github.com/llvm/llvm-project"
 
-download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
-#download_sha "llvm" "${LLVM_GIT}" "${LLVM_SHA}" "build/src" "llvm/CMakeLists.txt"
+#download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
+download_sha "llvm" "${LLVM_GIT}" "${LLVM_SHA}" "build/src" "llvm/CMakeLists.txt"
 
 # =================================================================================================
 
