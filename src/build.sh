@@ -8,12 +8,12 @@ SYS=${ACE}/sys
 cd "${ACE}"
 
 error() {
-  echo "\033[0;31m$*\033[0m" 1>&2
+  printf "\e[1;31m$*\e[0m\n" 1>&2
   exit 1
 }
 
 print() {
-  echo "\033[0;32m$*\033[0m" 1>&2
+  printf "\e[1;32m$*\e[0m\n" 1>&2
 }
 
 verify() {
@@ -210,17 +210,17 @@ download_sha() {
 
 # =================================================================================================
 
-LLVM_VER="20.1.0"
+LLVM_VER="20.1.3"
 LLVM_TAG="llvmorg-${LLVM_VER}"
 LLVM_SHA="58a0c9570c69ecdf23e998637d2b82cfa455bf14"  # 2025-03-27
 LLVM_GIT="https://github.com/llvm/llvm-project"
 
-#download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
-download_sha "llvm" "${LLVM_GIT}" "${LLVM_SHA}" "build/src" "llvm/CMakeLists.txt"
+download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "build/src" "llvm/CMakeLists.txt"
+#download_sha "llvm" "${LLVM_GIT}" "${LLVM_SHA}" "build/src" "llvm/CMakeLists.txt"
 
 # =================================================================================================
 
-CMAKE_VER="3.31.6"
+CMAKE_VER="3.31.5"
 CMAKE_TAG="v${CMAKE_VER}"
 CMAKE_GIT="https://github.com/Kitware/CMake"
 CMAKE_URL="${CMAKE_GIT}/releases/download/${CMAKE_TAG}/cmake-${CMAKE_VER}-linux-x86_64.tar.gz"
@@ -232,7 +232,7 @@ export PATH="${ACE}/build/cmake/bin:${PATH}"
 
 # =================================================================================================
 
-VCPKG_VER="2025.02.14"
+VCPKG_VER="2025.04.09"
 VCPKG_TAG="${VCPKG_VER}"
 VCPKG_SHA="d5ec528843d29e3a52d745a64b469f810b2cedbf"  # 2025.02.14
 VCPKG_GIT="https://github.com/microsoft/vcpkg"
@@ -1682,9 +1682,6 @@ done
 for port in ${VCPKG_PORTS_MINGW}; do
   vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw ${port}
 done
-
-vcpkg install --vcpkg-root=build/ports --triplet=ace-linux sdl3[core]
-vcpkg install --vcpkg-root=build/ports --triplet=ace-mingw sdl3[core]
 
 print "Exporting ports ..."
 rm -rf build/ports-export

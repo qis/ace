@@ -127,7 +127,7 @@ chmod 0600 ~/.ssh/*
 
 ```sh
 # Download archive.
-curl -L https://github.com/Kitware/CMake/releases/download/v3.31.6/cmake-3.31.6-linux-x86_64.tar.gz \
+curl -L https://github.com/Kitware/CMake/releases/download/v3.31.5/cmake-3.31.5-linux-x86_64.tar.gz \
      -o /tmp/cmake.tar.gz
 
 # Extract archive.

@@ -13,9 +13,10 @@ vcpkg_from_github(
         0006-fix-ios-install.patch
         ace-clang.patch
         ace-mingw.patch
-	ace-pthreads.patch
 )
 file(REMOVE "${SOURCE_PATH}/other_include/zstd_errors.h")
+file(REMOVE_RECURSE "${SOURCE_PATH}/external/basisu/zstd")
+file(REMOVE_RECURSE "${SOURCE_PATH}/lib/basisu/zstd")
 
 vcpkg_list(SET OPTIONS)
 if(VCPKG_TARGET_IS_WINDOWS)
@@ -24,8 +25,8 @@ if(VCPKG_TARGET_IS_WINDOWS)
             bash
         DIRECT_PACKAGES
             # Required for "getopt"
-            "https://repo.msys2.org/msys/x86_64/util-linux-2.35.2-3-x86_64.pkg.tar.zst"
-            da26540881cd5734072717133307e5d1a27a60468d3656885507833b80f24088c5382eaa0234b30bdd9e8484a6638b4514623f5327f10b19eed36f12158e8edb
+            "https://repo.msys2.org/msys/x86_64/util-linux-2.35.2-5-x86_64.pkg.tar.zst"
+            edcfc8dbc753419f0ea48f34767489609ac61fbf6fad263b19a8a1422ab1f0c6026efc047c26a6c010e60827858c4d6143b12d13a7991b3511746b09937c01b6
             # Required for "dos2unix"
             "https://mirror.msys2.org/msys/x86_64/dos2unix-7.5.1-1-x86_64.pkg.tar.zst"
             83d85e6ccea746ef9e8153a0d605e774dbe7efc0ee952804acfee4ffd7e3b0386a353b45ff989dd99bc3ce75968209fea3d246ad2af88bbb5c4eca12fc5a8f92

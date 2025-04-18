@@ -7,7 +7,7 @@
 -    add_compile_options(-ffp-contract=off)
 +    add_compile_options(-ffp-contract=off -Wno-overriding-option)
  endif()
-
+ 
  set(KTX_BUILD_DIR "${CMAKE_BINARY_DIR}")
 --- lib/astc-encoder/Source/cmake_core.cmake
 +++ lib/astc-encoder/Source/cmake_core.cmake
@@ -18,5 +18,5 @@
 -                $<${is_gnu_fe}:-ffp-contract=off>)
 +                $<${is_gnu_fe}:-ffp-contract=off -Wno-overriding-option>)
      endif()
-
+ 
      if(${ASTCENC_CLI})
