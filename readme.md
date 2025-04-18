@@ -240,6 +240,11 @@ sudo emerge -avn \
 2. Download source code and build toolchain.
 
 ```sh
+# Create toolchain dataset.
+# zfs create -o mountpoint=/opt system/opt
+# zfs create -o mountpoint=/opt/ace -o compression=off -o encryption=off system/opt/ace
+# sudo chown $(id -u):$(id -g) /opt/ace
+
 # Create toolchain directory.
 sudo mkdir /opt/ace
 sudo chown $(id -u):$(id -g) /opt/ace
