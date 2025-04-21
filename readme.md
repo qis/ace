@@ -304,6 +304,34 @@ sudo chmod 0755 /etc/profile.d/ace.sh
 source /etc/profile.d/ace.sh
 ```
 
+## Plugin
+Create LLDB DAP VS Code extension.
+
+```sh
+# Update npm.
+npm install -g npm
+npm update -g
+
+# Update LLVM sources ownership.
+sudo chown -R $(id -u):$(id -g) /opt/ace/build/src/llvm
+
+# Enter LLDB DAP sources directory.
+cd /opt/ace/build/src/llvm/lldb/tools/lldb-dap
+
+# Install dependencies.
+npm install
+
+# Create extension.
+node_modules/.bin/vsce package
+mv lldb-dap-*.vsix /opt/ace/share/lldb-dap.vsix
+```
+
+Install LLDB DAP VS Code extension.
+
+```sh
+code --install-extension /opt/ace/share/lldb-dap.vsix
+```
+
 ## Usage
 1. See [doc/editor.md](doc/editor.md) for editor configuration instructions.
 2. See [src/template](src/template) for a template project.
