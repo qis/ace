@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
 project(ace DESCRIPTION "Ace" VERSION 0.1.0 LANGUAGES C CXX)
 
 # Version
@@ -29,16 +29,12 @@ if(CMAKE_HOST_UNIX AND WIN32)
     USES_TERMINAL)
 endif()
 
-# Benchmarks
-find_package(benchmark CONFIG REQUIRED)
-add_executable(benchmarks EXCLUDE_FROM_ALL src/benchmarks.cpp src/main.rc)
-target_link_libraries(benchmarks PRIVATE objects benchmark::benchmark)
-
 # Tests
-include(CTest)
 if(BUILD_TESTING)
+  include(CTest)
+
   find_package(doctest CONFIG REQUIRED)
-  add_executable(tests src/tests.cpp src/main.rc)
+  add_executable(tests src/test.cpp src/main.rc)
   target_link_libraries(tests PRIVATE objects doctest::doctest)
 
   include(doctest)

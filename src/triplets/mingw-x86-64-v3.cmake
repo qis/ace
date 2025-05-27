@@ -1,0 +1,3 @@
+set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
+set(VCPKG_POLICY_DLLS_WITHOUT_LIBS enabled)
+include("${CMAKE_CURRENT_LIST_DIR}/../ports.cmake")

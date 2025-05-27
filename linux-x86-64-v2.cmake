@@ -1,0 +1,6 @@
+include_guard(GLOBAL)
+set(ACE_SYSTEM_NAME "linux")
+set(ACE_SYSTEM_ARCH "x86-64-v2")
+include(${CMAKE_CURRENT_LIST_DIR}/src/toolchain.cmake)
+unset(ACE_SYSTEM_ARCH)
+unset(ACE_SYSTEM_NAME)

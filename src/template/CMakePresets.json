@@ -1,20 +1,20 @@
 {
   "version": 6,
   "cmakeMinimumRequired": {
-    "major": 4,
-    "minor": 0
+    "major": 3,
+    "minor": 30
   },
   "configurePresets": [
     {
       "hidden": true,
       "name": "default",
-      "generator": "Ninja Multi-Config",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
       "architecture": { "value": "x64", "strategy": "external" },
       "warnings": { "dev": false },
       "cacheVariables": {
-        "CMAKE_C_STANDARD": "11",
+        "CMAKE_C_STANDARD": "23",
         "CMAKE_C_STANDARD_REQUIRED": true,
         "CMAKE_C_EXTENSIONS": false,
         "CMAKE_CXX_STANDARD": "26",
@@ -22,86 +22,501 @@
         "CMAKE_CXX_EXTENSIONS": false,
         "CMAKE_CXX_MODULE_STD": true,
         "CMAKE_CXX_SCAN_FOR_MODULES": true,
-        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
         "CMAKE_EXPERIMENTAL_CXX_IMPORT_STD": "0e5b6991-d74f-4b3d-a41c-cf096e0b2508",
-        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;MinSizeRel;RelWithDebInfo;Coverage",
-        "CMAKE_DEFAULT_BUILD_TYPE": "Debug"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true
       }
     },
     {
-      "name": "linux",
-      "displayName": "Linux",
-      "toolchainFile": "$env{ACE}/linux.cmake",
-      "condition": { "type": "notEquals", "lhs": "${hostSystemName}", "rhs": "Windows" },
-      "inherits": "default"
+      "hidden": true,
+      "name": "linux-x86-64-v2",
+      "toolchainFile": "$env{ACE}/linux-x86-64-v2.cmake"
     },
     {
-      "name": "mingw",
-      "displayName": "Windows",
-      "toolchainFile": "$env{ACE}/mingw.cmake",
-      "inherits": "default"
+      "hidden": true,
+      "name": "linux-x86-64-v3",
+      "toolchainFile": "$env{ACE}/linux-x86-64-v3.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "mingw-x86-64-v2",
+      "toolchainFile": "$env{ACE}/mingw-x86-64-v2.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "mingw-x86-64-v3",
+      "toolchainFile": "$env{ACE}/mingw-x86-64-v3.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "debug",
+      "cacheVariables": {
+        "BUILD_TESTING": true,
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "release",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": false,
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "minsizerel",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "MinSizeRel"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "relwithdebinfo",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "coverage",
+      "cacheVariables": {
+        "BUILD_TESTING": true,
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "Coverage"
+      }
+    },
+    {
+      "name": "linux-x86-64-v2-debug",
+      "displayName": "Linux (x86-64-v2): Debug",
+      "inherits": [ "default", "linux-x86-64-v2", "debug" ]
+    },
+    {
+      "name": "linux-x86-64-v2-release",
+      "displayName": "Linux (x86-64-v2): Release",
+      "inherits": [ "default", "linux-x86-64-v2", "release" ]
+    },
+    {
+      "name": "linux-x86-64-v2-minsizerel",
+      "displayName": "Linux (x86-64-v2): MinSizeRel",
+      "inherits": [ "default", "linux-x86-64-v2", "minsizerel" ]
+    },
+    {
+      "name": "linux-x86-64-v2-relwithdebinfo",
+      "displayName": "Linux (x86-64-v2): RelWithDebInfo",
+      "inherits": [ "default", "linux-x86-64-v2", "relwithdebinfo" ]
+    },
+    {
+      "name": "linux-x86-64-v2-coverage",
+      "displayName": "Linux (x86-64-v2): Coverage",
+      "inherits": [ "default", "linux-x86-64-v2", "coverage" ]
+    },
+    {
+      "name": "linux-x86-64-v3-debug",
+      "displayName": "Linux (x86-64-v3): Debug",
+      "inherits": [ "default", "linux-x86-64-v3", "debug" ]
+    },
+    {
+      "name": "linux-x86-64-v3-release",
+      "displayName": "Linux (x86-64-v3): Release",
+      "inherits": [ "default", "linux-x86-64-v3", "release" ]
+    },
+    {
+      "name": "linux-x86-64-v3-minsizerel",
+      "displayName": "Linux (x86-64-v3): MinSizeRel",
+      "inherits": [ "default", "linux-x86-64-v3", "minsizerel" ]
+    },
+    {
+      "name": "linux-x86-64-v3-relwithdebinfo",
+      "displayName": "Linux (x86-64-v3): RelWithDebInfo",
+      "inherits": [ "default", "linux-x86-64-v3", "relwithdebinfo" ]
+    },
+    {
+      "name": "linux-x86-64-v3-coverage",
+      "displayName": "Linux (x86-64-v3): Coverage",
+      "inherits": [ "default", "linux-x86-64-v3", "coverage" ]
+    },
+    {
+      "name": "mingw-x86-64-v2-debug",
+      "displayName": "MinGW (x86-64-v2): Debug",
+      "inherits": [ "default", "mingw-x86-64-v2", "debug" ]
+    },
+    {
+      "name": "mingw-x86-64-v2-release",
+      "displayName": "MinGW (x86-64-v2): Release",
+      "inherits": [ "default", "mingw-x86-64-v2", "release" ]
+    },
+    {
+      "name": "mingw-x86-64-v2-minsizerel",
+      "displayName": "MinGW (x86-64-v2): MinSizeRel",
+      "inherits": [ "default", "mingw-x86-64-v2", "minsizerel" ]
+    },
+    {
+      "name": "mingw-x86-64-v2-relwithdebinfo",
+      "displayName": "MinGW (x86-64-v2): RelWithDebInfo",
+      "inherits": [ "default", "mingw-x86-64-v2", "relwithdebinfo" ]
+    },
+    {
+      "name": "mingw-x86-64-v2-coverage",
+      "displayName": "MinGW (x86-64-v2): Coverage",
+      "inherits": [ "default", "mingw-x86-64-v2", "coverage" ]
+    },
+    {
+      "name": "mingw-x86-64-v3-debug",
+      "displayName": "MinGW (x86-64-v3): Debug",
+      "inherits": [ "default", "mingw-x86-64-v3", "debug" ]
+    },
+    {
+      "name": "mingw-x86-64-v3-release",
+      "displayName": "MinGW (x86-64-v3): Release",
+      "inherits": [ "default", "mingw-x86-64-v3", "release" ]
+    },
+    {
+      "name": "mingw-x86-64-v3-minsizerel",
+      "displayName": "MinGW (x86-64-v3): MinSizeRel",
+      "inherits": [ "default", "mingw-x86-64-v3", "minsizerel" ]
+    },
+    {
+      "name": "mingw-x86-64-v3-relwithdebinfo",
+      "displayName": "MinGW (x86-64-v3): RelWithDebInfo",
+      "inherits": [ "default", "mingw-x86-64-v3", "relwithdebinfo" ]
+    },
+    {
+      "name": "mingw-x86-64-v3-coverage",
+      "displayName": "MinGW (x86-64-v3): Coverage",
+      "inherits": [ "default", "mingw-x86-64-v3", "coverage" ]
     }
   ],
   "buildPresets": [
     {
-      "name": "linux-debug",
-      "displayName": "Debug",
-      "configuration": "Debug",
-      "configurePreset": "linux"
+      "name": "linux-x86-64-v2-debug",
+      "displayName": "Linux (x86-64-v2): Debug",
+      "configurePreset": "linux-x86-64-v2-debug"
     },
     {
-      "name": "linux-release",
-      "displayName": "Release",
-      "configuration": "Release",
-      "configurePreset": "linux"
+      "name": "linux-x86-64-v2-release",
+      "displayName": "Linux (x86-64-v2): Release",
+      "configurePreset": "linux-x86-64-v2-release"
     },
     {
-      "name": "linux-relwithdebinfo",
-      "displayName": "RelWithDebInfo",
-      "configuration": "RelWithDebInfo",
-      "configurePreset": "linux"
+      "name": "linux-x86-64-v2-minsizerel",
+      "displayName": "Linux (x86-64-v2): MinSizeRel",
+      "configurePreset": "linux-x86-64-v2-minsizerel"
     },
     {
-      "name": "linux-minsizerel",
-      "displayName": "MinSizeRel",
-      "configuration": "MinSizeRel",
-      "configurePreset": "linux"
+      "name": "linux-x86-64-v2-relwithdebinfo",
+      "displayName": "Linux (x86-64-v2): RelWithDebInfo",
+      "configurePreset": "linux-x86-64-v2-relwithdebinfo"
     },
     {
-      "name": "linux-coverage",
-      "displayName": "Coverage",
-      "configuration": "Coverage",
-      "configurePreset": "linux"
+      "name": "linux-x86-64-v2-coverage",
+      "displayName": "Linux (x86-64-v2): Coverage",
+      "configurePreset": "linux-x86-64-v2-coverage"
     },
     {
-      "name": "mingw-debug",
-      "displayName": "Debug",
-      "configuration": "Debug",
-      "configurePreset": "mingw"
+      "name": "linux-x86-64-v3-debug",
+      "displayName": "Linux (x86-64-v3): Debug",
+      "configurePreset": "linux-x86-64-v3-debug"
     },
     {
-      "name": "mingw-release",
-      "displayName": "Release",
-      "configuration": "Release",
-      "configurePreset": "mingw"
+      "name": "linux-x86-64-v3-release",
+      "displayName": "Linux (x86-64-v3): Release",
+      "configurePreset": "linux-x86-64-v3-release"
     },
     {
-      "name": "mingw-relwithdebinfo",
-      "displayName": "RelWithDebInfo",
-      "configuration": "RelWithDebInfo",
-      "configurePreset": "mingw"
+      "name": "linux-x86-64-v3-minsizerel",
+      "displayName": "Linux (x86-64-v3): MinSizeRel",
+      "configurePreset": "linux-x86-64-v3-minsizerel"
     },
     {
-      "name": "mingw-minsizerel",
-      "displayName": "MinSizeRel",
-      "configuration": "MinSizeRel",
-      "configurePreset": "mingw"
+      "name": "linux-x86-64-v3-relwithdebinfo",
+      "displayName": "Linux (x86-64-v3): RelWithDebInfo",
+      "configurePreset": "linux-x86-64-v3-relwithdebinfo"
     },
     {
-      "name": "mingw-coverage",
-      "displayName": "Coverage",
-      "configuration": "Coverage",
-      "configurePreset": "mingw"
+      "name": "linux-x86-64-v3-coverage",
+      "displayName": "Linux (x86-64-v3): Coverage",
+      "configurePreset": "linux-x86-64-v3-coverage"
+    },
+    {
+      "name": "mingw-x86-64-v2-debug",
+      "displayName": "MinGW (x86-64-v2): Debug",
+      "configurePreset": "mingw-x86-64-v2-debug"
+    },
+    {
+      "name": "mingw-x86-64-v2-release",
+      "displayName": "MinGW (x86-64-v2): Release",
+      "configurePreset": "mingw-x86-64-v2-release"
+    },
+    {
+      "name": "mingw-x86-64-v2-minsizerel",
+      "displayName": "MinGW (x86-64-v2): MinSizeRel",
+      "configurePreset": "mingw-x86-64-v2-minsizerel"
+    },
+    {
+      "name": "mingw-x86-64-v2-relwithdebinfo",
+      "displayName": "MinGW (x86-64-v2): RelWithDebInfo",
+      "configurePreset": "mingw-x86-64-v2-relwithdebinfo"
+    },
+    {
+      "name": "mingw-x86-64-v2-coverage",
+      "displayName": "MinGW (x86-64-v2): Coverage",
+      "configurePreset": "mingw-x86-64-v2-coverage"
+    },
+    {
+      "name": "mingw-x86-64-v3-debug",
+      "displayName": "MinGW (x86-64-v3): Debug",
+      "configurePreset": "mingw-x86-64-v3-debug"
+    },
+    {
+      "name": "mingw-x86-64-v3-release",
+      "displayName": "MinGW (x86-64-v3): Release",
+      "configurePreset": "mingw-x86-64-v3-release"
+    },
+    {
+      "name": "mingw-x86-64-v3-minsizerel",
+      "displayName": "MinGW (x86-64-v3): MinSizeRel",
+      "configurePreset": "mingw-x86-64-v3-minsizerel"
+    },
+    {
+      "name": "mingw-x86-64-v3-relwithdebinfo",
+      "displayName": "MinGW (x86-64-v3): RelWithDebInfo",
+      "configurePreset": "mingw-x86-64-v3-relwithdebinfo"
+    },
+    {
+      "name": "mingw-x86-64-v3-coverage",
+      "displayName": "MinGW (x86-64-v3): Coverage",
+      "configurePreset": "mingw-x86-64-v3-coverage"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "linux-x86-64-v2-debug",
+      "displayName": "Linux (x86-64-v2): Debug",
+      "configurePreset": "linux-x86-64-v2-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "linux-x86-64-v2-coverage",
+      "displayName": "Linux (x86-64-v2): Coverage",
+      "configurePreset": "linux-x86-64-v2-coverage",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "linux-x86-64-v3-debug",
+      "displayName": "Linux (x86-64-v3): Debug",
+      "configurePreset": "linux-x86-64-v3-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "linux-x86-64-v3-coverage",
+      "displayName": "Linux (x86-64-v3): Coverage",
+      "configurePreset": "linux-x86-64-v3-coverage",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "mingw-x86-64-v2-debug",
+      "displayName": "MinGW (x86-64-v2): Debug",
+      "configurePreset": "mingw-x86-64-v2-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "mingw-x86-64-v2-coverage",
+      "displayName": "MinGW (x86-64-v2): Coverage",
+      "configurePreset": "mingw-x86-64-v2-coverage",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "mingw-x86-64-v3-debug",
+      "displayName": "MinGW (x86-64-v3): Debug",
+      "configurePreset": "mingw-x86-64-v3-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "mingw-x86-64-v3-coverage",
+      "displayName": "MinGW (x86-64-v3): Coverage",
+      "configurePreset": "mingw-x86-64-v3-coverage",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "linux-x86-64-v2-debug",
+      "displayName": "Linux (x86-64-v2): Debug",
+      "steps": [
+        { "name": "linux-x86-64-v2-debug", "type": "configure" },
+        { "name": "linux-x86-64-v2-debug", "type": "build" },
+        { "name": "linux-x86-64-v2-debug", "type": "test" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v2-release",
+      "displayName": "Linux (x86-64-v2): Release",
+      "steps": [
+        { "name": "linux-x86-64-v2-release", "type": "configure" },
+        { "name": "linux-x86-64-v2-release", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v2-minsizerel",
+      "displayName": "Linux (x86-64-v2): MinSizeRel",
+      "steps": [
+        { "name": "linux-x86-64-v2-minsizerel", "type": "configure" },
+        { "name": "linux-x86-64-v2-minsizerel", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v2-relwithdebinfo",
+      "displayName": "Linux (x86-64-v2): RelWithDebInfo",
+      "steps": [
+        { "name": "linux-x86-64-v2-relwithdebinfo", "type": "configure" },
+        { "name": "linux-x86-64-v2-relwithdebinfo", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v2-coverage",
+      "displayName": "Linux (x86-64-v2): Coverage",
+      "steps": [
+        { "name": "linux-x86-64-v2-coverage", "type": "configure" },
+        { "name": "linux-x86-64-v2-coverage", "type": "build" },
+        { "name": "linux-x86-64-v2-coverage", "type": "test" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v3-debug",
+      "displayName": "Linux (x86-64-v3): Debug",
+      "steps": [
+        { "name": "linux-x86-64-v3-debug", "type": "configure" },
+        { "name": "linux-x86-64-v3-debug", "type": "build" },
+        { "name": "linux-x86-64-v3-debug", "type": "test" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v3-release",
+      "displayName": "Linux (x86-64-v3): Release",
+      "steps": [
+        { "name": "linux-x86-64-v3-release", "type": "configure" },
+        { "name": "linux-x86-64-v3-release", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v3-minsizerel",
+      "displayName": "Linux (x86-64-v3): MinSizeRel",
+      "steps": [
+        { "name": "linux-x86-64-v3-minsizerel", "type": "configure" },
+        { "name": "linux-x86-64-v3-minsizerel", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v3-relwithdebinfo",
+      "displayName": "Linux (x86-64-v3): RelWithDebInfo",
+      "steps": [
+        { "name": "linux-x86-64-v3-relwithdebinfo", "type": "configure" },
+        { "name": "linux-x86-64-v3-relwithdebinfo", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v3-coverage",
+      "displayName": "Linux (x86-64-v3): Coverage",
+      "steps": [
+        { "name": "linux-x86-64-v3-coverage", "type": "configure" },
+        { "name": "linux-x86-64-v3-coverage", "type": "build" },
+        { "name": "linux-x86-64-v3-coverage", "type": "test" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v2-debug",
+      "displayName": "MinGW (x86-64-v2): Debug",
+      "steps": [
+        { "name": "mingw-x86-64-v2-debug", "type": "configure" },
+        { "name": "mingw-x86-64-v2-debug", "type": "build" },
+        { "name": "mingw-x86-64-v2-debug", "type": "test" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v2-release",
+      "displayName": "MinGW (x86-64-v2): Release",
+      "steps": [
+        { "name": "mingw-x86-64-v2-release", "type": "configure" },
+        { "name": "mingw-x86-64-v2-release", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v2-minsizerel",
+      "displayName": "MinGW (x86-64-v2): MinSizeRel",
+      "steps": [
+        { "name": "mingw-x86-64-v2-minsizerel", "type": "configure" },
+        { "name": "mingw-x86-64-v2-minsizerel", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v2-relwithdebinfo",
+      "displayName": "MinGW (x86-64-v2): RelWithDebInfo",
+      "steps": [
+        { "name": "mingw-x86-64-v2-relwithdebinfo", "type": "configure" },
+        { "name": "mingw-x86-64-v2-relwithdebinfo", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v2-coverage",
+      "displayName": "MinGW (x86-64-v2): Coverage",
+      "steps": [
+        { "name": "mingw-x86-64-v2-coverage", "type": "configure" },
+        { "name": "mingw-x86-64-v2-coverage", "type": "build" },
+        { "name": "mingw-x86-64-v2-coverage", "type": "test" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v3-debug",
+      "displayName": "MinGW (x86-64-v3): Debug",
+      "steps": [
+        { "name": "mingw-x86-64-v3-debug", "type": "configure" },
+        { "name": "mingw-x86-64-v3-debug", "type": "build" },
+        { "name": "mingw-x86-64-v3-debug", "type": "test" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v3-release",
+      "displayName": "MinGW (x86-64-v3): Release",
+      "steps": [
+        { "name": "mingw-x86-64-v3-release", "type": "configure" },
+        { "name": "mingw-x86-64-v3-release", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v3-minsizerel",
+      "displayName": "MinGW (x86-64-v3): MinSizeRel",
+      "steps": [
+        { "name": "mingw-x86-64-v3-minsizerel", "type": "configure" },
+        { "name": "mingw-x86-64-v3-minsizerel", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v3-relwithdebinfo",
+      "displayName": "MinGW (x86-64-v3): RelWithDebInfo",
+      "steps": [
+        { "name": "mingw-x86-64-v3-relwithdebinfo", "type": "configure" },
+        { "name": "mingw-x86-64-v3-relwithdebinfo", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-x86-64-v3-coverage",
+      "displayName": "MinGW (x86-64-v3): Coverage",
+      "steps": [
+        { "name": "mingw-x86-64-v3-coverage", "type": "configure" },
+        { "name": "mingw-x86-64-v3-coverage", "type": "build" },
+        { "name": "mingw-x86-64-v3-coverage", "type": "test" }
+      ]
     }
   ]
 }
