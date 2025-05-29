@@ -206,7 +206,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR cmd, int show) {
   int argc = 0;
   PWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
-  const PCWSTR name = isv3(argc, argv) ? L"test-v3.exe" : L"test-v2.exe";
+  const PCWSTR name = isv3(argc, argv) ? L"main-v3.exe" : L"main-v2.exe";
   if (argv) {
     LocalFree(argv);
   }
@@ -223,7 +223,7 @@ int WINAPI wWinMain(HINSTANCE instance, HINSTANCE, PWSTR cmd, int show) {
   }
 
   if (file) {
-    const PCWSTR path = L"\\Ace\\test.log";
+    const PCWSTR path = L"\\Ace\\test\\main.log";
     PWSTR real = CoTaskMemAlloc((wcslen(file) + wcslen(path) + 1) * sizeof(WCHAR));
     if (real) {
       wcscpy(real, file);
@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
     report_error("Error: Could not enter application directory.");
     return EXIT_FAILURE;
   }
-  execv(isv3(argc, argv) ? "test-v3" : "test-v2", argv);
+  execv(isv3(argc, argv) ? "main-v3" : "main-v2", argv);
   report_error("Error: Could not replace process.");
   return EXIT_FAILURE;
 }

@@ -227,6 +227,10 @@ if(ACE_SYSTEM_NAME STREQUAL "mingw")
   unset(ACE_WINE)
 endif()
 
+if(ENABLE_CLANG_TIDY)
+  set(CMAKE_CXX_CLANG_TIDY ${ACE}/bin/clang-tidy CACHE STRING "")
+endif()
+
 # Runtime Path
 if(ACE_SYSTEM_NAME STREQUAL "linux")
   set(CMAKE_BUILD_RPATH_USE_ORIGIN ON CACHE BOOL "")

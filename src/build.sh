@@ -4,12 +4,15 @@ export LC_ALL=C
 SCRIPT=$(readlink -f -- "${0}" || realpath -- "${0}")
 SRC=$(dirname "${SCRIPT}")
 ACE=$(dirname "${SRC}")
-SYS=${ACE}/sys
 cd "${ACE}"
 
 error() {
   printf "\e[1;31m$*\e[0m\n" 1>&2
   exit 1
+}
+
+warning() {
+  printf "\e[1;33m$*\e[0m\n" 1>&2
 }
 
 print() {
@@ -375,9 +378,9 @@ if [ ! -e ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.builtins.a ]; then
   verify ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.builtins.a
 fi
 
-if [ ! -f "build/test" ]; then
-  print "Compiling build/test ..."
-  make -f src/test.make build/test
+if [ ! -f "build/test/main" ]; then
+  print "Compiling build/test/main ..."
+  make -f src/test/makefile build/test/main
 fi
 
 # =================================================================================================
@@ -448,9 +451,9 @@ if [ ! -e sys/linux/x86-64-v2/lib/libc++.a ]; then
   verify sys/linux/x86-64-v2/lib/libc++.a
 fi
 
-if [ ! -f "build/test-v2" ]; then
-  print "Compiling build/test-v2 ..."
-  make -f src/test.make build/test-v2
+if [ ! -f "build/test/main-v2" ]; then
+  print "Compiling build/test/main-v2 ..."
+  make -f src/test/makefile build/test/main-v2
 fi
 
 # =================================================================================================
@@ -521,9 +524,9 @@ if [ ! -e sys/linux/x86-64-v3/lib/libc++.a ]; then
   verify sys/linux/x86-64-v3/lib/libc++.a
 fi
 
-if [ ! -f "build/test-v3" ]; then
-  print "Compiling build/test-v3 ..."
-  make -f src/test.make build/test-v3
+if [ ! -f "build/test/main-v3" ]; then
+  print "Compiling build/test/main-v3 ..."
+  make -f src/test/makefile build/test/main-v3
 fi
 
 # =================================================================================================
@@ -762,9 +765,9 @@ if [ ! -e ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.builtins.a ]; then
   verify ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.builtins.a
 fi
 
-if [ ! -f "build/test.exe" ]; then
-  print "Compiling build/test.exe ..."
-  make -f src/test.make build/test.exe
+if [ ! -f "build/test/main.exe" ]; then
+  print "Compiling build/test/main.exe ..."
+  make -f src/test/makefile build/test/main.exe
 fi
 
 # =================================================================================================
@@ -835,9 +838,9 @@ if [ ! -e sys/mingw/x86-64-v2/lib/libc++.a ]; then
   verify sys/mingw/x86-64-v2/lib/libc++.a
 fi
 
-if [ ! -f "build/test-v2.exe" ]; then
-  print "Compiling build/test-v2.exe ..."
-  make -f src/test.make build/test-v2.exe
+if [ ! -f "build/test/main-v2.exe" ]; then
+  print "Compiling build/test/main-v2.exe ..."
+  make -f src/test/makefile build/test/main-v2.exe
 fi
 
 # =================================================================================================
@@ -908,9 +911,9 @@ if [ ! -e sys/mingw/x86-64-v3/lib/libc++.a ]; then
   verify sys/mingw/x86-64-v3/lib/libc++.a
 fi
 
-if [ ! -f "build/test-v3.exe" ]; then
-  print "Compiling build/test-v3.exe ..."
-  make -f src/test.make build/test-v3.exe
+if [ ! -f "build/test/main-v3.exe" ]; then
+  print "Compiling build/test/main-v3.exe ..."
+  make -f src/test/makefile build/test/main-v3.exe
 fi
 
 # =================================================================================================
@@ -977,7 +980,7 @@ fi
 
 if [ "${1}" == "test" ]; then
   print "Running test applications ..."
-  make -f src/test.make run
+  make -f src/test/makefile run
   exit 0
 fi
 
@@ -1031,38 +1034,49 @@ export VCPKG_FEATURE_FLAGS="-binarycaching"
 export VCPKG_WORKS_SYSTEM_BINARIES=1
 export VCPKG_DISABLE_METRICS=1
 
-export LD_LIBRARY_PATH="${ACE}/sys/linux/x86-64-v3/lib"
-
 # =================================================================================================
 # ports
 # =================================================================================================
 
-# TODO
-# * pugixml[core] is missing the PUGIXML_NO_EXCEPTIONS define.
+if [ "${1}" = "check" ]; then
+  find build/vcpkg/buildtrees -maxdepth 2 -type f -name 'install-*-x86-64-v2*-out.log' | while read file; do
+    grep --color=always -- -mavx "${file}" && error "${file}" || true
+  done
+  print "Missing -mavx in the following files:"
+  find build/vcpkg/buildtrees -maxdepth 2 -type f -name 'install-*-x86-64-v3-*-out.log' | while read file; do
+    grep -q --color=always -- -mavx "${file}" || warning "${file}"
+  done
+  exit 0
+fi
 
-# VCPKG_PORTS=$(echo \
-#   benchmark[core] doctest[core] libxml2[core,tools] pugixml[core] \
-#   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
-#   libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
-#   libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
-#   lunasvg[core] freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
-#   glm[core] spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
-#   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
-#   convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
-#   openfbx[core] ktx[core,vulkan] simdjson[core,threads] fastgltf[core] miniaudio[core] \
-#   sqlite3[core,tool,zlib] openssl[core,tools] asmjit[core] blend2d[core,jit] \
-#   boost-container boost-circular-buffer boost-lockfree boost-static-string \
-#   boost-algorithm boost-intrusive boost-thread boost-json boost-url)
+if [ "${1}" = "clean" ]; then
+  print rm -rf build/vcpkg build/ports ports
+  rm -rf build/vcpkg build/ports ports
+  exit 0
+fi
 
-VCPKG_PORTS=$(echo \
-  doctest[core] libxml2[core,tools] \
-  zlib[core] \
-  libpng[core])
+VCPKG_PORTS=$(echo doctest[core] pugixml[core] \
+  zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
+  libdeflate[core,compression,decompression,gzip,zlib] miniz[core] draco[core] \
+  libjpeg-turbo[core] libpng[core] aom[core] libyuv[core] libavif[core,aom] \
+  freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
+  plutovg[core] lunasvg[core] glm[core] asmjit[core] simdjson[core,threads] \
+  spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  convectionkernels[core] meshoptimizer[core,gltfpack] recastnavigation[core] \
+  openfbx[core] ktx[core,vulkan] fastgltf[core] \
+  sqlite3[core,tool,zlib] openssl[core,tools])
 
-VCPKG_PORTS_LINUX=$(echo ${VCPKG_PORTS} libffi[core] \
-  wayland[core,force-build] wayland-protocols[core,force-build])
+VCPKG_PORTS_LINUX=$(echo libxml2[core,tools] \
+  libffi[core] wayland[core,force-build] wayland-protocols[core,force-build] \
+  ${VCPKG_PORTS})
 
-VCPKG_PORTS_MINGW=$(echo ${VCPKG_PORTS})
+VCPKG_PORTS_MINGW=$(echo libxml2[core] \
+  ${VCPKG_PORTS})
+
+core() {
+  echo "${*}" | sed -E 's/,(tools?|gltfpack)//g'
+}
 
 if [ ! -d build/vcpkg ]; then
   print "Cloning vcpkg ..."
@@ -1072,18 +1086,25 @@ fi
 
 print "Building linux ports ..."
 for port in ${VCPKG_PORTS_LINUX}; do
-  export VCPKG_DEFAULT_HOST_TRIPLET="linux-x86-64-v2"
-  export LD_LIBRARY_PATH="${ACE}/sys/linux/x86-64-v2/lib"
-  vcpkg install --vcpkg-root=build/vcpkg --triplet=linux-x86-64-v2 ${port}
   export VCPKG_DEFAULT_HOST_TRIPLET="linux-x86-64-v3"
-  export LD_LIBRARY_PATH="${ACE}/sys/linux/x86-64-v3/lib"
   vcpkg install --vcpkg-root=build/vcpkg --triplet=linux-x86-64-v3 ${port}
+  export VCPKG_DEFAULT_HOST_TRIPLET="linux-x86-64-v2"
+  vcpkg install --vcpkg-root=build/vcpkg --triplet=linux-x86-64-v2 $(core "${port}")
 done
+
+export VCPKG_DEFAULT_HOST_TRIPLET="linux-x86-64-v3"
 
 print "Building mingw ports ..."
 for port in ${VCPKG_PORTS_MINGW}; do
-  vcpkg install --vcpkg-root=build/vcpkg --triplet=mingw-x86-64-v3 ${port}
-  vcpkg install --vcpkg-root=build/vcpkg --triplet=mingw-x86-64-v2 ${port}
+  vcpkg install --vcpkg-root=build/vcpkg --triplet=mingw-x86-64-v3 $(core "${port}")
+  vcpkg install --vcpkg-root=build/vcpkg --triplet=mingw-x86-64-v2 $(core "${port}")
+done
+
+print "Building boost ports ..."
+for triplet in linux-x86-64-v3 linux-x86-64-v2 mingw-x86-64-v3 mingw-x86-64-v2; do
+  vcpkg install --vcpkg-root=build/vcpkg --triplet=${triplet} \
+    boost-container boost-circular-buffer boost-lockfree boost-static-string \
+    boost-unordered boost-algorithm boost-intrusive boost-iterator boost-json boost-url
 done
 
 print "Exporting ports ..."
@@ -1092,7 +1113,6 @@ rm -rf build/ports ports
 vcpkg export --vcpkg-root=build/vcpkg --x-all-installed \
   --raw --output-dir=build/ports --output=.
 
-print "Installing ports ..."
 mkdir ports
 mv build/ports/installed/linux-x86-64-v2 ports/
 mv build/ports/installed/linux-x86-64-v3 ports/
