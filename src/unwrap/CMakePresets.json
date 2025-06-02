@@ -1,0 +1,133 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 31
+  },
+  "configurePresets": [
+    {
+      "hidden": true,
+      "name": "default",
+      "generator": "Ninja",
+      "binaryDir": "/opt/ace/build/llvm-${presetName}",
+      "installDir": "/opt/ace/build/llvm-${presetName}-install",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "warnings": { "dev": false },
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "LLVM_ENABLE_PROJECTS": "clang",
+        "LLVM_TARGETS_TO_BUILD": "X86",
+        "LLVM_ENABLE_BINDINGS": false,
+        "LLVM_ENABLE_DOXYGEN": false,
+        "LLVM_ENABLE_LIBCXX": false,
+        "LLVM_ENABLE_LTO": false,
+        "LLVM_ENABLE_PER_TARGET_RUNTIME_DIR": true,
+        "LLVM_ENABLE_WARNINGS": false,
+        "LLVM_INCLUDE_BENCHMARKS": false,
+        "LLVM_INCLUDE_EXAMPLES": false,
+        "LLVM_INCLUDE_TESTS": false,
+        "LLVM_INCLUDE_DOCS": false
+      }
+    },
+    {
+      "hidden": true,
+      "name": "linux-x86-64-v2",
+      "toolchainFile": "$env{ACE}/linux-x86-64-v2.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "linux-x86-64-v3",
+      "toolchainFile": "$env{ACE}/linux-x86-64-v3.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "linux-x86-64-v2-debug",
+      "displayName": "Linux (x86-64-v2): Debug",
+      "inherits": [ "default", "linux-x86-64-v2", "debug" ]
+    },
+    {
+      "name": "linux-x86-64-v2-release",
+      "displayName": "Linux (x86-64-v2): Release",
+      "inherits": [ "default", "linux-x86-64-v2", "release" ]
+    },
+    {
+      "name": "linux-x86-64-v3-debug",
+      "displayName": "Linux (x86-64-v3): Debug",
+      "inherits": [ "default", "linux-x86-64-v3", "debug" ]
+    },
+    {
+      "name": "linux-x86-64-v3-release",
+      "displayName": "Linux (x86-64-v3): Release",
+      "inherits": [ "default", "linux-x86-64-v3", "release" ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-x86-64-v2-debug",
+      "displayName": "Linux (x86-64-v2): Debug",
+      "configurePreset": "linux-x86-64-v2-debug"
+    },
+    {
+      "name": "linux-x86-64-v2-release",
+      "displayName": "Linux (x86-64-v2): Release",
+      "configurePreset": "linux-x86-64-v2-release"
+    },
+    {
+      "name": "linux-x86-64-v3-debug",
+      "displayName": "Linux (x86-64-v3): Debug",
+      "configurePreset": "linux-x86-64-v3-debug"
+    },
+    {
+      "name": "linux-x86-64-v3-release",
+      "displayName": "Linux (x86-64-v3): Release",
+      "configurePreset": "linux-x86-64-v3-release"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "linux-x86-64-v2-debug",
+      "displayName": "Linux (x86-64-v2): Debug",
+      "steps": [
+        { "name": "linux-x86-64-v2-debug", "type": "configure" },
+        { "name": "linux-x86-64-v2-debug", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v2-release",
+      "displayName": "Linux (x86-64-v2): Release",
+      "steps": [
+        { "name": "linux-x86-64-v2-release", "type": "configure" },
+        { "name": "linux-x86-64-v2-release", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v3-debug",
+      "displayName": "Linux (x86-64-v3): Debug",
+      "steps": [
+        { "name": "linux-x86-64-v3-debug", "type": "configure" },
+        { "name": "linux-x86-64-v3-debug", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-x86-64-v3-release",
+      "displayName": "Linux (x86-64-v3): Release",
+      "steps": [
+        { "name": "linux-x86-64-v3-release", "type": "configure" },
+        { "name": "linux-x86-64-v3-release", "type": "build" }
+      ]
+    }
+  ]
+}

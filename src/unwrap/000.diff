@@ -1,0 +1,350 @@
+diff --git i/clang/include/clang/Basic/DiagnosticSemaKinds.td w/clang/include/clang/Basic/DiagnosticSemaKinds.td
+index ec2a140e0..3a87b6b36 100644
+--- i/clang/include/clang/Basic/DiagnosticSemaKinds.td
++++ w/clang/include/clang/Basic/DiagnosticSemaKinds.td
+@@ -12010,6 +12010,26 @@ def note_redefinition_include_same_file : Note<
+   "'%0' included multiple times, additional include site here">;
+ }
+ 
++let CategoryName = "Unwrap Issue" in {
++def err_unwrap_unevaluated_context : Error<
++  "'__unwrap' cannot be used in an unevaluated context">;
++def err_unwrap_outside_function : Error<
++  "'__unwrap' cannot be used outside of a function context">;
++def err_unwrap_invalid_func_context : Error<
++  "'__unwrap' cannot be used in %select{a constructor|a destructor|the 'main' function"
++  "|a function that returns 'void'}0">;
++def err_unwrap_invalid_type : Error<
++  "invalid '__unwrap' subexpcession return type %0">;
++def err_unwrap_no_bool_conversion : Error<
++  "'__unwrap' subexpcession return type %0 is required to be contextually convertible to 'bool'">;
++def err_unwrap_missing_member_function : Error<
++  "'__unwrap' subexpcession return type %0 is missing the '%1' member function">;
++def err_unwrap_invalid_member_function_return : Error<
++  "invalid '__unwrap' subexpression return type %0 member function '%1' return type">;
++def err_unwrap_invalid_operand : Note<
++  "invalid '__unwrap' operand">;
++} // end of unwrap issue category
++
+ let CategoryName = "Coroutines Issue" in {
+ def err_return_in_coroutine : Error<
+   "return statement not allowed in coroutine; did you mean 'co_return'?">;
+diff --git i/clang/include/clang/Basic/TokenKinds.def w/clang/include/clang/Basic/TokenKinds.def
+index 8902a20b0..1f3f6f529 100644
+--- i/clang/include/clang/Basic/TokenKinds.def
++++ w/clang/include/clang/Basic/TokenKinds.def
+@@ -478,6 +478,10 @@ KEYWORD(__FUNCTION__                , KEYALL)
+ KEYWORD(__PRETTY_FUNCTION__         , KEYALL)
+ KEYWORD(__auto_type                 , KEYALL)
+ 
++// AH Extensions
++KEYWORD(__unwrap                    , KEYCXX)
++ALIAS("unwrap"      , __unwrap      , KEYCXX)
++
+ // MS Extensions
+ KEYWORD(__FUNCDNAME__               , KEYMS)
+ KEYWORD(__FUNCSIG__                 , KEYMS)
+diff --git i/clang/include/clang/Sema/Sema.h w/clang/include/clang/Sema/Sema.h
+index d8cc0171c..e1cdca974 100644
+--- i/clang/include/clang/Sema/Sema.h
++++ w/clang/include/clang/Sema/Sema.h
+@@ -6844,6 +6844,8 @@ public:
+   ExprResult ActOnUnaryOp(Scope *S, SourceLocation OpLoc, tok::TokenKind Op,
+                           Expr *Input, bool IsAfterAmp = false);
+ 
++  ExprResult ActOnUnwrapOp(Scope *S, SourceLocation Loc, Expr *E);
++
+   /// Determine whether the given expression is a qualified member
+   /// access expression, of a form that could be turned into a pointer to member
+   /// with the address-of operator.
+diff --git i/clang/lib/Parse/ParseExpr.cpp w/clang/lib/Parse/ParseExpr.cpp
+index 2fab1dfed..4fdab30ca 100644
+--- i/clang/lib/Parse/ParseExpr.cpp
++++ w/clang/lib/Parse/ParseExpr.cpp
+@@ -1509,6 +1509,16 @@ ExprResult Parser::ParseCastExpression(CastParseKind ParseKind,
+     return Res;
+   }
+ 
++  case tok::kw___unwrap: {  // unary-expression: '__unwrap' cast-expression [AH]
++    if (NotPrimaryExpression)
++      *NotPrimaryExpression = true;
++    SourceLocation UnwrapLoc = ConsumeToken();
++    Res = ParseCastExpression(AnyCastExpr);
++    if (!Res.isInvalid())
++      Res = Actions.ActOnUnwrapOp(getCurScope(), UnwrapLoc, Res.get());
++    return Res;
++  }
++
+   case tok::kw_co_await: {  // unary-expression: 'co_await' cast-expression
+     if (NotPrimaryExpression)
+       *NotPrimaryExpression = true;
+diff --git i/clang/lib/Sema/SemaCodeComplete.cpp w/clang/lib/Sema/SemaCodeComplete.cpp
+index bc0f6a943..fce8a875d 100644
+--- i/clang/lib/Sema/SemaCodeComplete.cpp
++++ w/clang/lib/Sema/SemaCodeComplete.cpp
+@@ -568,6 +568,7 @@ static QualType getPreferredTypeOfUnaryArg(Sema &S, QualType ContextType,
+     return ContextType;
+   case tok::kw___real:
+   case tok::kw___imag:
++  case tok::kw___unwrap:
+     return QualType();
+   default:
+     assert(false && "unhandled unary op");
+diff --git i/clang/lib/Sema/SemaExpr.cpp w/clang/lib/Sema/SemaExpr.cpp
+index e253e3a17..68995cf01 100644
+--- i/clang/lib/Sema/SemaExpr.cpp
++++ w/clang/lib/Sema/SemaExpr.cpp
+@@ -15835,6 +15835,253 @@ ExprResult Sema::ActOnUnaryOp(Scope *S, SourceLocation OpLoc, tok::TokenKind Op,
+                       IsAfterAmp);
+ }
+ 
++static bool isValidUnwrapContext(Sema &S, SourceLocation Loc, const FunctionDecl *FD) {
++  // Keyword '__unwrap' must be used within a function body.
++  if (!FD) {
++    S.Diag(Loc, diag::err_unwrap_outside_function);
++    return false;
++  }
++
++  // An enumeration for mapping the diagnostic type to the correct diagnostic
++  // selection index.
++  enum InvalidFuncDiag {
++    DiagCtor = 0,
++    DiagDtor,
++    DiagMain,
++    DiagVoid,
++  };
++  bool Diagnosed = false;
++  auto DiagInvalid = [&](InvalidFuncDiag ID) {
++    S.Diag(Loc, diag::err_unwrap_invalid_func_context) << ID;
++    Diagnosed = true;
++    return false;
++  };
++
++  // Diagnose when a '__unwrap' is used in a
++  // constructor, destructor or the function 'main'.
++  auto *MD = dyn_cast<CXXMethodDecl>(FD);
++
++  // A constructor cannot return an error code.
++  if (isa_and_nonnull<CXXConstructorDecl>(MD))
++    return DiagInvalid(DiagCtor);
++
++  // A destructor cannot return an error code.
++  if (isa_and_nonnull<CXXDestructorDecl>(MD))
++    return DiagInvalid(DiagDtor);
++
++  // The function main cannot return an error code.
++  if (FD->isMain())
++    return DiagInvalid(DiagMain);
++
++  // Cannot cast error code to void.
++  if (FD->getReturnType()->isVoidType())
++    return DiagInvalid(DiagVoid);
++
++  return !Diagnosed;
++}
++
++ExprResult Sema::ActOnUnwrapOp(Scope *S, SourceLocation Loc, Expr *E) {
++  // Replace `__unwrap expr` with unary cast expression: `({
++  //   auto rv = expr;
++  //   if (!rv) {
++  //     return rv.error();
++  //   }
++  //   static_cast<decltype(rv)::value_type>(rv.value());
++  // })`
++
++  const SourceRange ESR = E->getSourceRange();
++
++  // Ensure the expression is valid.
++  if (!E || E->isTypeDependent() || E->isValueDependent()) {
++    Diag(Loc, diag::err_unwrap_invalid_operand) << ESR;
++    return ExprError();
++  }
++
++  // Ensure keyword is in a potentially evaluated context.
++  // That is, '__unwrap' cannot appear in subexpressions of 'sizeof'.
++  if (isUnevaluatedContext()) {
++    Diag(Loc, diag::err_unwrap_unevaluated_context);
++    return ExprError();
++  }
++
++  // TODO: Optimize for consteval statements.
++  // bool ConstEvaluated = isConstantEvaluatedContext();
++
++  // Ignore previous expr evaluation contexts.
++  EnterExpressionEvaluationContext PotentiallyEvaluated(
++      *this, Sema::ExpressionEvaluationContext::PotentiallyEvaluated);
++
++  // Ensure keyword is in a valid function context.
++  const FunctionDecl *FD = dyn_cast<FunctionDecl>(CurContext);
++  if (!isValidUnwrapContext(*this, Loc, FD))
++    return ExprError();
++
++  // Get return type of the current function.
++  QualType ReturnType = FD->getReturnType();
++
++  // Ensure subexpressions return type is not null or void.
++  QualType ExprTy = E->getType();
++  if (ExprTy.isNull() || ExprTy->isVoidType()) {
++    Diag(Loc, diag::err_unwrap_invalid_type) << ExprTy;
++    return ExprError();
++  }
++
++  // TODO: Make subexpression return type const.
++  // ExprTy = Context.getConstType(ExprTy);
++
++  // Retrieve subexpressions return type C++ record.
++  CXXRecordDecl *RD = E->getType()->getAsCXXRecordDecl();
++  if (!RD) {
++    Diag(Loc, diag::err_unwrap_invalid_type) << ExprTy;
++    return ExprError();
++  }
++
++  // Create the variable `const auto rv = expr` for the if statement.
++  IdentifierInfo *VarName = &Context.Idents.get("rv");
++  TypeSourceInfo *TSI = Context.getTrivialTypeSourceInfo(ExprTy, Loc);
++  VarDecl *Var = VarDecl::Create(Context, CurContext, Loc, Loc, VarName, ExprTy,
++                                 TSI, SC_Auto);
++  Var->setInit(E);
++  Var->setConstexpr(true);
++  Var->markUsed(Context);
++  DeclStmt *VarStmt = new (Context) DeclStmt(DeclGroupRef(Var), Loc, Loc);
++
++  // Create a reference to `rv` for `!rv` and `rv.error()`.
++  DeclRefExpr *VarRef =
++      new (Context) DeclRefExpr(Context, Var, false, ExprTy, VK_LValue, Loc);
++
++  // Convert `rv` to boolean for `!rv` condition.
++  ExprResult VarCond = PerformContextuallyConvertToBool(VarRef);
++  if (VarCond.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_no_bool_conversion) << ESR << ExprTy;
++    return ExprError();
++  }
++
++  // Create unary operator `!rv`.
++  ExprResult VarNotCond = BuildUnaryOp(S, Loc, UO_LNot, VarCond.get());
++  if (VarNotCond.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_no_bool_conversion) << ESR << ExprTy;
++    return ExprError();
++  }
++
++  // Find the `error` member function in subexpressions return type.
++  DeclarationName ErrorName = PP.getIdentifierInfo("error");
++  LookupResult ErrorLookupResult(*this, ErrorName, E->getBeginLoc(),
++                                 Sema::LookupMemberName);
++  ErrorLookupResult.suppressDiagnostics();
++  if (!LookupQualifiedName(ErrorLookupResult, RD)) {
++    Diag(Loc, diag::err_unwrap_missing_member_function)
++        << ESR << ExprTy << "error()";
++    return ExprError();
++  }
++
++  // Build the member expression for `rv.error()`.
++  ExprResult MemExprError = BuildMemberReferenceExpr(
++      VarRef, ExprTy, Loc, false, CXXScopeSpec(), SourceLocation(), nullptr,
++      ErrorLookupResult, nullptr, S, false, nullptr);
++  if (MemExprError.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_missing_member_function)
++        << ESR << ExprTy << "error()";
++    return ExprError();
++  }
++
++  // Build the call to `rv.error()`.
++  ExprResult ErrorCall = BuildCallToMemberFunction(S, MemExprError.get(), Loc,
++                                                   MultiExprArg(), Loc);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_missing_member_function)
++        << ESR << ExprTy << "error()";
++    return ExprError();
++  }
++
++  // Check rv.error() return type against the enclosing function return type.
++  CheckReturnValExpr(ErrorCall.get(), ReturnType, Loc, false, nullptr, FD);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_invalid_member_function_return)
++        << ESR << ExprTy << "error()";
++    return ExprError();
++  }
++
++  // Create a `ReturnStmt` for `return rv.error();`.
++  ReturnStmt *ErrorReturnStmt =
++      ReturnStmt::Create(Context, Loc, ErrorCall.get(), nullptr);
++
++  // Create an `IfStmt` for `if (const auto rv = expr; !rv) return rv.error();`.
++  IfStmt *IfStmt = IfStmt::Create(Context, Loc, IfStatementKind::Constexpr,
++                                  nullptr, nullptr, VarNotCond.get(), Loc, Loc,
++                                  ErrorReturnStmt, SourceLocation(), nullptr);
++
++  // Find the `value` member function in subexpressions return type.
++  DeclarationName ValueName = PP.getIdentifierInfo("value");
++  LookupResult ValueLookupResult(*this, ValueName, E->getBeginLoc(),
++                                 Sema::LookupMemberName);
++  ValueLookupResult.suppressDiagnostics();
++  if (!LookupQualifiedName(ValueLookupResult, RD)) {
++    Diag(Loc, diag::err_unwrap_missing_member_function)
++        << ESR << ExprTy << "value()";
++    return ExprError();
++  }
++
++  // Build the member expression for `rv.value()`.
++  ExprResult MemExprValue = BuildMemberReferenceExpr(
++      VarRef, ExprTy, Loc, false, CXXScopeSpec(), SourceLocation(), nullptr,
++      ValueLookupResult, nullptr, S, true, nullptr);
++  if (MemExprValue.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_missing_member_function)
++        << ESR << ExprTy << "value()";
++    return ExprError();
++  }
++
++  // Build the call to `rv.value()`.
++  ExprResult ValueCall = BuildCallToMemberFunction(S, MemExprValue.get(), Loc,
++                                                   MultiExprArg(), Loc);
++  if (ValueCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_missing_member_function)
++        << ESR << ExprTy << "value()";
++    return ExprError();
++  }
++  QualType ValueType = ValueCall.get()->getType();
++
++  // FIXME: Mark ValueCall as VK_XValue.
++  // ValueType = Context.getRValueReferenceType(ValueType);  // crashes
++  // ExprResult XValueCall = new (Context) ImplicitCastExpr(
++  //     ImplicitCastExpr::OnStack, ValueType, CK_LValueToRValue, ValueCall.get(), VK_XValue, FPOptionsOverride());
++  // if (!XValueCall.isUsable()) {
++  //   Diag(Loc, diag::err_unwrap_missing_member_function)
++  //       << ESR << ExprTy << "value() &&";
++  //   return ExprError();
++  // }
++  // ValueType = Context.getRValueReferenceType(ValueType);
++
++  // TODO: Optimize for consteval statements.
++  // Handle consteval rv that evaluates to true.
++  // if (ConstEvaluated) {
++  //   bool VarCondResult = false;
++  //   if (VarCond.get()->EvaluateAsBooleanCondition(VarCondResult, Context, true)) {
++  //     if (VarCondResult) {
++  //       ExprResult ConvertedValue =
++  //           ImpCastExprToType(ValueCall.get(), ValueType, CK_NoOp, VK_XValue);
++  //       if (!ConvertedValue.isInvalid()) {
++  //         return ConvertedValue;
++  //       }
++  //     }
++  //   }
++  // }
++
++  // Create statements.
++  SmallVector<Stmt *, 3> Stmts;
++  Stmts.push_back(VarStmt);
++  Stmts.push_back(IfStmt);
++
++  Stmts.push_back(ValueCall.get());  // calls `rv.value()&` instead of `rv.value()&&`
++  // Stmts.push_back(XValueCall.get());  // doesn't work or crashes
++
++  // Create and return compound statement.
++  CompoundStmt *Block =
++      CompoundStmt::Create(Context, Stmts, FPOptionsOverride(), Loc, Loc);
++  return new (Context) StmtExpr(Block, ValueType, Loc, Loc, 0);
++}
++
+ ExprResult Sema::ActOnAddrLabel(SourceLocation OpLoc, SourceLocation LabLoc,
+                                 LabelDecl *TheDecl) {
+   TheDecl->markUsed(Context);

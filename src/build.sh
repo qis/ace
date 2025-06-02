@@ -181,7 +181,7 @@ fi
 
 PLATFORM_VARIABLES="CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES;CMAKE_CXX_STANDARD_LINK_DIRECTORIES"
 
-if [ ! -e build/llvm/build.ninja ]; then
+if [ "${1}" == "llvm/configure" ] || [ ! -e build/llvm/build.ninja ]; then
   print "Configuring llvm ..."
   cmake -GNinja -Wno-dev \
     -DCMAKE_BUILD_TYPE=Release \
@@ -220,7 +220,7 @@ if [ ! -e build/llvm/build.ninja ]; then
   verify build/llvm/build.ninja
 fi
 
-if [ ! -e build/llvm/bin/clang ]; then
+if [ "${1}" == "llvm/build" ] || [ ! -e build/llvm/bin/clang ]; then
   print "Building llvm ..."
   ninja -C build/llvm \
     llvm-config \
@@ -250,11 +250,13 @@ if [ ! -e build/llvm/bin/clang ]; then
     clang \
     clang-format \
     clang-tidy \
-    clangd
+    clangd \
+    libclang-headers \
+    libclang
   verify build/llvm/bin/clang
 fi
 
-if [ ! -e bin/clang ]; then
+if [ "${1}" == "llvm/install" ] || [ ! -e bin/clang ]; then
   print "Installing llvm ..."
   ninja -C build/llvm \
     install-LTO-stripped \
@@ -283,7 +285,9 @@ if [ ! -e bin/clang ]; then
     install-clang-stripped \
     install-clang-format-stripped \
     install-clang-tidy-stripped \
-    install-clangd-stripped
+    install-clangd-stripped \
+    install-libclang-headers \
+    install-libclang-stripped
   verify bin/clang
 fi
 
@@ -981,7 +985,6 @@ fi
 if [ "${1}" == "test" ]; then
   print "Running test applications ..."
   make -f src/test/makefile run
-  exit 0
 fi
 
 # =================================================================================================
@@ -1009,6 +1012,10 @@ if [ ! -e bin/peldd ]; then
     patchelf --set-rpath '$ORIGIN/../lib' "bin/${exe}"
   done
   verify bin/peldd
+fi
+
+if [ -n "${1}" ]; then
+  exit 0
 fi
 
 # =================================================================================================
