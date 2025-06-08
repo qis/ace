@@ -1,0 +1,1711 @@
+diff --git c/.clangd w/.clangd
+new file mode 100644
+index 000000000..9e9db6ced
+--- /dev/null
++++ w/.clangd
+@@ -0,0 +1,10 @@
++CompileFlags:
++  Add: [ -xc++, -std=c++17 ]
++  CompilationDatabase: /opt/ace/build/llvm-linux-x86-64-v3-debug
++Diagnostics:
++  ClangTidy:
++    FastCheckFilter: None
++  MissingIncludes: None
++  UnusedIncludes: None
++InlayHints:
++  Enabled: No
+diff --git c/clang/include/clang/AST/OperationKinds.def w/clang/include/clang/AST/OperationKinds.def
+index 8788b8ff0..5c89c3e4e 100644
+--- c/clang/include/clang/AST/OperationKinds.def
++++ w/clang/include/clang/AST/OperationKinds.def
+@@ -446,6 +446,8 @@ UNARY_OPERATION(Imag, "__imag")
+ UNARY_OPERATION(Extension, "__extension__")
+ // [C++ Coroutines] co_await operator
+ UNARY_OPERATION(Coawait, "co_await")
++// [AH] __unwrap__ operator
++UNARY_OPERATION(Unwrap, "__unwrap__")
+ 
+ #undef CAST_OPERATION
+ #undef BINARY_OPERATION
+diff --git c/clang/include/clang/Basic/DiagnosticSemaKinds.td w/clang/include/clang/Basic/DiagnosticSemaKinds.td
+index ec2a140e0..6d7384ae1 100644
+--- c/clang/include/clang/Basic/DiagnosticSemaKinds.td
++++ w/clang/include/clang/Basic/DiagnosticSemaKinds.td
+@@ -12010,6 +12010,13 @@ def note_redefinition_include_same_file : Note<
+   "'%0' included multiple times, additional include site here">;
+ }
+ 
++let CategoryName = "Unwrap Issue" in {
++def err_unwrap_message : Error<
++  "'__unwrap__' %0">;
++def err_unwrap_operand : Error<
++  "'__unwrap__' operand %0 %1">;
++} // end of unwrap issue category
++
+ let CategoryName = "Coroutines Issue" in {
+ def err_return_in_coroutine : Error<
+   "return statement not allowed in coroutine; did you mean 'co_return'?">;
+diff --git c/clang/include/clang/Basic/TokenKinds.def w/clang/include/clang/Basic/TokenKinds.def
+index 8902a20b0..cce540446 100644
+--- c/clang/include/clang/Basic/TokenKinds.def
++++ w/clang/include/clang/Basic/TokenKinds.def
+@@ -478,6 +478,9 @@ KEYWORD(__FUNCTION__                , KEYALL)
+ KEYWORD(__PRETTY_FUNCTION__         , KEYALL)
+ KEYWORD(__auto_type                 , KEYALL)
+ 
++// AH Extensions
++KEYWORD(__unwrap__                  , KEYCXX)
++
+ // MS Extensions
+ KEYWORD(__FUNCDNAME__               , KEYMS)
+ KEYWORD(__FUNCSIG__                 , KEYMS)
+diff --git c/clang/include/clang/Sema/Sema.h w/clang/include/clang/Sema/Sema.h
+index d8cc0171c..e1cdca974 100644
+--- c/clang/include/clang/Sema/Sema.h
++++ w/clang/include/clang/Sema/Sema.h
+@@ -6844,6 +6844,8 @@ public:
+   ExprResult ActOnUnaryOp(Scope *S, SourceLocation OpLoc, tok::TokenKind Op,
+                           Expr *Input, bool IsAfterAmp = false);
+ 
++  ExprResult ActOnUnwrapOp(Scope *S, SourceLocation Loc, Expr *E);
++
+   /// Determine whether the given expression is a qualified member
+   /// access expression, of a form that could be turned into a pointer to member
+   /// with the address-of operator.
+diff --git c/clang/lib/Parse/ParseExpr.cpp w/clang/lib/Parse/ParseExpr.cpp
+index 2fab1dfed..dfdd34dc7 100644
+--- c/clang/lib/Parse/ParseExpr.cpp
++++ w/clang/lib/Parse/ParseExpr.cpp
+@@ -1509,6 +1509,17 @@ ExprResult Parser::ParseCastExpression(CastParseKind ParseKind,
+     return Res;
+   }
+ 
++  case tok::kw___unwrap__: {  // unary-expression: '__unwrap__' cast-expression [AH]
++    if (NotPrimaryExpression)
++      *NotPrimaryExpression = true;
++    const SourceLocation UnwrapLoc = ConsumeToken();
++    Res = ParseCastExpression(UnaryExprOnly);
++    if (!Res.isInvalid())
++      return Actions.ActOnUnwrapOp(getCurScope(), UnwrapLoc, Res.get());
++    Actions.Diag(UnwrapLoc, diag::err_unwrap_message) << "subexpression is invalid";
++    return ExprError();
++  }
++
+   case tok::kw_co_await: {  // unary-expression: 'co_await' cast-expression
+     if (NotPrimaryExpression)
+       *NotPrimaryExpression = true;
+diff --git c/clang/lib/Sema/SemaCodeComplete.cpp w/clang/lib/Sema/SemaCodeComplete.cpp
+index bc0f6a943..422b1bced 100644
+--- c/clang/lib/Sema/SemaCodeComplete.cpp
++++ w/clang/lib/Sema/SemaCodeComplete.cpp
+@@ -568,6 +568,7 @@ static QualType getPreferredTypeOfUnaryArg(Sema &S, QualType ContextType,
+     return ContextType;
+   case tok::kw___real:
+   case tok::kw___imag:
++  case tok::kw___unwrap__:
+     return QualType();
+   default:
+     assert(false && "unhandled unary op");
+diff --git c/clang/lib/Sema/SemaExpr.cpp w/clang/lib/Sema/SemaExpr.cpp
+index e253e3a17..dfb14a8ad 100644
+--- c/clang/lib/Sema/SemaExpr.cpp
++++ w/clang/lib/Sema/SemaExpr.cpp
+@@ -15721,6 +15721,11 @@ ExprResult Sema::CreateBuiltinUnaryOp(SourceLocation OpLoc,
+              "the co_await expression must be non-dependant before "
+              "building operator co_await");
+       return Input;
++    case UO_Unwrap:
++      assert(!Input.get()->getType()->isDependentType() &&
++             "the co_await expression must be non-dependant before "
++             "building operator co_await");
++      return Input;
+     }
+   }
+   if (resultType.isNull() || Input.isInvalid())
+@@ -15835,6 +15840,1447 @@ ExprResult Sema::ActOnUnaryOp(Scope *S, SourceLocation OpLoc, tok::TokenKind Op,
+                       IsAfterAmp);
+ }
+ 
++// clang-format off
++//
++// Acts on `__unwrap__ operand`.
++//
++// * In case `operand` evaluates to `true`:
++//   ({ *operand; })
++//
++// * In case `operand` evaluates to `false`:
++//   ({ return operand.error(); *operand; })
++//
++// * In case `operand` is an lvalue:
++//   ({ if (!operand) return operand.error(); *operand; })
++//
++// * In case `operand` is an rvalue:
++//   ({ auto rv = operand; if (!rv) return rv.error(); *rv; })
++//
++ExprResult Sema::ActOnUnwrapOp(Scope *S, SourceLocation Loc, Expr *Operand) {
++  assert(S && "Invalid scope");
++  assert(Operand && "Invalid operand");
++
++  // Ensure evaluated context.
++  if (isUnevaluatedContext())
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << "used in an unevaluated context");
++
++  // Ignore previous expression evaluation contexts.
++  EnterExpressionEvaluationContext EvaluationContext(
++      *this, Sema::ExpressionEvaluationContext::PotentiallyEvaluated);
++
++  // Get function declaration.
++  FunctionDecl *FunctionDeclaration = dyn_cast<FunctionDecl>(CurContext);
++
++  // Ensure presence of an enclosing function body.
++  if (!FunctionDeclaration)
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << "used in a non-function context");
++
++  // Ensure enclosing function is not 'main'.
++  if (FunctionDeclaration->isMain())
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << "used in the 'main' function");
++
++  // Get method declaration.
++  CXXMethodDecl *MethodDeclaration = dyn_cast<CXXMethodDecl>(FunctionDeclaration);
++
++  // Ensure enclosing function is not a constructor.
++  if (isa_and_nonnull<CXXConstructorDecl>(MethodDeclaration))
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << "used in a constructor");
++
++  // Ensure enclosing function is not a destructor.
++  if (isa_and_nonnull<CXXDestructorDecl>(MethodDeclaration))
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << "used in a destructor");
++
++  // Get function return type.
++  QualType FunctionReturnType = FunctionDeclaration->getReturnType();
++
++  // Ensure enclosing function return type is not 'void'.
++  if (FunctionReturnType->isVoidType())
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << "used in a function that returns 'void'");
++
++  // Get operand source range.
++  SourceRange ESR = Operand->getSourceRange();
++
++  // Ensure operand is not type dependent.
++  if (Operand->isTypeDependent())
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << ESR << "operand is type dependent");
++
++  // Ensure operand is not value dependent.
++  if (Operand->isValueDependent())
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << ESR << "operand is value dependent");
++
++  // Ensure operand is not instantiation dependent.
++  if (Operand->isInstantiationDependent())
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << ESR << "operand is instantiation dependent");
++
++  // Get operand type.
++  QualType OperandType = Operand->getType();
++
++  // Ensure operand type is valid.
++  if (OperandType.isNull())
++    return ExprError(Diag(Loc, diag::err_unwrap_message)
++        << ESR << "operand has invalid type");
++
++  // Ensure operand type is not incomplete.
++  if (OperandType->isIncompleteType())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "is incomplete");
++
++  // Ensure operand type is not dependent.
++  if (OperandType->isDependentType())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "is dependent");
++
++  // Ensure operand type is a class or struct.
++  if (!OperandType->isRecordType())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "is not a class or a struct");
++
++  ExprResult OperandBool = PerformContextuallyConvertToBool(Operand);
++  if (OperandBool.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no bool conversion");
++
++  // Try to evaluate `operand` as `bool`.
++  bool IsOperandTrue = false;
++  bool IsOperandConstexpr = OperandBool.get()->EvaluateAsBooleanCondition(
++      IsOperandTrue, Context, isConstantEvaluatedContext());
++
++  // Create result.
++  SmallVector<Stmt *, 3> Result;
++
++  // Deduce type and replace `operand` with a temporary variable.
++  bool IsOperandTemporary = !IsOperandConstexpr && !Operand->isLValue();
++  if (IsOperandTemporary) {
++    // Get non-reference type for `operand` expression.
++    QualType BaseType = OperandType.getNonReferenceType().getCanonicalType();
++    if (BaseType.isNull())
++      return ExprError(Diag(Loc, diag::err_unwrap_operand)
++          << ESR << OperandType << "has invalid base type");
++
++    // Create rvalue reference type for `auto&&` expression.
++    QualType RefType = Context.getRValueReferenceType(BaseType);
++    TypeSourceInfo *RefTypeInfo = Context.getTrivialTypeSourceInfo(RefType, Loc);
++    if (!RefTypeInfo)
++      return ExprError(Diag(Loc, diag::err_unwrap_operand)
++          << ESR << OperandType << "failed to create temporary variable type info");
++
++    // Create `auto&& __rv` expression.
++    VarDecl *Variable = VarDecl::Create(Context, FunctionDeclaration, Loc, Loc,
++        &Context.Idents.get("__rv"), RefType, RefTypeInfo, SC_None);
++    if (!Variable)
++      return ExprError(Diag(Loc, diag::err_unwrap_operand)
++          << ESR << OperandType << "failed to create temporary variable");
++
++    // Set `auto&& __rv` expression initializer.
++    AddInitializerToDecl(Variable, CreateMaterializeTemporaryExpr(BaseType, Operand, false), false);
++    if (Variable->isInvalidDecl())
++      return ExprError(Diag(Loc, diag::err_unwrap_operand)
++          << ESR << OperandType << "failed to initialize temporary variable");
++
++    // Add `auto&& __rv = operand` expression.
++    Result.push_back(new (Context) DeclStmt(DeclGroupRef(Variable), Loc, Loc));
++    Variable->markUsed(Context);
++
++    // Update `operand` expression and type.
++    Operand = new (Context) DeclRefExpr(Context, Variable, false, BaseType, VK_LValue, Loc);
++    OperandType = BaseType;
++  }
++
++  // Create `!operand` expression.
++  ExprResult NotOperand = ActOnUnaryOp(S, Loc, tok::exclaim, Operand);
++  if (NotOperand.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no 'bool' conversion");
++
++  // Create "error" member.
++  UnqualifiedId ErrorMember;
++  ErrorMember.setIdentifier(&Context.Idents.get("error"), Loc);
++
++  // Create `operand.error` expression.
++  CXXScopeSpec SS;
++  ExprResult ErrorMemberAccess = ActOnMemberAccessExpr(
++      S, Operand, Loc, tok::period, SS, SourceLocation(), ErrorMember, nullptr);
++  if (ErrorMemberAccess.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no '.error' member");
++
++  // Create `operand.error()` expression.
++  ExprResult ErrorCall = ActOnCallExpr(S, ErrorMemberAccess.get(), Loc, {}, Loc, nullptr);
++  if (ErrorCall.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no '.error()' member function");
++
++  // Create `return operand.error()` expression.
++  StmtResult ReturnError = ActOnReturnStmt(Loc, ErrorCall.get(), S);
++  if (ReturnError.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "'.error()' return type incompatible with enclosing function");
++
++  // Create `if (!operand)` expression.
++  ConditionResult IfNotOperand = ActOnCondition(S, Loc, NotOperand.get(), ConditionKind::Boolean);
++  if (IfNotOperand.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no 'bool' conversion");
++
++  // Create `if (!operand) return operand.error()` expression.
++  StmtResult IfNotOperandReturnError = ActOnIfStmt(Loc, IfStatementKind::Ordinary,
++      Loc, nullptr, IfNotOperand, Loc, ReturnError.get(), Loc, nullptr);
++  if (IfNotOperandReturnError.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "cannot be used in an if statement");
++
++  // Replace `operand` by its xvalue.
++  if (IsOperandTemporary) {
++    QualType OperandRValueType = Context.getRValueReferenceType(OperandType);
++    ExprResult OperandRValue = BuildCXXNamedCast(Loc, tok::kw_static_cast,
++        Context.getTrivialTypeSourceInfo(OperandRValueType, Loc),
++        Operand, SourceRange(Loc, Loc), SourceRange(Loc, Loc));
++    if (!OperandRValue.isInvalid()) {
++      Operand = OperandRValue.get();
++      OperandType = OperandRValueType;
++    }
++  }
++
++  // Create `*operand` expression.
++  ExprResult DerefOperand = ActOnUnaryOp(S, Loc, tok::star, Operand);
++  if (DerefOperand.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no dereference conversion");
++
++  // Determine the result type.
++  QualType ResultType = DerefOperand.get()->getType();
++  if (ResultType.isNull())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "dereference operator has invalid type");
++
++  // Add `return operand.error()` or `if (!operand) return operand.error()` expression.
++  if (IsOperandConstexpr) {
++    if (!IsOperandTrue) {
++      Result.push_back(ReturnError.get());
++    }
++  } else {
++    Result.push_back(IfNotOperandReturnError.get());
++  }
++
++  // Add `*operand` expression.
++  Result.push_back(DerefOperand.get());
++
++  // Return compound statement.
++  ActOnStartOfCompoundStmt(false);
++  StmtResult CompoundExpression = ActOnCompoundStmt(Loc, Loc, Result, true);
++  if (CompoundExpression.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "invalid compound statement");
++  ActOnFinishOfCompoundStmt();
++  return new (Context) StmtExpr(CompoundExpression.getAs<CompoundStmt>(), ResultType, Loc, Loc, 0);
++
++  // CompoundStmt *Block = CompoundStmt::Create(Context, Result, {}, Loc, Loc);
++  // ExprResult Expression = new (Context) StmtExpr(Block, ResultType, Loc, Loc, 0);
++  // if (Expression.isInvalid())
++  //   return ExprError(Diag(Loc, diag::err_unwrap_operand)
++  //       << ESR << OperandType << "resulted in an invalid compound expression");
++  // return Expression;
++
++  // StmtResult CompoundExpression = ActOnCompoundStmt(Loc, Loc, Result, true);
++  // if (CompoundExpression.isInvalid())
++  //   return ExprError(Diag(Loc, diag::err_unwrap_operand)
++  //       << ESR << OperandType << "invalid compound statement");
++  // return new (Context) StmtExpr(CompoundExpression.getAs<CompoundStmt>(), ResultType, Loc, Loc, 0);
++
++
++#if 0 // BROKEN
++  // Create operand to bool conversion.
++  ImplicitCastExpr *BoolOperand = ImplicitCastExpr::Create(
++      Context, Context.BoolTy, CK_UserDefinedConversion, Operand, nullptr,
++      VK_PRValue, CurFPFeatureOverrides());
++  if (!BoolOperand->getType()->isScalarType())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "operator bool does not return a scalar type; expected 'bool'");
++
++  // Create !operand expression.
++  ExprResult NotOperand = BuildUnaryOp(S, Loc, UO_LNot, BoolOperand, false);
++  if (NotOperand.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no 'bool' operator");
++
++  // Create "error" member name.
++  UnqualifiedId ErrorMember;
++  ErrorMember.setIdentifier(&Context.Idents.get("error"), Loc);
++
++  // Create operand.error() expression.
++  CXXScopeSpec SS;
++  ExprResult ErrorExpression = ActOnMemberAccessExpr(
++      S, Operand, Loc, tok::period, SS, SourceLocation(), ErrorMember, nullptr);
++  if (ErrorExpression.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no 'error' member");
++
++  // Create operand.error() call.
++  ExprResult Error = ActOnCallExpr(S, ErrorExpression.get(), Loc, {}, Loc, nullptr);
++  if (Error.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "has no 'error' member function");
++
++  // Ensure error() return type is trivially copyable.
++  QualType ErrorType = Error.get()->getType();
++  if (ErrorType->isVoidType() || !ErrorType.isTriviallyCopyableType(Context))
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "'.error()' has invalid type");
++
++  // Ensure operand.error() is valid return value.
++  CheckReturnValExpr(Error.get(), FunctionReturnType, Loc, false, nullptr, FunctionDeclaration);
++  if (Error.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_operand)
++        << ESR << OperandType << "'.error()' cannot be returned");
++
++  // Create return operand.error() statement.
++  ReturnStmt *ReturnError = ReturnStmt::Create(Context, Loc, Error.get(), nullptr);
++
++  // Create if (!operand) return operand.error() statement.
++  Result.push_back(IfStmt::Create(Context, Loc, IfStatementKind::Ordinary, nullptr, nullptr,
++      NotOperand.get(), Loc, Loc, ReturnError, SourceLocation(), nullptr));
++#endif
++
++
++
++#if 0  // WORKS!
++  // Step 1: Determine if Operand is an lvalue
++  bool IsLValue = Operand->isLValue();
++
++  // Step 2: Create the compound statement
++  SmallVector<Stmt *, 3> Result;
++
++  // Variables for VarDecl (if needed)
++  VarDecl *Var = nullptr;
++  DeclStmt *VarStmt = nullptr;
++  QualType VarType;
++  Expr *BaseExpr = nullptr;
++
++  if (!IsLValue) {
++    // Case: __unwrap__ func(), __unwrap__ move(v), __unwrap__ move(c)
++    // Generate: ({ auto&& rv = Operand; rv.error(); rv.error(); })
++
++    // Create the `auto` type for `rv`
++    QualType AutoType = Context.getAutoType(
++        QualType(),           // Deduced type (empty for `auto` placeholder)
++        AutoTypeKeyword::Auto, // Use `auto`
++        /*IsDependent*/ false, // Not dependent
++        /*IsPack*/ false,      // Not a pack
++        nullptr,               // No concept constraint
++        {}                     // No template arguments
++    );
++
++    // Create an rvalue reference to `auto` for `auto&&`
++    QualType AutoRefType = Context.getRValueReferenceType(AutoType);
++
++    // Create TypeSourceInfo for the `auto&&` type
++    TypeSourceInfo *AutoRefTypeInfo = Context.getTrivialTypeSourceInfo(AutoRefType, Loc);
++
++    // Deduce the `auto&&` type based on the operand
++    TemplateDeductionInfo Info(Loc);
++    TypeLoc AutoTypeLoc = AutoRefTypeInfo->getTypeLoc();
++    QualType DeducedType;
++    TemplateDeductionResult DeductionResult = DeduceAutoType(
++        AutoTypeLoc,          // TypeLoc for `auto&&`
++        Operand,              // Initializer
++        DeducedType,          // Resulting deduced type
++        Info,                 // Template deduction info
++        false,                // Not dependent deduction
++        false,                // Don’t ignore constraints
++        nullptr               // No failed template candidate set
++    );
++
++    if (DeductionResult != TemplateDeductionResult::Success)
++      return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "failed to deduce 'auto' type");
++
++    // Update AutoRefType with the canonical non-reference type + &&
++    AutoRefType = Context.getRValueReferenceType(DeducedType.getNonReferenceType().getCanonicalType());
++    AutoRefTypeInfo = Context.getTrivialTypeSourceInfo(AutoRefType, Loc);
++
++    // Use FunctionDeclaration as DeclContext
++    DeclContext *DC = FunctionDeclaration; // Enclosing FunctionDecl (e.g., test())
++
++    // Create the variable declaration for `rv`
++    IdentifierInfo *VarName = &Context.Idents.get(StringRef("rv"));
++    Var = VarDecl::Create(
++        Context,              // ASTContext
++        DC,                   // DeclContext: FunctionDecl
++        Loc,                  // Start location
++        Loc,                  // Identifier location
++        VarName,              // Name: rv
++        AutoRefType,          // Type: auto&& (deduced)
++        AutoRefTypeInfo,      // TypeSourceInfo
++        SC_Auto               // Storage class: auto (local variable)
++    );
++
++    // Set the initializer to the operand
++    Var->setInit(Operand);
++    Var->markUsed(Context);
++
++    // Create a DeclStmt for the variable declaration
++    VarStmt = new (Context) DeclStmt(DeclGroupRef(Var), Loc, Loc);
++    Result.push_back(VarStmt);
++
++    // Set VarType and BaseExpr for DeclRefExpr
++    VarType = AutoRefType.getNonReferenceType();
++    BaseExpr = new (Context) DeclRefExpr(
++        Context,              // ASTContext
++        Var,                  // VarDecl
++        false,                // Not value-dependent
++        VarType,              // Type: deduced type (e.g., ice::result<int>)
++        VK_LValue,            // Value kind: lvalue
++        Loc                   // Location
++    );
++  } else {
++    // Case: __unwrap__ v
++    // Generate: ({ v.error(); v.error(); })
++    VarType = Operand->getType().getNonReferenceType();
++    BaseExpr = Operand; // Use Operand directly
++  }
++
++  // Step 3: Create two `error()` calls
++  auto CreateErrorCall = [&](Expr *Base) -> ExprResult {
++    UnqualifiedId Member;
++    Member.setIdentifier(&Context.Idents.get(StringRef("error")), Loc);
++
++    CXXScopeSpec SS; // Default-initialized, empty
++
++    ExprResult MemberExprResult = ActOnMemberAccessExpr(
++        S,                    // Scope
++        Base,                 // Base expression (rv or Operand)
++        Loc,                  // Operator location (dot)
++        tok::period,          // OpKind: dot (.)
++        SS,                   // CXXScopeSpec (lvalue, empty)
++        SourceLocation(),     // No template keyword
++        Member,               // Member name: error
++        nullptr               // No ObjCImpDecl
++    );
++
++    if (MemberExprResult.isInvalid())
++      return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "no member named 'error' in type");
++
++    return ActOnCallExpr(
++        S,                    // Scope
++        MemberExprResult.get(), // Function expression
++        Loc,                  // LParen location
++        MultiExprArg(),       // No arguments
++        Loc,                  // RParen location
++        nullptr               // No ExecConfig
++    );
++  };
++
++  // First error() call
++  ExprResult ErrorCall1 = CreateErrorCall(BaseExpr);
++  if (ErrorCall1.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "invalid call to 'error'");
++
++  // Second error() call
++  ExprResult ErrorCall2 = CreateErrorCall(BaseExpr);
++  if (ErrorCall2.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "invalid call to 'error'");
++
++  // Step 4: Build the CompoundStmt
++  Result.push_back(ErrorCall1.get()); // First error() call
++  Result.push_back(ErrorCall2.get()); // Second error() call
++
++  CompoundStmt *Block = CompoundStmt::Create(Context, Result, {}, Loc, Loc);
++
++  // Step 5: Determine the result type
++  QualType ResultType = ErrorCall2.get()->getType().getNonReferenceType();
++
++  // Step 6: Create and return the StmtExpr
++  Expr *Expression = new (Context) StmtExpr(Block, ResultType, Loc, Loc, 0);
++  Expression->dump();
++  return Expression;
++#endif
++
++#if 0  // WORKS!
++  // Step 1: Determine if Operand is an lvalue
++  bool IsLValue = Operand->isLValue();
++
++  // Step 2: Create the compound statement
++  SmallVector<Stmt *, 3> Result;
++
++  // Variables for VarDecl (if needed)
++  VarDecl *Var = nullptr;
++  DeclStmt *VarStmt = nullptr;
++  QualType VarType;
++  Expr *BaseExpr = nullptr;
++
++  if (!IsLValue) {
++    // Case: __unwrap__ func(), __unwrap__ move(v), __unwrap__ move(c)
++    // Generate: ({ auto&& rv = Operand; rv.error(); rv.error(); })
++
++    // Create the `auto` type for `rv`
++    QualType AutoType = Context.getAutoType(
++        QualType(),           // Deduced type (empty for `auto` placeholder)
++        AutoTypeKeyword::Auto, // Use `auto`
++        /*IsDependent*/ false, // Not dependent
++        /*IsPack*/ false,      // Not a pack
++        nullptr,               // No concept constraint
++        {}                     // No template arguments
++    );
++
++    // Create an rvalue reference to `auto` for `auto&&`
++    QualType AutoRefType = Context.getRValueReferenceType(AutoType);
++
++    // Create TypeSourceInfo for the `auto&&` type
++    TypeSourceInfo *AutoRefTypeInfo = Context.getTrivialTypeSourceInfo(AutoRefType, Loc);
++
++    // Deduce the `auto&&` type based on the operand
++    TemplateDeductionInfo Info(Loc);
++    TypeLoc AutoTypeLoc = AutoRefTypeInfo->getTypeLoc();
++    QualType DeducedType;
++    TemplateDeductionResult DeductionResult = DeduceAutoType(
++        AutoTypeLoc,          // TypeLoc for `auto&&`
++        Operand,              // Initializer
++        DeducedType,          // Resulting deduced type
++        Info,                 // Template deduction info
++        false,                // Not dependent deduction
++        false,                // Don’t ignore constraints
++        nullptr               // No failed template candidate set
++    );
++
++    if (DeductionResult != TemplateDeductionResult::Success)
++      return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "failed to deduce 'auto' type");
++
++    // Update AutoRefType with the deduced type
++    AutoRefType = DeducedType;
++    AutoRefTypeInfo = Context.getTrivialTypeSourceInfo(AutoRefType, Loc);
++
++    // Use FunctionDeclaration as DeclContext
++    DeclContext *DC = FunctionDeclaration; // Enclosing FunctionDecl (e.g., test())
++
++    // Create the variable declaration for `rv`
++    IdentifierInfo *VarName = &Context.Idents.get(StringRef("rv"));
++    Var = VarDecl::Create(
++        Context,              // ASTContext
++        DC,                   // DeclContext: FunctionDecl
++        Loc,                  // Start location
++        Loc,                  // Identifier location
++        VarName,              // Name: rv
++        AutoRefType,          // Type: auto&& (deduced)
++        AutoRefTypeInfo,      // TypeSourceInfo
++        SC_Auto               // Storage class: auto (local variable)
++    );
++
++    // Set the initializer to the operand
++    Var->setInit(Operand);
++    Var->markUsed(Context);
++
++    // Create a DeclStmt for the variable declaration
++    VarStmt = new (Context) DeclStmt(DeclGroupRef(Var), Loc, Loc);
++    Result.push_back(VarStmt);
++
++    // Set VarType and BaseExpr for DeclRefExpr
++    VarType = AutoRefType.getNonReferenceType();
++    BaseExpr = new (Context) DeclRefExpr(
++        Context,              // ASTContext
++        Var,                  // VarDecl
++        false,                // Not value-dependent
++        VarType,              // Type: deduced type (e.g., ice::result<int>)
++        VK_LValue,            // Value kind: lvalue
++        Loc                   // Location
++    );
++  } else {
++    // Case: __unwrap__ v
++    // Generate: ({ v.error(); v.error(); })
++    VarType = Operand->getType().getNonReferenceType();
++    BaseExpr = Operand; // Use Operand directly
++  }
++
++  // Step 3: Create two `error()` calls
++  auto CreateErrorCall = [&](Expr *Base) -> ExprResult {
++    UnqualifiedId Member;
++    Member.setIdentifier(&Context.Idents.get(StringRef("error")), Loc);
++
++    CXXScopeSpec SS; // Default-initialized, empty
++
++    ExprResult MemberExprResult = ActOnMemberAccessExpr(
++        S,                    // Scope
++        Base,                 // Base expression (rv or Operand)
++        Loc,                  // Operator location (dot)
++        tok::period,          // OpKind: dot (.)
++        SS,                   // CXXScopeSpec (lvalue, empty)
++        SourceLocation(),     // No template keyword
++        Member,               // Member name: error
++        nullptr               // No ObjCImpDecl
++    );
++
++    if (MemberExprResult.isInvalid())
++      return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "no member named 'error' in type");
++
++    return ActOnCallExpr(
++        S,                    // Scope
++        MemberExprResult.get(), // Function expression
++        Loc,                  // LParen location
++        MultiExprArg(),       // No arguments
++        Loc,                  // RParen location
++        nullptr               // No ExecConfig
++    );
++  };
++
++  // First error() call
++  ExprResult ErrorCall1 = CreateErrorCall(BaseExpr);
++  if (ErrorCall1.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "invalid call to 'error'");
++
++  // Second error() call
++  ExprResult ErrorCall2 = CreateErrorCall(BaseExpr);
++  if (ErrorCall2.isInvalid())
++    return ExprError(Diag(Loc, diag::err_unwrap_message) << ESR << "invalid call to 'error'");
++
++  // Step 4: Build the CompoundStmt
++  Result.push_back(ErrorCall1.get()); // First error() call
++  Result.push_back(ErrorCall2.get()); // Second error() call
++
++  CompoundStmt *Block = CompoundStmt::Create(Context, Result, {}, Loc, Loc);
++
++  // Step 5: Determine the result type
++  QualType ResultType = ErrorCall2.get()->getType().getNonReferenceType();
++
++  // Step 6: Create and return the StmtExpr
++  Expr *Expression = new (Context) StmtExpr(Block, ResultType, Loc, Loc, 0);
++  Expression->dump();
++  return Expression;
++#endif
++
++#if 0  // WORKS!
++  // Ensure operand type is not null or void.
++  QualType OperandType = Operand->getType();
++  if (OperandType.isNull() || OperandType->isVoidType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is invalid";
++    return ExprError();
++  }
++
++  // Ensure operand type is not incomplete or dependent.
++  if (OperandType->isIncompleteType() || OperandType->isDependentType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is incomplete or dependent";
++    return ExprError();
++  }
++
++  // Create declaration for `auto __rv = operand`.
++  // QualType VariableType = OperandType.getCanonicalType();
++  QualType VariableType = OperandType.getNonReferenceType().getCanonicalType();
++  // QualType VariableType = OperandType;
++  if (!VariableType->isRecordType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is not a class or struct";
++    return ExprError();
++  }
++  VarDecl * const VariableDeclaration = VarDecl::Create(Context,
++      CurContext, Loc, Loc, &Context.Idents.get("__rv"), VariableType,
++      Context.getTrivialTypeSourceInfo(VariableType, Loc), SC_None);
++  VariableDeclaration->setInit(Operand);
++  VariableDeclaration->markUsed(Context);
++
++  // Create and add `auto __rv = operand`.
++  Result.push_back(new (Context) DeclStmt(DeclGroupRef(VariableDeclaration), Loc, Loc));
++
++  // Replace `operand` with `__rv`.
++  Operand = DeclRefExpr::Create(Context, NestedNameSpecifierLoc(), SourceLocation(),
++      VariableDeclaration, false, Loc, VariableType, VK_LValue, nullptr, nullptr, NOUR_None);
++
++  // Convert `operand` to `bool`.
++  Expr *BoolOperand = ImplicitCastExpr::Create(Context, Context.BoolTy,
++      CK_UserDefinedConversion, Operand, nullptr, VK_PRValue, CurFPFeatureOverrides());
++  Result.push_back(BoolOperand);
++
++  // Create `!operand`.
++  const ExprResult NotOperand = BuildUnaryOp(S, Loc, UO_LNot, BoolOperand, false);
++  if (NotOperand.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "has no dereference operator";
++    return ExprError();
++  }
++  Result.push_back(NotOperand.get());
++
++  // Create `*operand`.
++  const ExprResult DerefOperand = BuildUnaryOp(S, Loc, UO_Deref, Operand, false);
++  if (DerefOperand.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "has no dereference operator";
++    return ExprError();
++  }
++  Result.push_back(DerefOperand.get());
++  const QualType ResultType = DerefOperand.get()->getType().getCanonicalType();
++
++  // Create compound statement expression.
++  CompoundStmt * const Block = CompoundStmt::Create(Context, Result, {}, Loc, Loc);
++  const ExprResult Expression = new (Context) StmtExpr(Block, ResultType, Loc, Loc, 0);
++
++  // Return compound statement expression.
++  return Expression;
++#elif 0
++  // Ensure operand type is not null or void.
++  QualType OperandType = Operand->getType();
++  if (OperandType.isNull() || OperandType->isVoidType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is invalid";
++    return ExprError();
++  }
++
++  // Ensure operand type is not incomplete or dependent.
++  if (OperandType->isIncompleteType() || OperandType->isDependentType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is incomplete or dependent";
++    return ExprError();
++  }
++
++  // Ensure operand type is a class or struct.
++  if (!OperandType->isRecordType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is not a class or struct";
++    return ExprError();
++  }
++
++  // Create declaration for `auto __rv = operand`.
++  OperandType = OperandType.getNonReferenceType().getCanonicalType();
++  VarDecl * const VariableDeclaration = VarDecl::Create(Context,
++      CurContext, Loc, Loc, &Context.Idents.get("__rv"), OperandType,
++      Context.getTrivialTypeSourceInfo(OperandType, Loc), SC_None);
++  VariableDeclaration->setInit(Operand);
++  VariableDeclaration->markUsed(Context);
++  VariableDeclaration->setConstexpr(false);
++
++  // Create and add `auto __rv = operand`.
++  Result.push_back(new (Context) DeclStmt(DeclGroupRef(VariableDeclaration), Loc, Loc));
++
++  // Replace `operand` with `__rv`.
++  Operand = DeclRefExpr::Create(Context, NestedNameSpecifierLoc(), SourceLocation(),
++      VariableDeclaration, false, Loc, OperandType, VK_LValue, nullptr, nullptr, NOUR_None);
++
++  // Verify __rv is an lvalue.
++  if (!Operand->isLValue()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "must be an lvalue for member access";
++    return ExprError();
++  }
++
++#if 1
++  // Ensure operand type is a C++ class.
++  CXXRecordDecl *const OperandRecordDecl = OperandType->getAsCXXRecordDecl();
++  if (!OperandRecordDecl) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "0";
++    return ExprError();
++  }
++
++  // Find `error` member in operand type.
++  LookupResult ErrorName(*this, PP.getIdentifierInfo("error"),
++      Operand->getBeginLoc(), Sema::LookupMemberName);
++  ErrorName.suppressDiagnostics();
++  if (!LookupQualifiedName(ErrorName, OperandRecordDecl)) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "1";
++    return ExprError();
++  }
++
++  // Select `error()` overload.
++  bool ErrorHasRValueOverload = false;
++  CXXMethodDecl *ErrorMethodOverload = nullptr;
++  for (Decl *D : ErrorName) {
++    if (CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(D)) {
++      const RefQualifierKind Qualifier = MD->getRefQualifier();
++      if (Qualifier == RQ_RValue) {
++        ErrorMethodOverload = MD;
++        break;
++      }
++      if (!ErrorMethodOverload && (Qualifier == RQ_None || Qualifier == RQ_LValue)) {
++        ErrorMethodOverload = MD;
++      }
++    }
++  }
++  if (!ErrorMethodOverload) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "2";
++    return ExprError();
++  }
++  //const QualType ErrorMethodReturnType = ErrorMethodOverload->getReturnType();
++
++  // Before rvalue cast expression for `std::move(rv)`.
++  const ExprResult ErrorMoveExpr = BuildCXXFunctionalCastExpr(
++      Context.getTrivialTypeSourceInfo(Context.getRValueReferenceType(OperandType), Loc),
++      Context.getRValueReferenceType(OperandType), Loc, Operand, Loc);
++  if (ErrorMoveExpr.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "3";
++    return ExprError();
++  }
++
++  // Build member expression for `std::move(rv).error()`.
++  const ExprResult ErrorMethod = BuildMemberReferenceExpr(
++      ErrorMoveExpr.get(), Context.getRValueReferenceType(OperandType), Loc, false,
++      CXXScopeSpec(), SourceLocation(), nullptr, ErrorName, nullptr, S, false, nullptr);
++  if (ErrorMethod.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "4";
++    return ExprError();
++  }
++
++  // Build call to `std::move(rv).error()`.
++  const ExprResult ErrorCall = BuildCallToMemberFunction(S, ErrorMethod.get(), Loc, {}, Loc);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "5";
++    return ExprError();
++  }
++
++  // Build call to `std::move(std::move(rv).error())`.
++  ExprResult ValueCast = BuildCXXNamedCast(Loc, tok::kw_static_cast,
++      Context.getTrivialTypeSourceInfo(ErrorCall.get()->getType(), Loc),
++      ErrorCall.get(), SourceRange(Loc, Loc), SourceRange(Loc, Loc));
++  if (ValueCast.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "6";
++    return ExprError();
++  }
++
++  // Get return type for `std::move(std::move(rv).error())` call.
++  // const QualType ValueType = ValueCast.get()->getType().getNonReferenceType();
++
++  Result.push_back(ErrorCall.get());
++#else
++
++  // Ensure operand type is a class or struct.
++  CXXRecordDecl * const OperandRecordDeclaration = OperandType->getAsCXXRecordDecl();
++  if (!OperandRecordDeclaration) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is not a class or struct";
++    return ExprError();
++  }
++
++  // Find `error` member function in `operand` type record declaration.
++  const IdentifierInfo * const ErrorName = PP.getIdentifierInfo("error");
++  LookupResult ErrorNameLookup(*this, ErrorName, ESR.getBegin(), Sema::LookupMemberName);
++  ErrorNameLookup.suppressDiagnostics();
++  if (!LookupQualifiedName(ErrorNameLookup, OperandRecordDeclaration)) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "has no 'error' member";
++    return ExprError();
++  }
++
++  // Create `__rv.error`.
++  const ExprResult OperandErrorMethod = BuildMemberReferenceExpr(
++      Operand, OperandType, Loc, false, CXXScopeSpec(), SourceLocation(),
++      nullptr, ErrorNameLookup, nullptr, S, false, nullptr);
++  if (OperandErrorMethod.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "failed to build 'error' reference";
++    return ExprError();
++  }
++
++  // Create the call expression for `__rv.error()`.
++  SmallVector<Expr *, 0> Args;
++  ExprResult ErrorCall = ActOnCallExpr(S, OperandErrorMethod.get(), Loc, Args, Loc, nullptr);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "failed to call 'error' method";
++    return ExprError();
++  }
++
++  // Ensure `error()` return type is trivially copyable.
++  QualType ErrorType = ErrorCall.get()->getType().getNonReferenceType();
++  if (ErrorType->isVoidType() || !ErrorType.isTriviallyCopyableType(Context)) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "'error' method return type is not supported";
++    return ExprError();
++  }
++
++  // Ensure `operand.error()` result can be returned from enclosing function.
++  CheckReturnValExpr(ErrorCall.get(), FunctionReturnType, Loc, false, nullptr, FunctionDeclaration);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "'error' method call return type cannot be returned from enclosing function";
++    return ExprError();
++  }
++
++  Result.push_back(ErrorCall.get());
++#endif
++
++
++
++
++  // Convert `operand` to `bool`.
++  // ImplicitCastExpr * const BoolOperand = ImplicitCastExpr::Create(Context, Context.BoolTy,
++  //     CK_UserDefinedConversion, Operand, nullptr, VK_PRValue, CurFPFeatureOverrides());
++  // Result.push_back(BoolOperand);
++
++  // Create `!operand`.
++  // const ExprResult NotOperand = BuildUnaryOp(S, Loc, UO_LNot, BoolOperand, false);
++  // if (NotOperand.isInvalid()) {
++  //   Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++  //       << "has no dereference operator";
++  //   return ExprError();
++  // }
++  // Result.push_back(NotOperand.get());
++
++  // Create `*operand`.
++  const ExprResult DerefOperand = BuildUnaryOp(S, Loc, UO_Deref, Operand, false);
++  if (DerefOperand.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "has no dereference operator";
++    return ExprError();
++  }
++  Result.push_back(DerefOperand.get());
++  const QualType ResultType = DerefOperand.get()->getType().getCanonicalType();
++
++  // Create compound statement expression.
++  CompoundStmt * const Block = CompoundStmt::Create(Context, Result, {}, Loc, Loc);
++  ExprResult Expression = new (Context) StmtExpr(Block, ResultType, Loc, Loc, 0);
++
++  // Finish compound statement expression.
++  // Expression = ActOnFinishFullExpr(Expression.get(), Loc, false, true);
++  // if (Expression.isInvalid()) {
++  //   Diag(Loc, diag::err_unwrap_operand) << ESR << ResultType
++  //       << "cannot be converted to a compound expression";
++  //   return ExprError();
++  // }
++
++  // Return compound statement expression.
++  // Block->dump();
++  return Expression;
++#elif 0
++  // Ensure operand type is not null or void.
++  QualType OperandType = Operand->getType();
++  if (OperandType.isNull() || OperandType->isVoidType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is invalid";
++    return ExprError();
++  }
++
++  // Ensure operand type is not incomplete or dependent.
++  if (OperandType->isIncompleteType() || OperandType->isDependentType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is incomplete or dependent";
++    return ExprError();
++  }
++
++  // Create declaration for `auto __rv = operand`.
++  // QualType VariableType = OperandType.getCanonicalType();
++  // QualType VariableType = OperandType.getNonReferenceType().getCanonicalType();
++  QualType VariableType = OperandType;
++  if (!VariableType->isRecordType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is not a class or struct";
++    return ExprError();
++  }
++  VarDecl * const VariableDeclaration = VarDecl::Create(Context,
++      CurContext, Loc, Loc, &Context.Idents.get("__rv"), VariableType,
++      Context.getTrivialTypeSourceInfo(VariableType, Loc), SC_None);
++  VariableDeclaration->setInit(Operand);
++  VariableDeclaration->markUsed(Context);
++
++  // Create and add `auto __rv = operand`.
++  Result.push_back(new (Context) DeclStmt(DeclGroupRef(VariableDeclaration), Loc, Loc));
++
++  // Replace `operand` with `__rv`.
++  Operand = DeclRefExpr::Create(Context, NestedNameSpecifierLoc(), SourceLocation(),
++      VariableDeclaration, false, Loc, VariableType, Operand->getValueKind(), nullptr, nullptr, NOUR_None);
++
++  // Assign `operand` to a temporary variable.
++  // Operand = CreateMaterializeTemporaryExpr(OperandType, Operand, true);
++  // Operand = CreateMaterializeTemporaryExpr(OperandType, Operand, false);
++
++  // Convert `operand` to `bool`.
++  //
++  // const ImplicitConversionSequence ICS = TryImplicitConversion(
++  //     Operand, Context.BoolTy, false, AllowedExplicit::All, true, true, false);
++  // if (ICS.isFailure()) {
++  //   Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "has no 'bool' conversion";
++  //   return ExprError();
++  // }
++  // ExprResult BoolOperand = PerformImplicitConversion(Operand, Context.BoolTy, ICS,
++  //     AssignmentAction::Converting, CheckedConversionKind::ForBuiltinOverloadedOp);
++  // if (BoolOperand.isInvalid()) {
++  //   Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "cannot be converted to 'bool'";
++  //   return ExprError();
++  // }
++  // Result.push_back(BoolOperand.get());
++  //
++  // const ExprResult BoolOperand = BuildCXXNamedCast(Loc, tok::kw_static_cast,
++  //     Context.getTrivialTypeSourceInfo(Context.BoolTy, Loc),
++  //     Operand, SourceRange(Loc, Loc), SourceRange(Loc, Loc));
++  // Result.push_back(BoolOperand.get());
++  //
++  // const Expr * const TrueLiteral = CXXBoolLiteralExpr::Create(Context, true, Context.BoolTy, Loc);
++  // const Expr * const FalseLiteral = CXXBoolLiteralExpr::Create(Context, false, Context.BoolTy, Loc);
++  // ExprResult BoolOperand = BuildConditionalExpr(Operand, Loc, TrueLiteral, Loc, FalseLiteral, Loc, Context.BoolTy);
++  // if (BoolOperand.isInvalid()) {
++  //   Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++  //       << "has no 'bool' conversion";
++  //   return ExprError();
++  // }
++  // Result.push_back(BoolOperand.get());
++  Expr *BoolOperand = ImplicitCastExpr::Create(Context, Context.BoolTy, CK_UserDefinedConversion,
++    Operand, nullptr, VK_PRValue, CurFPFeatureOverrides());
++  Result.push_back(BoolOperand);
++
++  // Create `!operand`.
++  // const ExprResult NotOperand = BuildUnaryOp(S, Loc, UO_LNot, Operand, false);
++  // // const ExprResult NotOperand = CreateBuiltinUnaryOp(Loc, UO_LNot, Operand, false);
++  // if (NotOperand.isInvalid()) {
++  //   Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++  //       << "has no 'bool' operator";
++  //   return ExprError();
++  // }
++  // Result.push_back(NotOperand.get());
++
++  // Create `*operand`.
++  const ExprResult DerefOperand = BuildUnaryOp(S, Loc, UO_Deref, Operand, false);
++  if (DerefOperand.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "has no dereference operator";
++    return ExprError();
++  }
++  Result.push_back(DerefOperand.get());
++  const QualType ResultType = DerefOperand.get()->getType().getCanonicalType();
++
++  // Create and add `if (!operand) return operand.error()`.
++  // Result.push_back(IfStmt::Create(Context, Loc, IfStatementKind::Ordinary, nullptr, nullptr,
++  //     NotOperand.get(), Loc, Loc, NotOperand.get(), SourceLocation(), NotOperand.get()));
++
++  // Create compound statement expression.
++  CompoundStmt * const Block = CompoundStmt::Create(Context, Result, {}, Loc, Loc);
++  const ExprResult Expression = new (Context) StmtExpr(Block, ResultType, Loc, Loc, 0);
++
++  // Return compound statement expression.
++  return Expression;
++#elif 0
++  // Ensure operand type is not null or void.
++  QualType OperandType = Operand->getType();
++  if (OperandType.isNull() || OperandType->isVoidType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is invalid";
++    return ExprError();
++  }
++
++  // Try to evaluate `operand` as `bool`.
++  bool OperandTrue = false;
++  bool OperandConstexpr = Operand->EvaluateAsBooleanCondition(
++      OperandTrue, Context, isConstantEvaluatedContext());
++
++  // Create result.
++  SmallVector<Stmt *, 9> Result;
++
++  // Assign `operand` result to the temporary variable `__rv` and replace `operand` with it.
++  // TODO: Also check, if `Operand` is not a variable.
++  OperandConstexpr = false;  // TODO: Remove this once the crash is fixed.
++  if (true/*!OperandConstexpr && !Operand->isLValue()*/) {
++    // Remove reference freom `operand` type.
++    OperandType = OperandType.getNonReferenceType().getCanonicalType();
++
++    // Create declaration for `auto __rv = operand`.
++    // VarDecl * const Var = VarDecl::Create(Context,
++    //     CurContext, Loc, Loc, &Context.Idents.get("__rv"), OperandType,
++    //     Context.getTrivialTypeSourceInfo(OperandType, Loc), SC_None);
++    // Var->setInit(Operand);
++    // Var->markUsed(Context);
++
++    // Create and add `auto __rv = operand`.
++    // Result.push_back(new (Context) DeclStmt(DeclGroupRef(Var), Loc, Loc));
++
++    Operand = CreateMaterializeTemporaryExpr(OperandType, Operand, true);
++
++    // Replace `operand` with `__rv`.
++    // Operand = new (Context) DeclRefExpr(Context, Var, false, OperandType, VK_LValue, Loc);
++    // Operand = DeclRefExpr::Create(Context, NestedNameSpecifierLoc(), SourceLocation(),
++    //     Var, false, Loc, OperandType, VK_LValue, nullptr, nullptr, NOUR_None);
++
++    // Update `operand` type.
++    // OperandType = Operand->getType();
++    // if (OperandType.isNull() || OperandType->isVoidType()) {
++    //   Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++    //       << "temporary variable is invalid";
++    //   return ExprError();
++    // }
++  }
++
++  // Ensure operand type is not incomplete or dependent.
++  if (OperandType->isIncompleteType() || OperandType->isDependentType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is incomplete or dependent";
++    return ExprError();
++  }
++
++  // Retrieve `operand` type as record declaration.
++  CXXRecordDecl * const OperandRecordDeclaration = OperandType->getAsCXXRecordDecl();
++  if (!OperandRecordDeclaration) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is not a class or struct";
++    return ExprError();
++  }
++  if (const auto *TSD = dyn_cast<ClassTemplateSpecializationDecl>(OperandRecordDeclaration)) {
++    const auto &Args = TSD->getTemplateArgs();
++    for (unsigned I = 0; I < Args.size(); ++I) {
++      const TemplateArgument &Arg = Args.get(I);
++      if (Arg.isInstantiationDependent() || Arg.isDependent()) {
++        Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++            << "has an invalid argument in it's template specialization declaration";
++        return ExprError();
++      }
++    }
++  }
++
++  // Find `error` member in `operand` type record declaration.
++  const IdentifierInfo * const ErrorName = PP.getIdentifierInfo("error");
++  LookupResult ErrorNameLookup(*this, ErrorName, ESR.getBegin(), Sema::LookupMemberName);
++  ErrorNameLookup.suppressDiagnostics();
++  if (!LookupQualifiedName(ErrorNameLookup, OperandRecordDeclaration)) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "has no 'error' member";
++    return ExprError();
++  }
++
++  // Create `operand.error()`.
++  const ExprResult OperandErrorMethod = BuildMemberReferenceExpr(
++      Operand, OperandType, Loc, false, CXXScopeSpec(), SourceLocation(),
++      nullptr, ErrorNameLookup, nullptr, S, false, nullptr);
++  if (OperandErrorMethod.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "has no 'error' function";
++    return ExprError();
++  }
++
++  // Create `operand.error()` call.
++  const ExprResult ErrorCall = BuildCallToMemberFunction(S, OperandErrorMethod.get(), Loc, {}, Loc);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "has no 'error' method";
++    return ExprError();
++  }
++
++  // Ensure `operand.error()` return type is trivially copyable.
++  const QualType ErrorType = ErrorCall.get()->getType().getNonReferenceType();
++  if (ErrorType->isVoidType() || !ErrorType.isTriviallyCopyableType(Context)) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "'error' method return type is not supported";
++    return ExprError();
++  }
++
++  // Ensure `operand.error()` return type can be returned from enclosing function.
++  CheckReturnValExpr(ErrorCall.get(), FunctionReturnType,
++      Loc, false, nullptr, FunctionDeclaration);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "'error' method call return type cannot be returned from enclosing function";
++    return ExprError();
++  }
++
++  Result.push_back(ErrorCall.get());
++
++  // Create `return operand.error()`.
++  ReturnStmt * const ReturnError = ReturnStmt::Create(Context, Loc, ErrorCall.get(), nullptr);
++
++  // Add `operand.error()` or `if (!operand) return operand.error()`.
++  if (OperandConstexpr) {
++    if (OperandTrue) {
++      // Since `operand` evaluated to `true`, there is no need to use `return operand.error()`.
++    } else {
++      // Add `return operand.error()` expression.
++      Result.push_back(ReturnError);
++    }
++  } else {
++    // Convert `operand` to `bool`.
++    // const ExprResult OperandBool = PerformContextuallyConvertToBool(Operand);
++    // if (OperandBool.isInvalid()) {
++    //   Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++    //       << "has no 'bool' conversion";
++    //   return ExprError();
++    // }
++
++    // Create `!operand`.
++    const ExprResult NotCondition = BuildUnaryOp(S, Loc, UO_LNot, Operand);
++    if (NotCondition.isInvalid()) {
++      Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++          << "has no 'bool' conversion";
++      return ExprError();
++    }
++
++    // Result.push_back(NotCondition.get());
++    // Result.push_back(ReturnError);
++
++    // Create and add `if (!operand) return operand.error()`.
++    // Result.push_back(IfStmt::Create(Context, Loc, IfStatementKind::Ordinary, nullptr, nullptr,
++    //     NotCondition.get(), Loc, Loc, ReturnError, SourceLocation(), nullptr));
++  }
++
++  // Create `*operand`.
++  ExprResult Value = BuildUnaryOp(S, Loc, UO_Deref, Operand);
++  if (Value.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "does not support the dereference operator";
++    return ExprError();
++  }
++
++  // Ensure `*operand` is a valid expression.
++  if (Value.get()->isTypeDependent() || Value.get()->isValueDependent()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "dereference operator has a dependent type";
++    return ExprError();
++  }
++
++  // Use `*operand` return type as compound statement type.
++  QualType ValueType = Value.get()->getType();
++
++  // Ensure `*operand` return type is defined.
++  if (ValueType.isNull()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "dereference operator return type is undefined";
++    return ExprError();
++  }
++
++  // Handle non-void `*operand` return types.
++  if (!ValueType->isVoidType()) {
++    // Ensure `*operand` return type is not incomplete.
++    if (ValueType->isIncompleteType()) {
++      Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++          << "dereference operator return type is incomplete";
++      return ExprError();
++    }
++
++    // Ensure `*operand` return type is not dependent.
++    if (ValueType->isDependentType()) {
++      Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++          << "dereference operator return type is a dependent type";
++      return ExprError();
++    }
++
++    // Handle non-trivially copyable `*operand` return types.
++    if (!ValueType.isTriviallyCopyableType(Context)) {
++      // Create `static_cast<value_type>(*operand)`.
++      Value = BuildCXXNamedCast(Loc, tok::kw_static_cast,
++          Context.getTrivialTypeSourceInfo(ValueType.getNonReferenceType(), Loc),
++          Value.get(), SourceRange(Loc, Loc), SourceRange(Loc, Loc));
++      if (Value.isInvalid()) {
++        Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++            << "dereference operator return type cannot be dereferenced";
++        return ExprError();
++      }
++
++      // Create temporary variable for `static_cast<value_type>(*operand)`.
++      Value = CreateMaterializeTemporaryExpr(ValueType.getNonReferenceType(), Value.get(), false);
++      if (Value.isInvalid()) {
++        Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++            << "dereference operator return type cannot materialize a temporary variable";
++        return ExprError();
++      }
++    }
++  }
++
++  // Finish `*operand` or `static_cast<value_type>(*operand)`.
++  Value = ActOnFinishFullExpr(Value.get(), Loc, false, true);
++  if (Value.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++        << "dereference operator cannot be called";
++    return ExprError();
++  }
++
++  // Add `*operand` or `static_cast<value_type>(*operand)`.
++  Result.push_back(Value.get());
++
++  // Update compound statement type.
++  ValueType = Value.get()->getType().getNonReferenceType();
++
++  // Create compound statement expression.
++  CompoundStmt * const Block = CompoundStmt::Create(Context, Result, {}, Loc, Loc);
++  ExprResult Expression = new (Context) StmtExpr(Block, ResultType, Loc, Loc, 0);
++
++  // Finish compound statement expression.
++  Expression = ActOnFinishFullExpr(Expression.get(), Loc, false, true);
++  if (Expression.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << ResultType
++        << "cannot be converted to a compound expression";
++    return ExprError();
++  }
++
++  // Return compound statement expression.
++  return Expression;
++#elif 0
++  // Ensure operand type is not null or void.
++  QualType OperandType = Operand->getType();
++  if (OperandType.isNull() || OperandType->isVoidType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is invalid";
++    return ExprError();
++  }
++
++  // Ensure operand type is not incomplete or dependent.
++  if (OperandType->isIncompleteType() || OperandType->isDependentType()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is incomplete or dependent";
++    return ExprError();
++  }
++
++  // Create variable declaration for `auto rv = operand`.
++  VarDecl * const Var = VarDecl::Create(Context,
++      CurContext, Loc, Loc, &Context.Idents.get("rv"), OperandType,
++      Context.getTrivialTypeSourceInfo(OperandType, Loc), SC_Auto);
++  Var->setInit(Operand);
++  Var->setConstexpr(false);
++  Var->markUsed(Context);
++
++  // Create variable statement for `auto rv = operand`.
++  DeclStmt * const VarStatement =
++      new (Context) DeclStmt(DeclGroupRef(Var), Loc, Loc);
++
++  // Create variable reference to `auto rv = operand`.
++  DeclRefExpr * const VarReference =
++      new (Context) DeclRefExpr(Context, Var, false, OperandType, VK_LValue, Loc);
++
++  // Convert `__rv` to `bool`.
++  const ExprResult VarBool = PerformContextuallyConvertToBool(VarReference);
++  if (VarBool.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "0";
++    return ExprError();
++  }
++
++  // Create `if` condition `!rv`.
++  const ExprResult IfCondition = BuildUnaryOp(S, Loc, UO_LNot, VarBool.get());
++  if (IfCondition.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "1";
++    return ExprError();
++  }
++
++  // Retrieve `operand` type as record declaration.
++  CXXRecordDecl * const OperandRecordDeclaration = OperandType->getAsCXXRecordDecl();
++  if (!OperandRecordDeclaration) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "is not a class or struct";
++    return ExprError();
++  }
++  if (const auto *TSD = dyn_cast<ClassTemplateSpecializationDecl>(OperandRecordDeclaration)) {
++    const auto &Args = TSD->getTemplateArgs();
++    for (unsigned I = 0; I < Args.size(); ++I) {
++      const TemplateArgument &Arg = Args.get(I);
++      if (Arg.isInstantiationDependent() || Arg.isDependent()) {
++        Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType
++            << "has an invalid argument in it's template specialization declaration";
++        return ExprError();
++      }
++    }
++  }
++
++  // Find `error` member in operand type.
++  LookupResult ErrorName(*this, PP.getIdentifierInfo("error"),
++      Operand->getBeginLoc(), Sema::LookupMemberName);
++  ErrorName.suppressDiagnostics();
++  if (!LookupQualifiedName(ErrorName, OperandRecordDeclaration)) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "2";
++    return ExprError();
++  }
++
++  // Build member expression for `rv.error()`.
++  ExprResult ErrorMethod = BuildMemberReferenceExpr(
++      VarReference, OperandType, Loc, false, CXXScopeSpec(), SourceLocation(),
++      nullptr, ErrorName, nullptr, S, false, nullptr);
++  if (ErrorMethod.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "3";
++    return ExprError();
++  }
++
++  // Build call to `rv.error()`.
++  const ExprResult ErrorCall = BuildCallToMemberFunction(S, ErrorMethod.get(), Loc, {}, Loc);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "4";
++    return ExprError();
++  }
++
++  // Check `rv.error()` return type against the enclosing function return type.
++  CheckReturnValExpr(ErrorCall.get(), FunctionReturnType, Loc, false, nullptr, FunctionDeclaration);
++  if (ErrorCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "5";
++    return ExprError();
++  }
++
++  // Create a return statement for `return rv.error()`.
++  ReturnStmt * const ReturnStatement =
++      ReturnStmt::Create(Context, Loc, ErrorCall.get(), nullptr);
++
++  // Create an if statement for `if (const auto rv = expr; !rv) return rv.error()`.
++  IfStmt * const IfStatement = IfStmt::Create(
++      Context, Loc, IfStatementKind::Ordinary, nullptr, nullptr, IfCondition.get(),
++      Loc, Loc, ReturnStatement, SourceLocation(), nullptr);
++
++
++  /*
++  // Find `value` member in operand type.
++  LookupResult ValueName(*this, PP.getIdentifierInfo("value"),
++      Operand->getBeginLoc(), Sema::LookupMemberName);
++  ValueName.suppressDiagnostics();
++  if (!LookupQualifiedName(ValueName, OperandRecordDeclaration)) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "6";
++    return ExprError();
++  }
++
++  // Select `value()` overload.
++  bool ValueHasRValueOverload = false;
++  CXXMethodDecl *ValueMethodOverload = nullptr;
++  for (Decl *D : ValueName) {
++    if (CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(D)) {
++      const RefQualifierKind Qualifier = MD->getRefQualifier();
++      if (Qualifier == RQ_RValue) {
++        ValueHasRValueOverload = true;
++        ValueMethodOverload = MD;
++        break;
++      }
++      if (!ValueMethodOverload && (Qualifier == RQ_None || Qualifier == RQ_LValue)) {
++        ValueMethodOverload = MD;
++      }
++    }
++  }
++  if (!ValueMethodOverload) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "7";
++    return ExprError();
++  }
++  const QualType ValueMethodReturnType = ValueMethodOverload->getReturnType();
++
++  // Before rvalue cast expression for `std::move(rv)`.
++  const ExprResult MoveExpr = BuildCXXFunctionalCastExpr(
++      Context.getTrivialTypeSourceInfo(Context.getRValueReferenceType(OperandType), Loc),
++      Context.getRValueReferenceType(OperandType), Loc, VarReference, Loc);
++  if (MoveExpr.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "8";
++    return ExprError();
++  }
++
++  // Build member expression for `std::move(rv).value()`.
++  const ExprResult ValueMethod = BuildMemberReferenceExpr(
++      MoveExpr.get(), Context.getRValueReferenceType(OperandType), Loc, false,
++      CXXScopeSpec(), SourceLocation(), nullptr, ValueName, nullptr, S, false, nullptr);
++  if (ValueMethod.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "9";
++    return ExprError();
++  }
++
++  // Build call to `std::move(rv).value()`.
++  const ExprResult ValueCall = BuildCallToMemberFunction(S, ValueMethod.get(), Loc, {}, Loc);
++  if (ValueCall.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "10";
++    return ExprError();
++  }
++
++  // Build call to `std::move(std::move(rv).value())`.
++  ExprResult ValueCast = BuildCXXNamedCast(Loc, tok::kw_static_cast,
++      Context.getTrivialTypeSourceInfo(ValueCall.get()->getType(), Loc),
++      ValueCall.get(), SourceRange(Loc, Loc), SourceRange(Loc, Loc));
++  if (ValueCast.isInvalid()) {
++    Diag(Loc, diag::err_unwrap_operand) << ESR << OperandType << "11";
++    return ExprError();
++  }
++
++  // Get return type for `std::move(std::move(rv).value())` call.
++  const QualType ValueType = ValueCast.get()->getType().getNonReferenceType();
++
++  // Pack statements.
++  SmallVector<Stmt *, 3> Statements;
++  Statements.push_back(VarStatement);
++
++  bool VarTrue = false;
++  const bool InConstantContext = isConstantEvaluatedContext();
++  if (VarBool.get()->EvaluateAsBooleanCondition(VarTrue, Context, InConstantContext)) {
++    if (!VarTrue) {
++      Statements.push_back(ReturnStatement);
++    }
++    Statements.push_back(ValueCast.get());
++  } else {
++    Statements.push_back(IfStatement);
++    Statements.push_back(ValueCast.get());
++  }
++  */
++  SmallVector<Stmt *, 3> Statements;
++  Statements.push_back(VarStatement);
++  Statements.push_back(IfStatement);
++  const auto ValueType = Context.VoidTy;
++
++  // Create and return compound statement.
++  CompoundStmt * const Block = CompoundStmt::Create(Context, Statements, {}, Loc, Loc);
++  return new (Context) StmtExpr(Block, ValueType, Loc, Loc, 0);
++#endif
++}
++// clang-format on
++
+ ExprResult Sema::ActOnAddrLabel(SourceLocation OpLoc, SourceLocation LabLoc,
+                                 LabelDecl *TheDecl) {
+   TheDecl->markUsed(Context);
+diff --git c/llvm/CMakePresets.json w/llvm/CMakePresets.json
+new file mode 100644
+index 000000000..b7d720b59
+--- /dev/null
++++ w/llvm/CMakePresets.json
+@@ -0,0 +1,133 @@
++{
++  "version": 6,
++  "cmakeMinimumRequired": {
++    "major": 3,
++    "minor": 31
++  },
++  "configurePresets": [
++    {
++      "hidden": true,
++      "name": "default",
++      "generator": "Ninja",
++      "binaryDir": "/opt/ace/build/llvm-${presetName}",
++      "installDir": "/opt/ace/build/llvm-${presetName}-install",
++      "architecture": { "value": "x64", "strategy": "external" },
++      "warnings": { "dev": false },
++      "cacheVariables": {
++        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
++        "LLVM_ENABLE_PROJECTS": "clang;clang-tools-extra",
++        "LLVM_TARGETS_TO_BUILD": "X86",
++        "LLVM_ENABLE_BINDINGS": false,
++        "LLVM_ENABLE_DOXYGEN": false,
++        "LLVM_ENABLE_LIBCXX": false,
++        "LLVM_ENABLE_LTO": false,
++        "LLVM_ENABLE_PER_TARGET_RUNTIME_DIR": true,
++        "LLVM_ENABLE_WARNINGS": false,
++        "LLVM_INCLUDE_BENCHMARKS": false,
++        "LLVM_INCLUDE_EXAMPLES": false,
++        "LLVM_INCLUDE_TESTS": false,
++        "LLVM_INCLUDE_DOCS": false
++      }
++    },
++    {
++      "hidden": true,
++      "name": "linux-x86-64-v2",
++      "toolchainFile": "$env{ACE}/linux-x86-64-v2.cmake"
++    },
++    {
++      "hidden": true,
++      "name": "linux-x86-64-v3",
++      "toolchainFile": "$env{ACE}/linux-x86-64-v3.cmake"
++    },
++    {
++      "hidden": true,
++      "name": "debug",
++      "cacheVariables": {
++        "CMAKE_BUILD_TYPE": "Debug"
++      }
++    },
++    {
++      "hidden": true,
++      "name": "release",
++      "cacheVariables": {
++        "CMAKE_BUILD_TYPE": "Release"
++      }
++    },
++    {
++      "name": "linux-x86-64-v2-debug",
++      "displayName": "Linux (x86-64-v2): Debug",
++      "inherits": [ "default", "linux-x86-64-v2", "debug" ]
++    },
++    {
++      "name": "linux-x86-64-v2-release",
++      "displayName": "Linux (x86-64-v2): Release",
++      "inherits": [ "default", "linux-x86-64-v2", "release" ]
++    },
++    {
++      "name": "linux-x86-64-v3-debug",
++      "displayName": "Linux (x86-64-v3): Debug",
++      "inherits": [ "default", "linux-x86-64-v3", "debug" ]
++    },
++    {
++      "name": "linux-x86-64-v3-release",
++      "displayName": "Linux (x86-64-v3): Release",
++      "inherits": [ "default", "linux-x86-64-v3", "release" ]
++    }
++  ],
++  "buildPresets": [
++    {
++      "name": "linux-x86-64-v2-debug",
++      "displayName": "Linux (x86-64-v2): Debug",
++      "configurePreset": "linux-x86-64-v2-debug"
++    },
++    {
++      "name": "linux-x86-64-v2-release",
++      "displayName": "Linux (x86-64-v2): Release",
++      "configurePreset": "linux-x86-64-v2-release"
++    },
++    {
++      "name": "linux-x86-64-v3-debug",
++      "displayName": "Linux (x86-64-v3): Debug",
++      "configurePreset": "linux-x86-64-v3-debug"
++    },
++    {
++      "name": "linux-x86-64-v3-release",
++      "displayName": "Linux (x86-64-v3): Release",
++      "configurePreset": "linux-x86-64-v3-release"
++    }
++  ],
++  "workflowPresets": [
++    {
++      "name": "linux-x86-64-v2-debug",
++      "displayName": "Linux (x86-64-v2): Debug",
++      "steps": [
++        { "name": "linux-x86-64-v2-debug", "type": "configure" },
++        { "name": "linux-x86-64-v2-debug", "type": "build" }
++      ]
++    },
++    {
++      "name": "linux-x86-64-v2-release",
++      "displayName": "Linux (x86-64-v2): Release",
++      "steps": [
++        { "name": "linux-x86-64-v2-release", "type": "configure" },
++        { "name": "linux-x86-64-v2-release", "type": "build" }
++      ]
++    },
++    {
++      "name": "linux-x86-64-v3-debug",
++      "displayName": "Linux (x86-64-v3): Debug",
++      "steps": [
++        { "name": "linux-x86-64-v3-debug", "type": "configure" },
++        { "name": "linux-x86-64-v3-debug", "type": "build" }
++      ]
++    },
++    {
++      "name": "linux-x86-64-v3-release",
++      "displayName": "Linux (x86-64-v3): Release",
++      "steps": [
++        { "name": "linux-x86-64-v3-release", "type": "configure" },
++        { "name": "linux-x86-64-v3-release", "type": "build" }
++      ]
++    }
++  ]
++}
