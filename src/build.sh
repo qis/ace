@@ -29,6 +29,19 @@ create() {
   touch "${1}" || error "Could not create file: ${1}"
 }
 
+if [ "${1}" == "reset" ]; then
+  print "Deleting runtimes and ports ..."
+  rm -rf bin include lib ports share \
+    build/linux build/mingw \
+    build/ports build/vcpkg \
+    sys/linux/x86-64-v2 \
+    sys/linux/x86-64-v3 \
+    sys/mingw/x86-64-v2 \
+    sys/mingw/x86-64-v3 \
+    build/unwrap \
+    build/test
+fi
+
 # =================================================================================================
 # downloads
 # =================================================================================================
@@ -348,8 +361,8 @@ if [ ! -e build/linux/builtins/build.ninja ]; then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -nostdlib++" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fomit-frame-pointer" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fomit-frame-pointer -fstrict-vtable-pointers -nostdlib++" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-pc-linux-gnu" \
@@ -413,8 +426,8 @@ if [ ! -e build/linux/runtimes/x86-64-v2/build.ninja ]; then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -flto=thin" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -flto=thin" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fomit-frame-pointer -flto" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fomit-frame-pointer -fstrict-vtable-pointers -flto -fwhole-program-vtables -fno-exceptions" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-pc-linux-gnu" \
@@ -433,7 +446,7 @@ if [ ! -e build/linux/runtimes/x86-64-v2/build.ninja ]; then
     -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v2;-flto=thin;-fno-exceptions;-fno-rtti" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v2;-fomit-frame-pointer;-fstrict-vtable-pointers;-flto;-fwhole-program-vtables;-fno-exceptions;-fno-rtti" \
     -DLIBCXX_ENABLE_SHARED=ON \
     -DLIBCXX_ENABLE_STATIC=ON \
     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
@@ -486,8 +499,8 @@ if [ ! -e build/linux/runtimes/x86-64-v3/build.ninja ]; then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -mavx2 -flto=thin" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -mavx2 -flto=thin" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -mavx2 -fomit-frame-pointer -flto" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -mavx2 -fomit-frame-pointer -fstrict-vtable-pointers -flto -fwhole-program-vtables -fno-exceptions" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-pc-linux-gnu" \
@@ -506,7 +519,7 @@ if [ ! -e build/linux/runtimes/x86-64-v3/build.ninja ]; then
     -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-mavx2;-flto=thin;-fno-exceptions;-fno-rtti" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-mavx2;-fomit-frame-pointer;-fstrict-vtable-pointers;-flto;-fwhole-program-vtables;-fno-exceptions;-fno-rtti" \
     -DLIBCXX_ENABLE_SHARED=ON \
     -DLIBCXX_ENABLE_STATIC=ON \
     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
@@ -559,8 +572,8 @@ if [ ! -e build/linux/compiler-rt/build.ninja ]; then
     -DCMAKE_CXX_STANDARD_LINK_DIRECTORIES="${ACE}/sys/linux/x86-64-v2/lib" \
     -DCMAKE_TRY_COMPILE_PLATFORM_VARIABLES="${PLATFORM_VARIABLES}" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fno-exceptions -fno-rtti" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fomit-frame-pointer" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fomit-frame-pointer -fstrict-vtable-pointers -fno-exceptions -fno-rtti" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-pc-linux-gnu" \
@@ -597,7 +610,7 @@ fi
 # =================================================================================================
 
 MINGW_LFLAGS="--target=x86_64-w64-mingw32 --sysroot=${ACE}/sys/mingw"
-MINGW_CFLAGS="-O3 -march=x86-64-v2 ${MINGW_LFLAGS} -fms-compatibility-version=19.40"
+MINGW_CFLAGS="-O3 -march=x86-64-v2 ${MINGW_LFLAGS} -fms-compatibility-version=19.40 -fomit-frame-pointer"
 MINGW_RFLAGS="-I${ACE}/sys/mingw/include"
 
 if [ ! -e build/mingw/headers/Makefile ] ||
@@ -691,7 +704,7 @@ if [ ! -e build/mingw/tools/Makefile ]; then
     OBJDUMP="${ACE}/bin/llvm-objdump" \
     STRIP="${ACE}/bin/llvm-strip" \
     SIZE="${ACE}/bin/llvm-size" \
-    CFLAGS="-O3 -march=x86-64-v2 -flto=thin" \
+    CFLAGS="-O3 -march=x86-64-v2 -flto" \
     --with-default-win32-winnt="0x0A00" \
     --with-default-msvcrt="ucrt" \
     --prefix="${ACE}" \
@@ -735,8 +748,8 @@ if [ ! -e build/mingw/builtins/build.ninja ]; then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -nostdlib++" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -fomit-frame-pointer" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -fomit-frame-pointer -fstrict-vtable-pointers -nostdlib++" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -800,8 +813,8 @@ if [ ! -e build/mingw/runtimes/x86-64-v2/build.ninja ]; then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -flto=thin -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -flto=thin -fms-compatibility-version=19.40" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -fomit-frame-pointer -flto" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -fomit-frame-pointer -fstrict-vtable-pointers -flto -fwhole-program-vtables -fno-exceptions" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -820,7 +833,7 @@ if [ ! -e build/mingw/runtimes/x86-64-v2/build.ninja ]; then
     -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v2;-flto=thin;-fno-exceptions;-fno-rtti" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v2;-fms-compatibility-version=19.40;-fomit-frame-pointer;-fstrict-vtable-pointers;-flto;-fwhole-program-vtables;-fno-exceptions;-fno-rtti" \
     -DLIBCXX_ENABLE_SHARED=ON \
     -DLIBCXX_ENABLE_STATIC=ON \
     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
@@ -873,8 +886,8 @@ if [ ! -e build/mingw/runtimes/x86-64-v3/build.ninja ]; then
     -DCMAKE_CXX_COMPILER="${ACE}/bin/clang++" \
     -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS="${ACE}/bin/clang-scan-deps" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -mavx2 -flto=thin -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -mavx2 -flto=thin -fms-compatibility-version=19.40" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v3 -mavx2 -fms-compatibility-version=19.40 -fomit-frame-pointer -flto" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v3 -mavx2 -fms-compatibility-version=19.40 -fomit-frame-pointer -fstrict-vtable-pointers -flto -fwhole-program-vtables -fno-exceptions" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
@@ -893,7 +906,7 @@ if [ ! -e build/mingw/runtimes/x86-64-v3/build.ninja ]; then
     -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
     -DLIBCXX_ABI_UNSTABLE=ON \
     -DLIBCXX_ABI_VERSION=2 \
-    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-mavx2;-flto=thin;-fno-exceptions;-fno-rtti" \
+    -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-march=x86-64-v3;-mavx2;-fms-compatibility-version=19.40;-fomit-frame-pointer;-fstrict-vtable-pointers;-flto;-fwhole-program-vtables;-fno-exceptions;-fno-rtti" \
     -DLIBCXX_ENABLE_SHARED=ON \
     -DLIBCXX_ENABLE_STATIC=ON \
     -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
@@ -945,8 +958,8 @@ if [ ! -e build/mingw/compiler-rt/build.ninja ]; then
     -DCMAKE_CXX_STANDARD_LINK_DIRECTORIES="${ACE}/sys/mingw/x86-64-v2/lib" \
     -DCMAKE_TRY_COMPILE_PLATFORM_VARIABLES="${PLATFORM_VARIABLES}" \
     -DCMAKE_ASM_COMPILER="${ACE}/bin/clang" \
-    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40" \
-    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -fno-exceptions -fno-rtti" \
+    -DCMAKE_C_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -fomit-frame-pointer" \
+    -DCMAKE_CXX_FLAGS_INIT="-march=x86-64-v2 -fms-compatibility-version=19.40 -fomit-frame-pointer -fstrict-vtable-pointers -fno-exceptions -fno-rtti" \
     -DCMAKE_C_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \

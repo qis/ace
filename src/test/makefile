@@ -1,13 +1,13 @@
 CC		:= bin/clang
 CXX		:= bin/clang++
 
-CFLAGS		:= -flto=thin -fvisibility=hidden
+CFLAGS		:= -fvisibility=hidden -flto
 CFLAGS_V2	:= -march=x86-64-v2
 CFLAGS_V3	:= -march=x86-64-v3 -mavx2
 
 CFLAGS_MINGW	:= --target=x86_64-w64-mingw32 -fms-compatibility-version=19.40 --sysroot=sys/mingw
 
-CXXFLAGS	:= -fno-exceptions -fno-rtti -static-libstdc++
+CXXFLAGS	:= -fno-exceptions -fno-rtti -fstrict-vtable-pointers -fwhole-program-vtables -static-libstdc++
 
 SYS_LINUX_V2	:= -cxx-isystem sys/linux/x86-64-v2/include/c++/v1 -Lsys/linux/x86-64-v2/lib
 SYS_LINUX_V3	:= -cxx-isystem sys/linux/x86-64-v3/include/c++/v1 -Lsys/linux/x86-64-v3/lib
