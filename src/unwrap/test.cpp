@@ -126,7 +126,7 @@ ice::result<int> func() noexcept {
 }
 #endif
 
-#define TEST 0
+#define TEST 7
 constexpr ice::result<void> test() noexcept {
 #if TEST == 0
   #if 1

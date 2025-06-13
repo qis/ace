@@ -578,7 +578,7 @@ if [ ! -e build/linux/compiler-rt/build.ninja ]; then
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-pc-linux-gnu" \
     -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-pc-linux-gnu" \
-    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind" \
     -DLLVM_ENABLE_LIBCXX=ON \
     -DLLVM_ENABLE_LTO=OFF \
     -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
@@ -595,6 +595,11 @@ if [ ! -e build/linux/compiler-rt/build.ninja ]; then
     -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
     -DCOMPILER_RT_BUILD_XRAY=ON \
     -DCOMPILER_RT_DEFAULT_TARGET_ONLY=OFF \
+    -DLIBUNWIND_ENABLE_SHARED=OFF \
+    -DLIBUNWIND_ENABLE_STATIC=ON \
+    -DLIBUNWIND_INSTALL_HEADERS=ON \
+    -DLIBUNWIND_INSTALL_LIBRARY=ON \
+    -DLIBUNWIND_USE_COMPILER_RT=ON \
     -B build/linux/compiler-rt build/src/llvm/runtimes
   verify build/linux/compiler-rt/build.ninja
 fi
@@ -964,7 +969,7 @@ if [ ! -e build/mingw/compiler-rt/build.ninja ]; then
     -DCMAKE_CXX_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DCMAKE_ASM_COMPILER_TARGET="x86_64-w64-mingw32" \
     -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-w64-mingw32" \
-    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt;libunwind" \
     -DLLVM_ENABLE_LIBCXX=ON \
     -DLLVM_ENABLE_LTO=OFF \
     -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
@@ -981,6 +986,11 @@ if [ ! -e build/mingw/compiler-rt/build.ninja ]; then
     -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
     -DCOMPILER_RT_BUILD_XRAY=OFF \
     -DCOMPILER_RT_DEFAULT_TARGET_ONLY=OFF \
+    -DLIBUNWIND_ENABLE_SHARED=OFF \
+    -DLIBUNWIND_ENABLE_STATIC=ON \
+    -DLIBUNWIND_INSTALL_HEADERS=ON \
+    -DLIBUNWIND_INSTALL_LIBRARY=ON \
+    -DLIBUNWIND_USE_COMPILER_RT=ON \
     -B build/mingw/compiler-rt build/src/llvm/runtimes
   verify build/mingw/compiler-rt/build.ninja
 fi
