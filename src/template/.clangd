@@ -1,0 +1,10 @@
+CompileFlags:
+  Add: [ -xc++, -std=c++26, -fexperimental-library, -DCLANGD ]
+  CompilationDatabase: build
+Diagnostics:
+  ClangTidy:
+    FastCheckFilter: None
+  MissingIncludes: None
+  UnusedIncludes: Strict
+InlayHints:
+  Enabled: No

@@ -1,0 +1,13 @@
+diff --git i/src/luaconf.h w/src/luaconf.h
+index e8790c1..79947d5 100644
+--- i/src/luaconf.h
++++ w/src/luaconf.h
+@@ -37,7 +37,7 @@
+ #endif
+ #define LUA_LROOT	"/usr/local"
+ #define LUA_LUADIR	"/lua/5.1/"
+-#define LUA_LJDIR	"/luajit-2.1.0-beta3/"
++#define LUA_LJDIR	"/luajit/"
+
+ #ifdef LUA_ROOT
+ #define LUA_JROOT	LUA_ROOT

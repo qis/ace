@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+SRC=$(readlink -f -- "${0}" || realpath -- "${0}")
+RES=$(dirname "${SRC}")
+ACE=$(dirname "${RES}")
+cd "${ACE}" || exit 1
+echo "Connect to this host:"
+echo "  platform select remote-linux"
+ip -o addr show scope global | awk '{split($4,a,"/"); print a[1]}' | uniq | sort | while read ip; do
+  echo "  platform connect connect://${ip}:1721"
+done
+echo ""
+bin/lldb-server platform --listen "*:1721" --server

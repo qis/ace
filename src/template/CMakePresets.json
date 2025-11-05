@@ -1,0 +1,317 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 4,
+    "minor": 1
+  },
+  "configurePresets": [
+    {
+      "hidden": true,
+      "name": "default",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "warnings": { "dev": false },
+      "cacheVariables": {
+        "CMAKE_C_STANDARD": "23",
+        "CMAKE_C_STANDARD_REQUIRED": true,
+        "CMAKE_CXX_STANDARD": "26",
+        "CMAKE_CXX_STANDARD_REQUIRED": true,
+        "CMAKE_CXX_SCAN_FOR_MODULES": true
+      }
+    },
+    {
+      "hidden": true,
+      "name": "linux",
+      "toolchainFile": "$env{ACE}/linux.cmake",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "mingw",
+      "toolchainFile": "$env{ACE}/mingw.cmake"
+    },
+    {
+      "hidden": true,
+      "name": "debug",
+      "cacheVariables": {
+        "BUILD_TESTING": true,
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "release",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": false,
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "relwithdebinfo",
+      "cacheVariables": {
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "coverage",
+      "cacheVariables": {
+        "BUILD_TESTING": true,
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "Coverage"
+      }
+    },
+    {
+      "hidden": true,
+      "name": "profile",
+      "cacheVariables": {
+        "BUILD_TESTING": true,
+        "BUILD_SHARED_LIBS": true,
+        "CMAKE_BUILD_TYPE": "Profile"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux: Debug",
+      "inherits": [ "default", "linux", "debug" ]
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux: Release",
+      "inherits": [ "default", "linux", "release" ]
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "displayName": "Linux: RelWithDebInfo",
+      "inherits": [ "default", "linux", "relwithdebinfo" ]
+    },
+    {
+      "name": "linux-coverage",
+      "displayName": "Linux: Coverage",
+      "inherits": [ "default", "linux", "coverage" ]
+    },
+    {
+      "name": "linux-profile",
+      "displayName": "Linux: Profile",
+      "inherits": [ "default", "linux", "profile" ]
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "MinGW: Debug",
+      "inherits": [ "default", "mingw", "debug" ]
+    },
+    {
+      "name": "mingw-release",
+      "displayName": "MinGW: Release",
+      "inherits": [ "default", "mingw", "release" ]
+    },
+    {
+      "name": "mingw-relwithdebinfo",
+      "displayName": "MinGW: RelWithDebInfo",
+      "inherits": [ "default", "mingw", "relwithdebinfo" ]
+    },
+    {
+      "name": "mingw-coverage",
+      "displayName": "MinGW: Coverage",
+      "inherits": [ "default", "mingw", "coverage" ]
+    },
+    {
+      "name": "mingw-profile",
+      "displayName": "MinGW: Profile",
+      "inherits": [ "default", "mingw", "profile" ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Linux: Debug",
+      "configurePreset": "linux-debug"
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux: Release",
+      "configurePreset": "linux-release"
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "displayName": "Linux: RelWithDebInfo",
+      "configurePreset": "linux-relwithdebinfo"
+    },
+    {
+      "name": "linux-coverage",
+      "displayName": "Linux: Coverage",
+      "configurePreset": "linux-coverage"
+    },
+    {
+      "name": "linux-profile",
+      "displayName": "Linux: Profile",
+      "configurePreset": "linux-profile"
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "MinGW: Debug",
+      "configurePreset": "mingw-debug"
+    },
+    {
+      "name": "mingw-release",
+      "displayName": "MinGW: Release",
+      "configurePreset": "mingw-release"
+    },
+    {
+      "name": "mingw-relwithdebinfo",
+      "displayName": "MinGW: RelWithDebInfo",
+      "configurePreset": "mingw-relwithdebinfo"
+    },
+    {
+      "name": "mingw-coverage",
+      "displayName": "MinGW: Coverage",
+      "configurePreset": "mingw-coverage"
+    },
+    {
+      "name": "mingw-profile",
+      "displayName": "MinGW: Profile",
+      "configurePreset": "mingw-profile"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Linux: Debug",
+      "configurePreset": "linux-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "linux-coverage",
+      "displayName": "Linux: Coverage",
+      "configurePreset": "linux-coverage",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "linux-profile",
+      "displayName": "Linux: Profile",
+      "configurePreset": "linux-profile",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "MinGW: Debug",
+      "configurePreset": "mingw-debug",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "mingw-coverage",
+      "displayName": "MinGW: Coverage",
+      "configurePreset": "mingw-coverage",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    },
+    {
+      "name": "mingw-profile",
+      "displayName": "MinGW: Profile",
+      "configurePreset": "mingw-profile",
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "linux-debug",
+      "displayName": "Linux: Debug",
+      "steps": [
+        { "name": "linux-debug", "type": "configure" },
+        { "name": "linux-debug", "type": "build" },
+        { "name": "linux-debug", "type": "test" }
+      ]
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux: Release",
+      "steps": [
+        { "name": "linux-release", "type": "configure" },
+        { "name": "linux-release", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-relwithdebinfo",
+      "displayName": "Linux: RelWithDebInfo",
+      "steps": [
+        { "name": "linux-relwithdebinfo", "type": "configure" },
+        { "name": "linux-relwithdebinfo", "type": "build" }
+      ]
+    },
+    {
+      "name": "linux-coverage",
+      "displayName": "Linux: Coverage",
+      "steps": [
+        { "name": "linux-coverage", "type": "configure" },
+        { "name": "linux-coverage", "type": "build" },
+        { "name": "linux-coverage", "type": "test" }
+      ]
+    },
+    {
+      "name": "linux-profile",
+      "displayName": "Linux: Profile",
+      "steps": [
+        { "name": "linux-profile", "type": "configure" },
+        { "name": "linux-profile", "type": "build" },
+        { "name": "linux-profile", "type": "test" }
+      ]
+    },
+    {
+      "name": "mingw-debug",
+      "displayName": "MinGW: Debug",
+      "steps": [
+        { "name": "mingw-debug", "type": "configure" },
+        { "name": "mingw-debug", "type": "build" },
+        { "name": "mingw-debug", "type": "test" }
+      ]
+    },
+    {
+      "name": "mingw-release",
+      "displayName": "MinGW: Release",
+      "steps": [
+        { "name": "mingw-release", "type": "configure" },
+        { "name": "mingw-release", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-relwithdebinfo",
+      "displayName": "MinGW: RelWithDebInfo",
+      "steps": [
+        { "name": "mingw-relwithdebinfo", "type": "configure" },
+        { "name": "mingw-relwithdebinfo", "type": "build" }
+      ]
+    },
+    {
+      "name": "mingw-coverage",
+      "displayName": "MinGW: Coverage",
+      "steps": [
+        { "name": "mingw-coverage", "type": "configure" },
+        { "name": "mingw-coverage", "type": "build" },
+        { "name": "mingw-coverage", "type": "test" }
+      ]
+    },
+    {
+      "name": "mingw-profile",
+      "displayName": "MinGW: Profile",
+      "steps": [
+        { "name": "mingw-profile", "type": "configure" },
+        { "name": "mingw-profile", "type": "build" },
+        { "name": "mingw-profile", "type": "test" }
+      ]
+    }
+  ]
+}

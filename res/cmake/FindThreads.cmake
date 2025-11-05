@@ -1,0 +1,22 @@
+set(Threads_FOUND TRUE)
+
+if(THREADS_PREFER_PTHREAD_FLAG)
+  set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set(CMAKE_USE_WIN32_THREADS_INIT 1)
+  set(CMAKE_THREAD_LIBS_INIT "")
+else()
+  set(CMAKE_USE_PTHREADS_INIT 1)
+  set(CMAKE_THREAD_LIBS_INIT "")
+  #set(CMAKE_THREAD_LIBS_INIT "-pthread")
+endif()
+
+if(NOT TARGET Threads::Threads)
+  add_library(Threads::Threads INTERFACE IMPORTED)
+  if(CMAKE_USE_PTHREADS_INIT)
+    #set_property(TARGET Threads::Threads PROPERTY INTERFACE_COMPILE_OPTIONS "-pthread")
+    #set_property(TARGET Threads::Threads PROPERTY INTERFACE_LINK_LIBRARIES "-pthread")
+  endif()
+endif()

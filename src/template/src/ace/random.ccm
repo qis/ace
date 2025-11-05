@@ -1,0 +1,14 @@
+module;
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <sys/sysmacros.h>
+#endif
+#include <string>
+export module ace.random;
+
+namespace ace {
+
+export std::string random();
+
+}  // namespace ace

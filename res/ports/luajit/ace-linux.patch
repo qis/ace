@@ -1,0 +1,13 @@
+diff --git i/src/Makefile w/src/Makefile
+index b753ea1..d953761 100644
+--- i/src/Makefile
++++ w/src/Makefile
+@@ -288,7 +288,7 @@ TARGET_ARCH+= $(patsubst %,-DLUAJIT_TARGET=LUAJIT_ARCH_%,$(TARGET_LJARCH))
+ 
+ ifneq (,$(PREFIX))
+ ifneq (/usr/local,$(PREFIX))
+-  TARGET_XCFLAGS+= -DLUA_ROOT=\"$(PREFIX)\"
++  TARGET_XCFLAGS+= -DLUA_ROOT=\"/opt/ace\"
+   ifneq (/usr,$(PREFIX))
+     TARGET_DYNXLDOPTS= -Wl,-rpath,$(TARGET_LIBPATH)
+   endif

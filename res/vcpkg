@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+SRC=$(readlink -f -- "${0}" || realpath -- "${0}")
+RES=$(dirname "${SRC}")
+ACE=$(dirname "${RES}")
+VCPKG_ROOT="${ACE}/vcpkg" \
+VCPKG_DEFAULT_TRIPLET=linux \
+VCPKG_DEFAULT_HOST_TRIPLET=linux \
+VCPKG_OVERLAY_PORTS="${ACE}/res/ports" \
+VCPKG_OVERLAY_TRIPLETS="${ACE}/res/triplets" \
+VCPKG_FEATURE_FLAGS=-binarycaching \
+VCPKG_FORCE_SYSTEM_BINARIES=1 \
+VCPKG_WORKS_SYSTEM_BINARIES=1 \
+VCPKG_DISABLE_METRICS=1 \
+"${ACE}/vcpkg/vcpkg" $*
