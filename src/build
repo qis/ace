@@ -1158,7 +1158,7 @@ if [ ! -e build/windows/llvm/build.ninja ]; then
   verify build/windows/llvm/build.ninja
 fi
 
-if [ ! -e Ace/bin/clang.exe ]; then
+if [ ! -e Ace/lib/lua/5.4/lldb.dll ] || [ -h Ace/lib/lua/5.4/lldb.dll ]; then
   print "Installing windows llvm ..."
   ninja -C build/windows/llvm \
     install-LTO-stripped \
@@ -1189,10 +1189,14 @@ if [ ! -e Ace/bin/clang.exe ]; then
     install-clang-format-stripped \
     install-clang-tidy-stripped \
     install-clangd-stripped
+  verify Ace/bin/liblldb.dll
+
+  rm -f Ace/lib/lua/5.4/lldb.dll
+  cp -a Ace/bin/liblldb.dll Ace/lib/lua/5.4/lldb.dll
+  verify Ace/lib/lua/5.4/lldb.dll
 
   rm -rf Ace/include/llvm-c
   rm -rf Ace/share/clang
-  verify Ace/bin/clang.exe
 fi
 
 MINGW_LFLAGS="--target=x86_64-w64-windows-gnu --sysroot=${ACE}/Ace"
@@ -1393,9 +1397,6 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
   verify Ace/lib/libc++.a
   verify Ace/lib/libc++.dll.a
   verify Ace/lib/libunwind.a
-
-  rm -f Ace/lib/lua/5.4/lldb.dll
-  cp -a Ace/bin/liblldb.dll Ace/lib/lua/5.4/lldb.dll
 
   mkdir -p Ace/lib/shared
   mv Ace/lib/libc++.dll.a Ace/lib/shared/
