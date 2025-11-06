@@ -1,93 +1,78 @@
-# clang-tidy
 ---
 Checks: "-*,\
-clang-diagnostic-*,\
-clang-analyzer-*,\
--clang-analyzer-deadcode.DeadStores,\
+clang-analyzer-core-*,\
+-clang-analyzer-core.CallAndMessage,\
+-clang-analyzer-core.uninitialized.*,\
+clang-analyzer-cplusplus-*,\
+-clang-analyzer-cplusplus.NewDeleteLeaks,\
+-clang-analyzer-cplusplus.PureVirtualCall,\
 bugprone-*,\
 -bugprone-dynamic-static-initializers,\
 -bugprone-easily-swappable-parameters,\
 -bugprone-empty-catch,\
+-bugprone-exception-escape,\
 -bugprone-forward-declaration-namespace,\
+-bugprone-integer-division,\
 -bugprone-macro-parentheses,\
-cppcoreguidelines-*,\
--cppcoreguidelines-avoid-c-arrays,\
--cppcoreguidelines-avoid-capturing-lambda-coroutines,\
--cppcoreguidelines-avoid-do-while,\
--cppcoreguidelines-avoid-reference-coroutine-parameters,\
--cppcoreguidelines-pro-bounds-array-to-pointer-decay,\
--cppcoreguidelines-avoid-goto,\
--cppcoreguidelines-avoid-magic-numbers,\
--cppcoreguidelines-avoid-non-const-global-variables,\
--cppcoreguidelines-macro-usage,\
--cppcoreguidelines-no-malloc,\
--cppcoreguidelines-owning-memory,\
--cppcoreguidelines-pro-bounds-constant-array-index,\
--cppcoreguidelines-pro-bounds-pointer-arithmetic,\
--cppcoreguidelines-pro-type-reinterpret-cast,\
--cppcoreguidelines-pro-type-union-access,\
--cppcoreguidelines-special-member-functions,\
+-bugprone-sizeof-expression,\
+-bugprone-too-small-loop-variable,\
+-bugprone-undefined-memory-manipulation,\
+-bugprone-use-after-move,\
 fuchsia-multiple-inheritance,\
 fuchsia-virtual-inheritance,\
-llvm-namespace-comment,\
+llvm-prefer-static-over-anonymous-namespace,\
 misc-*,\
+-misc-no-recursion,\
 -misc-include-cleaner,\
--misc-use-internal-linkage,\
--misc-unused-alias-decls,\
 -misc-unused-parameters,\
 -misc-unused-using-decls,\
+-misc-use-anonymous-namespace,\
+-misc-use-internal-linkage,\
 -misc-throw-by-value-catch-by-reference,\
-modernize-*,\
--modernize-avoid-c-arrays,\
--modernize-raw-string-literal,\
--modernize-use-nodiscard,\
--modernize-use-trailing-return-type,\
 performance-*,\
+-performance-avoid-endl,\
+-performance-unnecessary-value-param,\
 readability-*,\
+-readability-avoid-const-params-in-decls,\
+-readability-braces-around-statements,\
+-readability-container-size-empty,\
+-readability-convert-member-functions-to-static,\
 -readability-function-cognitive-complexity,\
 -readability-function-size,\
--readability-qualified-auto,\
+-readability-identifier-length,\
+-readability-implicit-bool-conversion,\
 -readability-magic-numbers,\
 -readability-math-missing-parentheses,\
 -readability-named-parameter,\
--readability-else-after-return,\
--readability-identifier-length,\
--readability-implicit-bool-conversion,\
+-readability-qualified-auto,\
+-readability-redundant-declaration,\
 -readability-static-accessed-through-instance,\
 -readability-uppercase-literal-suffix"
-HeaderFilterRegex: '\.hpp$'
-FormatStyle: file
 CheckOptions:
-  - key: bugprone-exception-escape.FunctionsThatShouldNotThrow
-    value: true
-  - key: cppcoreguidelines-special-member-functions.AllowSoleDefaultDtor
-    value: true
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: true
-  - key: modernize-loop-convert.NamingStyle
-    value: lower_case
-  - key: modernize-use-default-member-init.UseAssignment
-    value: true
-  - key: readability-identifier-naming.EnumCase
-    value: lower_case
-  - key: readability-identifier-naming.EnumConstantCase
+  - key: readability-identifier-naming.StructCase
     value: lower_case
   - key: readability-identifier-naming.ClassCase
     value: lower_case
   - key: readability-identifier-naming.UnionCase
     value: lower_case
-  - key: readability-identifier-naming.StructCase
+  - key: readability-identifier-naming.EnumCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumConstantCase
     value: lower_case
   - key: readability-identifier-naming.FunctionCase
     value: lower_case
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
   - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
     value: lower_case
   - key: readability-identifier-naming.TemplateParameterCase
     value: CamelCase
-  - key: readability-identifier-naming.VariableCase
-    value: lower_case
-  - key: readability-identifier-naming.MemberCase
-    value: lower_case
   - key: readability-identifier-naming.PrivateMemberSuffix
     value: _
+FormatStyle: file
+HeaderFilterRegex: 'src/.*\.hpp$'
 ...

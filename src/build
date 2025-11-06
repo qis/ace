@@ -52,13 +52,6 @@ if [ "${1}" == "reset" ]; then
   printf "\e[1;32mRemoving\e[0m: \e[1;31mvcpkg\e[0m subdirectories ...\n"
   rm -rf vcpkg/buildtrees vcpkg/packages vcpkg/installed build/vcpkg.linux build/vcpkg.mingw
 
-  printf "\e[1;32mRemoving\e[0m: \e[1;31msys\e[0m ...\n"
-  rm -rf sys
-
-  if [ -f build/sys.tar.xz ]; then
-    printf "\e[1;32mCreating\e[0m: \e[1;31msys\e[0m ...\n"
-    tar xpf build/sys.tar.xz
-  fi
   exit
 fi
 
@@ -183,36 +176,6 @@ if [ ! -x vcpkg/vcpkg ]; then
   verify vcpkg/vcpkg
 fi
 
-if [ ! -f build/src/downloads/vcpkg.done ]; then
-  VCPKG_DISABLE_METRICS=1 \
-  VCPKG_FORCE_SYSTEM_BINARIES=1 \
-  VCPKG_WORKS_SYSTEM_BINARIES=1 \
-  VCPKG_ROOT="${ACE}/vcpkg" \
-  vcpkg/vcpkg install \
-    --no-print-usage --only-downloads \
-    --overlay-ports="${ACE}/res/ports" \
-    --overlay-triplets="${ACE}/res/triplets" \
-    --downloads-root="${ACE}/vcpkg/downloads" \
-    --x-buildtrees-root="${ACE}/build/downloads/buildtrees" \
-    --x-packages-root="${ACE}/build/downloads/packages" \
-    --x-install-root="${ACE}/build/downloads/ports" \
-    --feature-flags=-binarycaching \
-    zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
-    libdeflate[core,compression,decompression,gzip,zlib] miniz[core] \
-    expat[core] libxml2[core] pugixml[core] \
-    libjpeg-turbo[core] libpng[core] plutovg[core] lunasvg[core] \
-    freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
-    libffi[core] wayland[core,force-build] wayland-protocols[core,force-build] \
-    spirv-headers[core] spirv-tools[core,tools] glslang[core,opt,tools] shaderc[core] \
-    vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
-    convectionkernels[core] ktx[core,vulkan] draco[core] fastgltf[core] meshoptimizer[core,gltfpack] openfbx[core] \
-    recastnavigation[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] \
-    openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools]
-  rm -rf build/downloads/buildtrees build/downloads/packages build/downloads/ports
-  rmdir build/downloads 2>/dev/null || true
-  touch build/src/downloads/vcpkg.done
-fi
-
 # =================================================================================================
 # sys/linux
 # =================================================================================================
@@ -236,9 +199,6 @@ if [ ! -d sys/linux ]; then
   symlinks -cdsr sys/linux
   find sys -type d -exec chmod 0755 '{}' ';'
   find sys -type f -exec chmod 0644 '{}' ';'
-
-  print "Creating build/sys.tar.xz ..."
-  rm -f build/sys.tar.xz; tar cpJf build/sys.tar.xz sys/linux
 fi
 
 # =================================================================================================
@@ -815,6 +775,32 @@ if [ ! -e ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a ]; then
   verify ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a
 fi
 
+mkdir -p share
+
+# =================================================================================================
+# powershell
+# =================================================================================================
+
+if [ ! -d share/powershell ]; then
+  print "Installing powershell ..."
+  cp -a build/src/powershell share/
+fi
+
+# =================================================================================================
+# lldb-dap
+# =================================================================================================
+
+if [ ! -f share/lldb-dap.vsix ]; then
+  print "Building lldb-dap.vsix ..."
+  rm -rf build/src/llvm/lldb/tools/lldb-dap/node_modules
+  env --chdir=build/src/llvm/lldb/tools/lldb-dap npm install
+  env --chdir=build/src/llvm/lldb/tools/lldb-dap node_modules/.bin/vsce package
+  find build/src/llvm/lldb/tools/lldb-dap -maxdepth 1 -name 'lldb-dap-*.vsix' -print -quit | while read file; do
+    cp -a "${file}" share/lldb-dap.vsix
+  done
+  verify share/lldb-dap.vsix
+fi
+
 # =================================================================================================
 # mingw
 # =================================================================================================
@@ -1055,27 +1041,6 @@ if [ ! -e ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a ]; then
   verify ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a
 fi
 
-if [ ! -d share/powershell ]; then
-  mkdir -p share
-  cp -a build/src/powershell share/
-fi
-
-# =================================================================================================
-# lldb-dap
-# =================================================================================================
-
-if [ ! -f share/lldb-dap.vsix ]; then
-  print "Building lldb-dap.vsix ..."
-  rm -rf build/src/llvm/lldb/tools/lldb-dap/node_modules
-  env --chdir=build/src/llvm/lldb/tools/lldb-dap npm install
-  env --chdir=build/src/llvm/lldb/tools/lldb-dap node_modules/.bin/vsce package
-  mkdir -p share
-  find build/src/llvm/lldb/tools/lldb-dap -maxdepth 1 -name 'lldb-dap-*.vsix' -print -quit | while read file; do
-    cp -a "${file}" share/lldb-dap.vsix
-  done
-  verify share/lldb-dap.vsix
-fi
-
 # =================================================================================================
 # windows
 # =================================================================================================
@@ -1194,43 +1159,6 @@ if [ ! -e build/windows/llvm/build.ninja ]; then
 fi
 
 if [ ! -e Ace/bin/clang.exe ]; then
-  print "Building windows llvm ..."
-  ninja -C build/windows/llvm \
-    llvm-config \
-    llvm-tblgen \
-    clang-tblgen \
-    libclang-headers \
-    libclang \
-    LTO \
-    lld \
-    lldb \
-    lldb-dap \
-    lldb-lua \
-    lldb-lua-library \
-    lldb-server \
-    liblldb \
-    llvm-ar \
-    llvm-nm \
-    llvm-mt \
-    llvm-objcopy \
-    llvm-objdump \
-    llvm-ranlib \
-    llvm-strip \
-    llvm-size \
-    llvm-cov \
-    llvm-profdata \
-    llvm-symbolizer \
-    llvm-dlltool \
-    llvm-windres \
-    dsymutil \
-    core-resource-headers \
-    clang-resource-headers \
-    clang-scan-deps \
-    clang \
-    clang-format \
-    clang-tidy \
-    clangd
-
   print "Installing windows llvm ..."
   ninja -C build/windows/llvm \
     install-LTO-stripped \
@@ -1272,7 +1200,7 @@ MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v2 ${MINGW_LFLAGS} -fms-compatibility-v
 MINGW_RFLAGS="-I${ACE}/Ace/include"
 
 if [ ! -e build/windows/mingw/headers/Makefile ]; then
-  print "Configuring windows mingw headers ..."
+  print "Configuring windows headers ..."
   mkdir -p build/windows/mingw/headers
   env --chdir=build/windows/mingw/headers ../../../src/mingw/mingw-w64-headers/configure \
     CC="${ACE}/bin/clang" \
@@ -1300,14 +1228,14 @@ if [ ! -e build/windows/mingw/headers/Makefile ]; then
 fi
 
 if [ ! -e Ace/include/stddef.h ]; then
-  print "Installing windows mingw headers ..."
+  print "Installing windows headers ..."
   env --chdir=build/windows/mingw/headers make -j17 install-strip \
     > build/windows/mingw/headers/make-install-strip.log 2>&1
   verify Ace/include/stddef.h
 fi
 
 if [ ! -e build/windows/mingw/crt/Makefile ]; then
-  print "Configuring windows mingw crt ..."
+  print "Configuring windows crt ..."
   mkdir -p build/windows/mingw/crt
   env --chdir=build/windows/mingw/crt ../../../src/mingw/mingw-w64-crt/configure \
     CC="${ACE}/bin/clang" \
@@ -1335,14 +1263,14 @@ if [ ! -e build/windows/mingw/crt/Makefile ]; then
 fi
 
 if [ ! -e Ace/lib/libntdll.a ]; then
-  print "Installing windows mingw crt ..."
+  print "Installing windows crt ..."
   env --chdir=build/windows/mingw/crt make -j17 install-strip \
     > build/windows/mingw/crt/make-install-strip.log 2>&1
   verify Ace/lib/libntdll.a
 fi
 
 if [ ! -e build/windows/mingw/tools/Makefile ]; then
-  print "Configuring windows mingw tools ..."
+  print "Configuring windows tools ..."
   mkdir -p build/mingw/tools
   env --chdir=build/windows/mingw/tools ../../../src/mingw/configure \
     CC="${ACE}/bin/clang" \
@@ -1369,7 +1297,7 @@ if [ ! -e build/windows/mingw/tools/Makefile ]; then
 fi
 
 if [ ! -e Ace/bin/genidl.exe ]; then
-  print "Installing windows mingw tools ..."
+  print "Installing windows tools ..."
   env --chdir=build/windows/mingw/tools make -j17 install-strip \
     > build/windows/mingw/tools/make-install-strip.log 2>&1
   verify Ace/bin/genidl.exe
@@ -1379,7 +1307,7 @@ rmdir Ace/share 2>/dev/null || true
 
 if [ ! -e Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.builtins.a ]; then
   if [ ! -e build/windows/mingw-builtins/build.ninja ]; then
-    print "Configuring windows mingw builtins ..."
+    print "Configuring windows builtins ..."
     rm -rf build/windows/mingw-builtins
     cmake -GNinja -Wno-dev \
       -DACE_DISABLE_IPO=ON \
@@ -1407,14 +1335,14 @@ if [ ! -e Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.builtins.a ]; t
     verify build/windows/mingw-builtins/build.ninja
   fi
 
-  print "Installing windows mingw builtins ..."
+  print "Installing windows builtins ..."
   ninja -C build/windows/mingw-builtins install/strip
   verify Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.builtins.a
 fi
 
 if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
   if [ ! -e build/windows/mingw-runtimes/build.ninja ]; then
-    print "Configuring windows mingw runtimes ..."
+    print "Configuring windows runtimes ..."
     rm -rf build/windows/mingw-runtimes
     cmake -GNinja -Wno-dev \
       -DACE_ENABLE_RTTI=ON \
@@ -1459,7 +1387,7 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
     verify build/windows/mingw-runtimes/build.ninja
   fi
 
-  print "Installing windows mingw runtimes ..."
+  print "Installing windows runtimes ..."
   ninja -C build/windows/mingw-runtimes install/strip
 
   verify Ace/lib/libc++.a
@@ -1474,6 +1402,41 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
   verify Ace/lib/shared/libc++.dll.a
 fi
 
+if [ ! -e Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a ]; then
+  if [ ! -e build/windows/mingw-compiler-rt/build.ninja ]; then
+    print "Configuring windows compiler-rt ..."
+    rm -rf build/windows/mingw-compiler-rt
+    cmake -GNinja -Wno-dev \
+      -DACE_DISABLE_IPO=ON \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX="${ACE}/Ace/${LLVM_RES}" \
+      -DCMAKE_TOOLCHAIN_FILE="${ACE}/mingw.cmake" \
+      -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-w64-windows-gnu" \
+      -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+      -DLLVM_ENABLE_PER_TARGET_RUNTIME_DIR=ON \
+      -DLLVM_ENABLE_WARNINGS=OFF \
+      -DLLVM_INCLUDE_TESTS=OFF \
+      -DLLVM_INCLUDE_DOCS=OFF \
+      -DCOMPILER_RT_BUILD_BUILTINS=OFF \
+      -DCOMPILER_RT_BUILD_GWP_ASAN=OFF \
+      -DCOMPILER_RT_BUILD_LIBFUZZER=OFF \
+      -DCOMPILER_RT_BUILD_MEMPROF=OFF \
+      -DCOMPILER_RT_BUILD_ORC=ON \
+      -DCOMPILER_RT_BUILD_PROFILE=ON \
+      -DCOMPILER_RT_BUILD_CTX_PROFILE=ON \
+      -DCOMPILER_RT_BUILD_SANITIZERS=OFF \
+      -DCOMPILER_RT_BUILD_XRAY=ON \
+      -DCOMPILER_RT_DEFAULT_TARGET_ONLY=OFF \
+      -DCAN_TARGET_x86_64=ON \
+      -B build/windows/mingw-compiler-rt build/src/llvm/runtimes
+    verify build/windows/mingw-compiler-rt/build.ninja
+  fi
+
+  print "Installing windows compiler-rt ..."
+  ninja -C build/windows/mingw-compiler-rt install/strip
+  verify Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a
+fi
+
 if [ ! -f Ace/share/lldb-dap.vsix ]; then
   cp -a share/lldb-dap.vsix Ace/share/
 fi
@@ -1485,15 +1448,6 @@ if [ ! -f Ace/mingw.cmake ]; then
   cp -a mingw.cmake Ace/
 fi
 
-if [ ! -d Ace/vcpkg ]; then
-  git clone vcpkg Ace/vcpkg
-fi
-
-if [ ! -e Ace/vcpkg/vcpkg.exe ]; then
-  VCPKG_VER="$(grep '^VCPKG_TOOL_RELEASE_TAG' vcpkg/scripts/vcpkg-tool-metadata.txt | head -1 | cut -d= -f2)"
-  wget -O Ace/vcpkg/vcpkg.exe "https://github.com/microsoft/vcpkg-tool/releases/download/${VCPKG_VER}/vcpkg.exe"
-fi
-
 # =================================================================================================
 # archive
 # =================================================================================================
@@ -1501,30 +1455,10 @@ fi
 if [ ! -f ace.tar.xz ]; then
   print "Creating: \e[1;31mace.tar.xz"
   env --chdir=.. tar cJf ace/ace.tar.xz \
-    --exclude=ace/vcpkg/buildtrees \
-    --exclude=ace/vcpkg/downloads \
-    --exclude=ace/vcpkg/packages \
-    --exclude=ace/vcpkg/installed \
-    ace/bin ace/lib ace/res ace/share ace/sys ace/vcpkg ace/linux.cmake ace/mingw.cmake
+    ace/bin ace/lib ace/res ace/share ace/sys ace/linux.cmake ace/mingw.cmake
 fi
 
 if [ ! -f Ace.7z ]; then
   print "Creating: \e[1;31mAce.7z ..."
   7z a Ace.7z Ace
-fi
-
-if [ ! -f downloads.7z ]; then
-  print "Creating: \e[1;31mdownloads.7z ..."
-  env 7z a downloads.7z vcpkg/downloads
-fi
-
-# =================================================================================================
-# ports
-# =================================================================================================
-# rm -rf vcpkg/buildtrees vcpkg/packages vcpkg/installed build/vcpkg.done
-
-if [ ! -e build/vcpkg.done ]; then
-  print "Installing ports ..."
-  res/install
-  touch build/vcpkg.done
 fi

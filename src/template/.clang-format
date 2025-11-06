@@ -1,107 +1,82 @@
-# Clang-Format 20
 ---
-BasedOnStyle: LLVM
+Standard: Latest
+ColumnLimit: 120
+LineEnding: LF
+UseTab: Never
 
-# Columns
-ColumnLimit: 100
-
-# Indent
+TabWidth: 8
 IndentWidth: 2
-ConstructorInitializerIndentWidth: 2
+AccessModifierOffset: -2
 ContinuationIndentWidth: 2
-IndentExternBlock: NoIndent
-IndentPPDirectives: None
+InsertNewlineAtEOF: true
+
+# Functions
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
+
+# Arguments
+AlignAfterOpenBracket: DontAlign
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+PackConstructorInitializers: CurrentLine
+BinPackParameters: true
+BinPackArguments: true
 
 # Alignment
-AlignAfterOpenBracket: AlwaysBreak
-AlignArrayOfStructures: Right
-AlignConsecutiveMacros: Consecutive
-AlignEscapedNewlines: LeftWithLastLine
-AlignOperands: AlignAfterOperator
+AlignArrayOfStructures: Left
+BitFieldColonSpacing: None
 PointerAlignment: Left
-QualifierAlignment: Left
-ReferenceAlignment: Left
 
+# Case
+AllowShortCaseExpressionOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
 AlignConsecutiveShortCaseStatements:
   Enabled: true
-  AcrossEmptyLines: true
   AcrossComments: true
+  AcrossEmptyLines: true
   AlignCaseColons: false
 
-# Line Breaks
-AllowAllArgumentsOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: false
-AllowBreakBeforeNoexceptSpecifier: OnlyWithParen
+# Breaks
 AllowShortBlocksOnASingleLine: Empty
-AllowShortCaseLabelsOnASingleLine: true
 AllowShortCompoundRequirementOnASingleLine: true
-AllowShortEnumsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortLambdasOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
 AlwaysBreakBeforeMultilineStrings: true
-
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterControlStatement: MultiLine
-  AfterFunction: false
-  BeforeCatch: true
-  BeforeWhile: false
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
-  SplitEmptyNamespace: false
-
-BreakBeforeTernaryOperators: false
+BreakAfterAttributes: Never
+BreakAfterReturnType: None
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterColon
-BreakStringLiterals: true
 BreakTemplateDeclarations: Yes
 
-InsertNewlineAtEOF: true
-KeepEmptyLinesAtTheStartOfBlocks: false
-KeepEmptyLinesAtEOF: false
-LineEnding: LF
+# Braces
+BreakBeforeBraces: Custom
+BraceWrapping:
+  # Other AfterControlStatement values
+  # break AllowShortCompoundRequirementOnASingleLine.
+  AfterControlStatement: Never
+  BeforeCatch: true
 
+# Qualifiers
+QualifierAlignment: Custom
+QualifierOrder: [ friend, static, constexpr, inline, const, type ]
+
+# Preprocessor
+IndentPPDirectives: None
+SkipMacroDefinitionBody: true
+
+# Empty Lines
+EmptyLineBeforeAccessModifier: LogicalBlock
+SeparateDefinitionBlocks: Leave
 MaxEmptyLinesToKeep: 2
-SeparateDefinitionBlocks: Always
-
-# Packing
-BinPackArguments: false
-BinPackParameters: false
-PackConstructorInitializers: Never
-
-# Spaces
-BitFieldColonSpacing: None
-Cpp11BracedListStyle: false
-SpaceAroundPointerQualifiers: Default
-
-SpaceBeforeParens: Custom
-SpaceBeforeParensOptions:
-  AfterForeachMacros: false
-  AfterIfMacros: false
-
-# Sorting
-SortUsingDeclarations: Never
-
-# Requires
-IndentRequiresClause: false
-RequiresClausePosition: SingleLine
-RequiresExpressionIndentation: OuterScope
 
 # Comments
-CommentPragmas: '^ (NOTE|TODO):'
-SpacesBeforeTrailingComments: 2
-ReflowComments: true
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 5
 
-# Penalties
-PenaltyBreakAssignment: 1
-PenaltyBreakFirstLessLess: 0
-PenaltyBreakBeforeFirstCallParameter: 10
-PenaltyExcessCharacter: 100
-PenaltyIndentedWhitespace: 10
-PenaltyReturnTypeOnItsOwnLine: 500
----
-Language: Cpp
-Standard: Latest
+ReflowComments: false
+SpacesBeforeTrailingComments: 2
 
 # Integers
 IntegerLiteralSeparator:
@@ -114,103 +89,93 @@ IntegerLiteralSeparator:
 
 # Includes
 SortIncludes: CaseInsensitive
-
+IncludeBlocks: Preserve
 IncludeCategories:
-  # Relative Paths
+  # Relative
   - Regex: '^"'
+    Priority: 0
+
+  # Benchmark & Test
+  - Regex: '^<(benchmark/benchmark|doctest/doctest)\.h>$'
     Priority: 1
 
-  # Project Headers
-  - Regex: '^<ace(/|\.hpp)'
+  # Project
+  - Regex: '^<ace/'
     Priority: 2
-    SortPriority: 0
 
-  # Windows Core Headers
-  - Regex: '^<(ntifs|windows|winternl)\.h>'
-    Priority: 6
-
-  # Windows NT Headers
-  - Regex: '^<(ntddk|ntddkbd|ntddmou|ntstatus|wdm|winioctl)\.h>'
-    Priority: 7
-
-  # Windows DirectX Headers
-  - Regex: '^<(d2d.*|d3d.*|dxgi.*|dwrite.*|dinput.*|dcomp)\.h>'
-    Priority: 8
-
-  # Windows Runtime Headers
-  - Regex: '^<wrl/'
-    Priority: 9
-
-  # Windows Headers
-  - Regex: '^<(wdf|commctrl|shellapi|dwmapi|tlhelp32|winsock2|ws2tcpip|mswsock|psapi|unknwn)\.h>'
-    Priority: 10
-
-  # Benchmark Headers
-  - Regex: '^<benchmark/'
-    Priority: 3
-    SortPriority: 0
-
-  # Test Framework Headers
-  - Regex: '^<(doctest|gtest|gmock)/'
+  # C++ Standard Library
+  - Regex: '^<[^\.\/]+>$'
     Priority: 4
-    SortPriority: 0
 
-  # Library Headers
-  - Regex: '^<.*\.'
+  # C Standard Library (C++ Wrappers)
+  - Regex: '^<c(assert|ctype|errno|fenv|float|inttypes|limits|locale|math|setjmp|signal|stdarg|stddef|stdint|stdio|stdlib|string|time|uchar|wchar|wctype)>$'
     Priority: 5
 
-  # C Compatibility Headers
-  - Regex: '^<c(a|c|e|f|i|l|m|s|t|u|w)'
-    Priority: 12
+  # C POSIX Library (Directories)
+  - Regex: '^<(arpa|net|netinet|sys)/.*\.h>$'
+    Priority: 6
 
-  # C++ Standard Library Headers
-  - Regex: '^<'
+  # C POSIX Library
+  - Regex: '^<(aio|complex|cpio|devctl|dirent|dlfcn|endian|fcntl|fmtmsg|fnmatch|ftw|glob|grp|iconv|langinfo|libgen|libintl|monetary|mqueue|ndbm|netdb|nl_types|poll|pthread|pwd|regex|sched|search|semaphore|spawn|strings|stropts|syslog|tar|termios|trace|ulimit|unistd|utime|utmpx|wordexp)\.h>$'
+    Priority: 7
+
+  # C Standard Library
+  - Regex: '^<(assert|ctype|errno|fenv|float|inttypes|iso646|limits|locale|math|setjmp|signal|stdalign|stdarg|stdatomic|stdbit|stdbool|stdckdint|stddef|stdint|stdio|stdlib|stdmchar|stdnoreturn|string|tgmath|threads|time|uchar|wchar|wctype)\.h>$'
+    Priority: 8
+
+  # Windows Sockets
+  - Regex: '^<(winsock2|ws2tcpip)\.h>$'
+    Priority: 9
+
+  # Windows
+  - Regex: '^<windows\.h>$'
+    Priority: 10
+
+  # Windows NT
+  - Regex: '^<ntstatus\.h>$'
     Priority: 11
 
-# Sources: a.hpp is main include for a.cpp, a_test.cpp, etc.
-IncludeIsMainRegex: '(_test|_win32|_posix)?$'
+  # Windows Kernel
+  - Regex: '^<winternl\.h>$'
+    Priority: 12
 
-# Headers: a.hpp, a_base.hpp, etc. are main includes for a.cpp
-IncludeIsMainSourceRegex: '(_base|_impl)?$'
+  # Windows Core
+  - Regex: '^<(lmcons|tchar)\.h>$'
+    Priority: 13
 
-# Macros
-SkipMacroDefinitionBody: true  # false
+  # Windows System
+  - Regex: '^<(bcrypt|ncrypt|pdh|psapi|tlhelp32|wincrypt)\.h>$'
+    Priority: 14
 
-AttributeMacros:
-  - NTAPI
-  - WINAPI
-  - __cdecl
-  - __stdcall
-  - __fastcall
-  - __vectorcall
-  - __declspec(dllimport)
-  - __declspec(dllexport)
-  - __declspec(noinline)
-  - __declspec(noreturn)
-  - __capability
+  # Windows Networking
+  - Regex: '^<iphlpapi\.h>$'
+    Priority: 15
 
-ForEachMacros:
-  - foreach
-  - Q_FOREACH
-  - BOOST_FOREACH
+  # Windows OLE
+  - Regex: '^<(objbase|ole2)\.h>$'
+    Priority: 16
 
-IfMacros:
-  - BOOST_LIKELY
-  - BOOST_UNLIKELY
+  # Windows Shell
+  - Regex: '^<(shellapi|shlobj.*|shobj.*)\.h>$'
+    Priority: 17
+  - Regex: '^<shlwapi\.h>$'
+    Priority: 18
+  - Regex: '^<shlguid\.h>$'
+    Priority: 19
 
-StatementAttributeLikeMacros:
-  - Q_EMIT
+  # Windows Common Controls
+  - Regex: '^<(commctrl|windowsx)\.h>$'
+    Priority: 98
 
-StatementMacros:
-  - Q_UNUSED
-  - QT_REQUIRE_VERSION
+  # Windows Graphics
+  - Regex: '^<(gdiplus|dwrite|d2d1|d3d11)\.h>$'
+    Priority: 99
 
-WhitespaceSensitiveMacros:
-  - BOOST_PP_STRINGIZE
+  # Windows Implementation Library
+  - Regex: '^<wil/.*\.h>$'
+    Priority: 100
 
-MacroBlockBegin: '^BEGIN_MSG_MAP'
-MacroBlockEnd: '^END_MSG_MAP'
----
-Language: JavaScript
-JavaScriptQuotes: Single
+  # Third Party
+  - Regex: '^<.*\..*>$'
+    Priority: 3
 ...

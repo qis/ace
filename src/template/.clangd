@@ -1,5 +1,6 @@
+---
 CompileFlags:
-  Add: [ -xc++, -std=c++26, -fexperimental-library, -DCLANGD ]
+  Add: [ -std=c++26, -fno-exceptions, -fno-rtti ]
   CompilationDatabase: build
 Diagnostics:
   ClangTidy:
@@ -8,3 +9,10 @@ Diagnostics:
   UnusedIncludes: Strict
 InlayHints:
   Enabled: No
+---
+If:
+  PathMatch: src/main.cpp
+Diagnostics:
+  Suppress:
+    - unused-includes
+...

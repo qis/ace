@@ -1,0 +1,42 @@
+{
+  // Style
+  "editor.tabSize": 8,
+  "editor.indentSize": 2,
+  "editor.detectIndentation": false,
+  "editor.unicodeHighlight.allowedLocales": { "ru": true },
+  "editor.wordWrap": "on",
+  "editor.wordWrapColumn": 100,
+  "editor.rulers": [ 100 ],
+  "files.eol": "\n",
+
+  // Extension: CMake Tools
+  "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+  "cmake.enableAutomaticKitScan": false,
+  "cmake.ignoreCMakeListsMissing": true,
+  "cmake.useCMakePresets": "always",
+  "cmake.debugConfig": {
+    "name": "LLDB",
+    "type": "lldb-dap",
+    "request": "launch",
+    "console": "internalConsole",
+    "program": "${command:cmake.launchTargetPath}",
+    "cwd": "${workspaceRoot}",
+    "args": [],
+    "env": []
+  },
+
+  // Extension: clangd
+  // Extension ID: llvm-vs-code-extensions.vscode-clangd
+  "clangd.path": "D:\\Ace\\bin\\clangd.exe",
+  "clangd.arguments": [ "--background-index=false", "--header-insertion=never" ],
+
+  // Extension: LLDB DAP
+  // Extension ID: llvm-vs-code-extensions.lldb-dap
+  "lldb-dap.executable-path": "D:\\Ace\\bin\\lldb-dap.exe",
+
+  // Format
+  "[c][cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+    "editor.formatOnSave": true
+  }
+}

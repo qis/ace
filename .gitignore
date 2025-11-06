@@ -5,6 +5,7 @@
 !/src/
 !/.gitattributes
 !/.gitignore
+!/license.txt
 !/linux.cmake
 !/mingw.cmake
 !/readme.md
