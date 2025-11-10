@@ -1445,7 +1445,8 @@ fi
 if [ ! -f Ace/mingw.cmake ]; then
   rm -rf Ace/res
   cp -a src/windows/res Ace/
-  cp -a res/cmake res/ports res/server.cmd res/install.cmd res/vcpkg.cmd Ace/res/
+  cp -a res/cmake res/ports Ace/res/
+  cp -a res/modules.cmake res/server.cmd res/install.cmd res/vcpkg.cmd Ace/res/
   cp -a mingw.cmake Ace/
 fi
 

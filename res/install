@@ -12,7 +12,7 @@ res/vcpkg install --triplet=linux doctest[core] \
   simdjson[core,deprecated,threads,utf8-validation] \
   libjpeg-turbo[core] libpng[core] plutovg[core] lunasvg[core] \
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
-  libffi[core] wayland[core,force-build] wayland-protocols[core,force-build] \
+  libffi[core] wayland[core,force-build] wayland-protocols[core,force-build] dbus[core] \
   spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   convectionkernels[core] ktx[core,vulkan] draco[core] fastgltf[core] meshoptimizer[core] openfbx[core] \

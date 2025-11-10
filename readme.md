@@ -11,7 +11,7 @@ MinGW Runtime: UCRT
 <details>
 <summary><b>WSL</b></summary>
 
-Create a WSL configuration file: `%UserProfile%\.wslconfig`
+Create a [WSL][wsl] configuration file: `%UserProfile%\.wslconfig`
 
 ```ini
 [wsl2]
@@ -88,7 +88,7 @@ sudo apt clean
 
 # Install runtime dependencies.
 sudo apt install -y \
-  curl git p7zip pkg-config vulkan-validationlayers wget xz-utils zip unzip \
+  curl git make p7zip pkg-config python3 unzip vulkan-validationlayers wget xz-utils zip \
   $(apt-cache search '^libicu[0-9]+$' | grep -v dev | head -1 | awk '{print $1}')
 
 # Install cmake(1).
@@ -111,7 +111,7 @@ Build this toolchain.
 # Install build dependencies.
 sudo apt install -y \
   autoconf binutils build-essential debootstrap libtool patchelf symlinks \
-  nasm python3 python3-pip re2c swig libsqlite3-dev
+  nasm python3-pip re2c swig libsqlite3-dev
 
 # Install ninja(1).
 sudo mkdir /opt/ninja
@@ -152,32 +152,36 @@ EOF
 sudo chmod 0755 /etc/profile.d/ace.sh
 source /etc/profile.d/ace.sh
 
-# Install the VS Code lldb-dap extension.
-code --install-extension "${ACE}/share/lldb-dap.vsix"
-
 # Install all supported vcpkg ports.
 git clone https://github.com/microsoft/vcpkg -b "2025.10.17" --depth 1 "${ACE}/vcpkg"
 sh "${ACE}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 sh "${ACE}/res/install"
+
+# Install the VS Code lldb-dap extension (optional).
+code --install-extension "${ACE}/share/lldb-dap.vsix"
 ```
 
 Install this toolchain on Windows.
 
-1. Extract `Ace.7z` to `C:\` or `D:\`.
-2. Set `ACE=C:\Ace` system environment variable.
-3. Add `C:\Ace\bin` to the `Path` system environment variable.
-4. Install the VS Code `lldb-dap` extension.
-
-```bat
-code --install-extension "%ACE%\share\lldb-dap.vsix"
-```
-
-5. Install all supported vcpkg ports.
+1. Install [Git][git].
+2. Install [CMake][cmk].
+3. Install [7-Zip][zip].
+4. Install [Python][py3].
+5. Extract `Ace.7z` to `C:\` or `D:\`.
+6. Set `ACE=C:\Ace` system environment variable.
+7. Add `C:\Ace\bin` to the `Path` system environment variable.
+8. Install all supported vcpkg ports.
 
 ```bat
 git clone https://github.com/microsoft/vcpkg -b "2025.10.17" --depth 1 "%ACE%\vcpkg"
 "%ACE%\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
 "%ACE%\res\install.cmd"
+```
+
+9. Install the VS Code `lldb-dap` extension (optional).
+
+```bat
+code --install-extension "%ACE%\share\lldb-dap.vsix"
 ```
 
 ## Usage
@@ -221,10 +225,25 @@ Projects compiled with this toolchain must be distributed under the following co
 
 [git]: https://git-scm.com/
 [cmk]: https://cmake.org/download/
+[py3]: https://www.python.org/downloads/
 [wsl]: https://learn.microsoft.com/windows/wsl/
 [zip]: https://www.7-zip.org/
 
 <!--
+wget https://github.com/microsoft/vscode-cmake-tools/releases/download/v1.21.36/cmake-tools.vsix
+
+git clone https://github.com/clangd/vscode-clangd
+cd vscode-clangd
+npm install
+npm run compile
+npm run package
+code --install-extension vscode-clangd-*.vsix
+find ~/.vscode-server/bin -type f -name code-server | while read server; do
+  "${server}" --install-extension "${ACE}/share/clangd.vsix"
+  "${server}" --install-extension "${ACE}/share/lldb-dap.vsix"
+  "${server}" --install-extension "${ACE}/share/cmake-tools.vsix"
+done
+
 bin/clang++ --target=x86_64-w64-windows-gnu --sysroot=sys/mingw -fms-compatibility-version=19.44 \
   -std=c++26 -fstrict-vtable-pointers -fno-exceptions -fno-rtti -Og -g main.cpp -Lsys/mingw/lib/shared
 

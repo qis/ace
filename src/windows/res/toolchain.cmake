@@ -53,6 +53,10 @@ set(CMAKE_OBJDUMP "${ACE}/bin/llvm-objdump.exe" CACHE FILEPATH "")
 set(CMAKE_STRIP "${ACE}/bin/llvm-strip.exe" CACHE FILEPATH "")
 set(CMAKE_SIZE "${ACE}/bin/llvm-size.exe" CACHE FILEPATH "")
 
+if(ACE_ENABLE_CLANG_TIDY)
+  set(CMAKE_CXX_CLANG_TIDY "${ACE}/bin/clang-tidy.exe" CACHE FILEPATH "")
+endif()
+
 set(CMAKE_RC_COMPILER "${ACE}/bin/llvm-windres.exe" CACHE FILEPATH "")
 set(CMAKE_RC_FLAGS_INIT "-I ${ACE}/include")
 
@@ -69,7 +73,7 @@ set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG -fomit-frame-pointer -flto")
 set(CMAKE_C_FLAGS_MINSIZEREL_INIT "-Oz -DNDEBUG -fomit-frame-pointer")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "-O2 -g -DNDEBUG")
 set(CMAKE_C_FLAGS_COVERAGE_INIT "-O0 -g -fno-omit-frame-pointer -fprofile-instr-generate -fcoverage-mapping")
-set(CMAKE_C_FLAGS_PROFILE_INIT "-O3 -g -fno-omit-frame-pointer -fprofile-instr-generate")
+set(CMAKE_C_FLAGS_PROFILE_INIT "-O3 -g -DNDEBUG -fno-omit-frame-pointer -fprofile-instr-generate")
 
 if(DEFINED VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
   set(CMAKE_C_FLAGS_DEBUG_INIT "-O3 -DNDEBUG")
@@ -110,7 +114,13 @@ set(CMAKE_CXX_FLAGS_COVERAGE "${CMAKE_CXX_FLAGS_COVERAGE_INIT}" CACHE STRING "")
 set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_PROFILE_INIT}" CACHE STRING "")
 
 # Modules
-set(CMAKE_CXX_SCAN_FOR_MODULES OFF CACHE BOOL "")
+if(DEFINED VCPKG_CHAINLOAD_TOOLCHAIN_FILE)
+  set(CMAKE_CXX_SCAN_FOR_MODULES OFF CACHE BOOL "")
+elseif(CMAKE_CXX_MODULE_STD)
+  list(APPEND CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/modules.cmake)
+  set(CMAKE_EXPERIMENTAL_CXX_IMPORT_STD "d0edc3af-4c50-42ea-a356-e2862fe7a444" CACHE STRING "")
+  set(CMAKE_CXX_COMPILER_IMPORT_STD "23;26" CACHE STRING "" FORCE)
+endif()
 
 # Optimizations
 cmake_policy(SET CMP0069 NEW)
