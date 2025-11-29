@@ -1,15 +1,23 @@
 @echo off
 for %%I in ("%~dp0..") do set "ACE=%%~fI"
 cd "%ACE%"
-res\vcpkg.cmd install doctest[core] ^
+
+:: res\vcpkg.cmd remove --triplet=mingw egl-registry opengl-registry opengl egl glbinding globjects ktx sdl3
+:: res\vcpkg.cmd remove sdl3:mingw
+
+res\vcpkg.cmd install --triplet=mingw ^
+  doctest[core] expat[core] libxml2[core] pugixml[core] ^
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] ^
   libdeflate[core,compression,decompression,gzip,zlib] miniz[core] ^
-  expat[core] libxml2[core] pugixml[core] ^
-  simdjson[core,deprecated,threads,utf8-validation] ^
-  libjpeg-turbo[core] libpng[core] plutovg[core] lunasvg[core] ^
+  libjpeg-turbo[core] libpng[core] lunasvg[core] plutovg[core] plutosvg[core] ^
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] ^
   spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] ^
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
-  convectionkernels[core] ktx[core,vulkan] draco[core] fastgltf[core] meshoptimizer[core] openfbx[core] ^
-  recastnavigation[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] ^
-  openssl[core] sqlite3[core,zlib] lua[core,cpp]
+  simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] ^
+  convectionkernels[core] draco[core] meshoptimizer[core] recastnavigation[core] ^
+  glm[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] ^
+  sdl3[core] sqlite3[core,zlib] lua[core,cpp]
+
+::find vcpkg/buildtrees/lua/src -name lua.hpp -print -quit | while read file; do
+::  cp -a "${file}" vcpkg/installed/mingw/include/
+::done

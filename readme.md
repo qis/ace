@@ -87,7 +87,7 @@ sudo apt autoremove -y --purge
 sudo apt clean
 
 # Install runtime dependencies.
-sudo apt install -y \
+sudo apt install -y autoconf libtool \
   curl git make p7zip pkg-config python3 unzip vulkan-validationlayers wget xz-utils zip \
   $(apt-cache search '^libicu[0-9]+$' | grep -v dev | head -1 | awk '{print $1}')
 

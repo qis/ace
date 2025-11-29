@@ -1,0 +1,127 @@
+set(VCPKG_POLICY_SKIP_ABSOLUTE_PATHS_CHECK enabled)
+
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO libsdl-org/SDL
+    REF "release-${VERSION}"
+    SHA512 2c12c8870ad80306cd66a0177683f197b2c172f0947b32a2515721a82523bbba52d872d980be3cd1f56870135e005490de2685ad341d33cfb775d44c04f20e63
+    HEAD_REF main
+)
+
+string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" SDL_STATIC)
+string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "dynamic" SDL_SHARED)
+string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "static" FORCE_STATIC_VCRT)
+
+if(VCPKG_BUILD_TYPE STREQUAL "release")
+  set(SDL_ASSERTIONS "disabled")
+else()
+  set(SDL_ASSERTIONS "auto")
+endif()
+
+if(VCPKG_TARGET_IS_WINDOWS)
+  set(SDL_MINGW ON)
+  set(SDL_LINUX OFF)
+else()
+  set(SDL_MINGW OFF)
+  set(SDL_LINUX ON)
+endif()
+
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+        -DSDL_STATIC=${SDL_STATIC}
+        -DSDL_SHARED=${SDL_SHARED}
+        -DSDL_FORCE_STATIC_VCRT=${FORCE_STATIC_VCRT}
+        -DSDL_TEST_LIBRARY=OFF
+        -DSDL_TESTS=OFF
+        -DSDL_INSTALL=ON
+        -DSDL_INSTALL_CMAKEDIR_ROOT=share/${PORT}
+        -DSDL_UNINSTALL=OFF
+        -DSDL_REVISION=ice
+
+        -DSDL_ASSERTIONS="${SDL_ASSERTIONS}"
+
+        -DSDL_ASSEMBLY=ON
+        -DSDL_AVX=ON
+        -DSDL_AVX2=ON
+        -DSDL_AVX512F=OFF
+        -DSDL_SSE=ON
+        -DSDL_SSE2=ON
+        -DSDL_SSE3=ON
+        -DSDL_SSE4_1=ON
+        -DSDL_SSE4_2=ON
+        -DSDL_MMX=OFF
+
+        -DSDL_LIBC=ON
+        -DSDL_LIBICONV=OFF
+        -DSDL_SYSTEM_ICONV=OFF
+
+        -DSDL_DBUS=${SDL_LINUX}
+        -DSDL_IBUS=${SDL_LINUX}
+        -DSDL_LIBUDEV=${SDL_LINUX}
+        -DSDL_LIBURING=${SDL_LINUX}
+
+        -DSDL_AUDIO=ON
+        -DSDL_VIDEO=ON
+        -DSDL_GPU=OFF
+	-DSDL_RENDER=ON
+        -DSDL_CAMERA=OFF
+        -DSDL_JOYSTICK=ON
+        -DSDL_HAPTIC=ON
+        -DSDL_HIDAPI=ON
+        -DSDL_POWER=OFF
+        -DSDL_SENSOR=OFF
+        -DSDL_DIALOG=OFF
+
+        -DSDL_DUMMYAUDIO=OFF
+        -DSDL_WASAPI=${SDL_MINGW}
+        -DSDL_ALSA=${SDL_LINUX}
+        -DSDL_ALSA_SHARED=${SDL_LINUX}
+        -DSDL_OSS=${SDL_LINUX}
+        -DSDL_DISKAUDIO=OFF
+        -DSDL_JACK=OFF
+        -DSDL_PIPEWIRE=OFF
+        -DSDL_PULSEAUDIO=OFF
+        -DSDL_SNDIO=OFF
+
+        -DSDL_DIRECTX=OFF
+        -DSDL_METAL=OFF
+	-DSDL_OPENGL=OFF
+	-DSDL_OPENGLES=OFF
+        -DSDL_VULKAN=ON
+
+        -DSDL_DUMMYVIDEO=OFF
+        -DSDL_OFFSCREEN=OFF
+        -DSDL_WAYLAND=${SDL_LINUX}
+        -DSDL_WAYLAND_SHARED=OFF
+        -DSDL_WAYLAND_LIBDECOR=OFF
+        -DSDL_ROCKCHIP=OFF
+        -DSDL_VIVANTE=OFF
+        -DSDL_KMSDRM=OFF
+        -DSDL_OPENVR=OFF
+        -DSDL_RPI=OFF
+        -DSDL_X11=OFF
+
+        -DSDL_VIRTUAL_JOYSTICK=OFF
+        -DSDL_HIDAPI_LIBUSB=${SDL_LINUX}
+        -DSDL_HIDAPI_LIBUSB_SHARED=${SDL_LINUX}
+        -DSDL_HIDAPI_JOYSTICK=ON
+        -DSDL_XINPUT=${SDL_MINGW}
+    MAYBE_UNUSED_VARIABLES
+        SDL_FORCE_STATIC_VCRT
+)
+
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup()
+
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/debug/include"
+    "${CURRENT_PACKAGES_DIR}/debug/share"
+)
+
+vcpkg_copy_pdbs()
+
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.txt"
+    COMMENT "Some configurations may use code licensed under the MIT and Apache-2.0 licenses."
+)
