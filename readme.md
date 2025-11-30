@@ -16,8 +16,9 @@ Create a [WSL][wsl] configuration file: `%UserProfile%\.wslconfig`
 ```ini
 [wsl2]
 firewall=false
-autoProxy=false
+autoProxy=true
 guiApplications=true
+networkingMode=mirrored
 kernelCommandLine=vsyscall=emulate
 nestedVirtualization=true
 maxCrashDumpCount=-1
@@ -92,9 +93,8 @@ sudo apt install -y autoconf libtool \
   $(apt-cache search '^libicu[0-9]+$' | grep -v dev | head -1 | awk '{print $1}')
 
 # Install cmake(1).
-sudo mkdir /opt/cmake
-wget -O ~/cmake.tar.gz https://github.com/Kitware/CMake/releases/download/v3.31.9/cmake-3.31.9-linux-x86_64.tar.gz
-sudo tar xf ~/cmake.tar.gz -C /opt/cmake -m --strip-components=1
+wget -O ~/cmake.tar.gz https://github.com/Kitware/CMake/releases/download/v3.31.10/cmake-3.31.10-linux-x86_64.tar.gz
+sudo rm -rf /opt/cmake; sudo mkdir /opt/cmake; sudo tar xf ~/cmake.tar.gz -C /opt/cmake -m --strip-components=1
 
 sudo tee /etc/profile.d/cmake.sh >/dev/null <<'EOF'
 export PATH="/opt/cmake/bin:${PATH}"
@@ -114,16 +114,8 @@ sudo apt install -y \
   nasm python3-pip re2c swig libsqlite3-dev
 
 # Install ninja(1).
-sudo mkdir /opt/ninja
-wget -O ~/ninja.zip https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-linux.zip
-env --chdir=/opt/ninja sudo unzip ~/ninja.zip
-
-sudo tee /etc/profile.d/ninja.sh >/dev/null <<'EOF'
-export PATH="/opt/ninja:${PATH}"
-EOF
-
-sudo chmod 0755 /etc/profile.d/ninja.sh
-source /etc/profile.d/ninja.sh
+wget -O ~/ninja.zip https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-linux.zip
+env --chdir=/opt/cmake/bin sudo unzip ~/ninja.zip
 
 # Clone repository.
 sudo mkdir /opt/ace
