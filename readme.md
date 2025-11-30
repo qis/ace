@@ -149,8 +149,9 @@ git clone https://github.com/microsoft/vcpkg -b "2025.10.17" --depth 1 "${ACE}/v
 sh "${ACE}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 sh "${ACE}/res/install"
 
-# Install the VS Code lldb-dap extension (optional).
-code --install-extension "${ACE}/share/lldb-dap.vsix"
+# Install the VS Code extensions (optional).
+code --install-extension "${ACE}/share/extensions/clangd.vsix"
+code --install-extension "${ACE}/share/extensions/lldb-dap.vsix"
 ```
 
 Install this toolchain on Windows.
@@ -170,10 +171,11 @@ git clone https://github.com/microsoft/vcpkg -b "2025.10.17" --depth 1 "%ACE%\vc
 "%ACE%\res\install.cmd"
 ```
 
-9. Install the VS Code `lldb-dap` extension (optional).
+9. Install the VS Code extensions (optional).
 
 ```bat
-code --install-extension "%ACE%\share\lldb-dap.vsix"
+code --install-extension "%ACE%\share\extensions\clangd.vsix"
+code --install-extension "%ACE%\share\extensions\lldb-dap.vsix"
 ```
 
 ## Usage
@@ -237,7 +239,7 @@ find ~/.vscode-server/bin -type f -name code-server | while read server; do
 done
 
 bin/clang++ --target=x86_64-w64-windows-gnu --sysroot=sys/mingw -fms-compatibility-version=19.44 \
-  -std=c++26 -fstrict-vtable-pointers -fno-exceptions -fno-rtti -Og -g main.cpp -Lsys/mingw/lib/shared
+  -std=c++26 -fstrict-vtable-pointers -Og -g main.cpp -Lsys/mingw/lib/shared
 
 bin/peldd a.exe
 bin/lldb
