@@ -117,9 +117,10 @@ download_pip() {
 # download_sha "name" "${NAME_GIT}" "${NAME_SHA}" "CMakeLists.txt"
 # download_pip <package>
 
-LLVM_VER="21.1.4"
-LLVM_GIT="https://github.com/qis/llvm"
-download_tag "llvm" "${LLVM_GIT}" "${LLVM_VER}" "README.md"
+LLVM_VER="21.1.6"
+LLVM_TAG="llvmorg-${LLVM_VER}"
+LLVM_GIT="https://github.com/llvm/llvm-project"
+download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "README.md"
 LLVM_RES="lib/clang/$(cmake -P src/version.cmake)"
 
 YASM_VER="1.3.0"
@@ -128,10 +129,14 @@ YASM_GIT="https://github.com/yasm/yasm"
 YASM_EXE="http://www.tortall.net/projects/yasm/releases/yasm-${YASM_VER}-win64.exe"
 download_tag "yasm" "${YASM_GIT}" "${YASM_TAG}" "CMakeLists.txt"
 
-NINJA_VER="1.13.1"
+NINJA_VER="1.13.2"
 NINJA_TAG="v${NINJA_VER}"
 NINJA_GIT="https://github.com/ninja-build/ninja"
 download_tag "ninja" "${NINJA_GIT}" "${NINJA_TAG}" "CMakeLists.txt"
+
+CLANGD_VER="0.2.0"
+CLANGD_GIT="https://github.com/clangd/vscode-clangd"
+download_tag "clangd" "${CLANGD_GIT}" "${CLANGD_VER}" "package.json"
 
 READPE_VER="0.85.1"
 READPE_TAG="v${READPE_VER}"
@@ -143,7 +148,7 @@ MINGW_TAG="v${MINGW_VER}"
 MINGW_GIT="https://github.com/mingw-w64/mingw-w64"
 download_tag "mingw" "${MINGW_GIT}" "${MINGW_TAG}" "configure"
 
-NODE_VER="20.0.0"
+NODE_VER="24.11.1"
 NODE_URL="https://nodejs.org/download/release/v${NODE_VER}/node-v${NODE_VER}-linux-x64.tar.xz"
 download_tar "node" "${NODE_URL}" "node.tar.xz" 1 "LICENSE"
 
@@ -272,6 +277,9 @@ if [ ! -e build/host/bin/clang ]; then
     clang
 
   verify build/host/bin/clang
+
+  print "Creating build/host.tar.xz ..."
+  env --chdir=build tar cpJf host.tar.xz host
 fi
 
 if [ ! -e build/host/${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.builtins.a ]; then
@@ -476,11 +484,6 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
 
   verify build/host/linux/include/lua.hpp
 
-  # rm -rf share/luajit
-  # cp -a build/host/linux/tools/luajit/luajit bin/
-  # cp -a build/host/linux/share/luajit-2.1.0-beta3 share/luajit
-  # mv share/luajit/jit/bc.lua share/luajit/
-
   env --chdir=build/host find linux > build/host/linux/index.txt
 fi
 
@@ -644,6 +647,8 @@ if [ ! -e bin/clang ]; then
   verify bin/clang
 fi
 
+rmdir include 2>/dev/null || true
+
 if [ ! -e ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.builtins.a ]; then
   if [ ! -e build/llvm-builtins/build.ninja ]; then
     print "Configuring llvm builtins ..."
@@ -684,7 +689,6 @@ if [ ! -e sys/linux/usr/lib/shared/libc++.so ]; then
     print "Configuring llvm runtimes ..."
     rm -rf build/llvm-runtimes
     cmake -GNinja -Wno-dev \
-      -DACE_ENABLE_RTTI=ON \
       -DACE_DISABLE_IPO=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX="${ACE}/sys/linux/usr" \
@@ -699,23 +703,22 @@ if [ ! -e sys/linux/usr/lib/shared/libc++.so ]; then
       -DLIBUNWIND_ENABLE_SHARED=OFF \
       -DLIBUNWIND_ENABLE_STATIC=ON \
       -DLIBUNWIND_INSTALL_HEADERS=ON \
-      -DLIBUNWIND_INSTALL_LIBRARY=ON \
+      -DLIBUNWIND_INSTALL_LIBRARY=OFF \
       -DLIBUNWIND_USE_COMPILER_RT=ON \
       -DLIBCXXABI_ENABLE_SHARED=OFF \
       -DLIBCXXABI_ENABLE_STATIC=ON \
-      -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF \
+      -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
       -DLIBCXXABI_INSTALL_HEADERS=OFF \
       -DLIBCXXABI_INSTALL_LIBRARY=OFF \
+      -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
       -DLIBCXXABI_USE_COMPILER_RT=ON \
-      -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
+      -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
       -DLIBCXX_ABI_UNSTABLE=ON \
       -DLIBCXX_ABI_VERSION=2 \
-      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables;-fno-rtti" \
+      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables" \
       -DLIBCXX_ENABLE_SHARED=ON \
       -DLIBCXX_ENABLE_STATIC=ON \
       -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
-      -DLIBCXX_ENABLE_EXCEPTIONS=OFF \
-      -DLIBCXX_ENABLE_RTTI=OFF \
       -DLIBCXX_HAS_ATOMIC_LIB=OFF \
       -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
       -DLIBCXX_INSTALL_HEADERS=ON \
@@ -731,7 +734,6 @@ if [ ! -e sys/linux/usr/lib/shared/libc++.so ]; then
 
   verify sys/linux/usr/lib/libc++.a
   verify sys/linux/usr/lib/libc++.so
-  verify sys/linux/usr/lib/libunwind.a
 
   mkdir -p sys/linux/usr/lib/shared
   mv sys/linux/usr/lib/libc++.so.2.0 sys/linux/usr/lib/shared/
@@ -775,30 +777,39 @@ if [ ! -e ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a ]; then
   verify ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a
 fi
 
-mkdir -p share
-
 # =================================================================================================
 # powershell
 # =================================================================================================
 
 if [ ! -d share/powershell ]; then
   print "Installing powershell ..."
-  cp -a build/src/powershell share/
+  mkdir -p share; cp -a build/src/powershell share/
 fi
 
 # =================================================================================================
-# lldb-dap
+# extensions
 # =================================================================================================
 
-if [ ! -f share/lldb-dap.vsix ]; then
-  print "Building lldb-dap.vsix ..."
-  rm -rf build/src/llvm/lldb/tools/lldb-dap/node_modules
+mkdir -p share/extensions
+
+if [ ! -f share/extensions/lldb-dap.vsix ]; then
+  print "Building extension: lldb-dap ..."
   env --chdir=build/src/llvm/lldb/tools/lldb-dap npm install
   env --chdir=build/src/llvm/lldb/tools/lldb-dap node_modules/.bin/vsce package
   find build/src/llvm/lldb/tools/lldb-dap -maxdepth 1 -name 'lldb-dap-*.vsix' -print -quit | while read file; do
-    cp -a "${file}" share/lldb-dap.vsix
+    cp -a "${file}" share/extensions/lldb-dap.vsix
   done
-  verify share/lldb-dap.vsix
+  verify share/extensions/lldb-dap.vsix
+fi
+
+if [ ! -f share/extensions/clangd.vsix ]; then
+  print "Building extension: clangd ..."
+  env --chdir=build/src/clangd npm install
+  env --chdir=build/src/clangd node_modules/.bin/vsce package --skip-license
+  find build/src/clangd -maxdepth 1 -name 'vscode-clangd-*.vsix' -print -quit | while read file; do
+    cp -a "${file}" share/extensions/clangd.vsix
+  done
+  verify share/extensions/clangd.vsix
 fi
 
 # =================================================================================================
@@ -806,7 +817,7 @@ fi
 # =================================================================================================
 
 MINGW_LFLAGS="--target=x86_64-w64-windows-gnu --sysroot=${ACE}/sys/mingw"
-MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
+MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
 MINGW_RFLAGS="-I${ACE}/sys/mingw/include"
 
 if [ ! -e build/mingw/headers/Makefile ]; then
@@ -891,7 +902,7 @@ if [ ! -e build/mingw/tools/Makefile ]; then
     OBJDUMP="${ACE}/bin/llvm-objdump" \
     STRIP="${ACE}/bin/llvm-strip" \
     SIZE="${ACE}/bin/llvm-size" \
-    CFLAGS="-O3 -march=x86-64-v3 -flto" \
+    CFLAGS="-O3 -march=x86-64-v3 -mavx2 -flto" \
     --with-default-win32-winnt="0x0A00" \
     --with-default-msvcrt="ucrt" \
     --prefix="${ACE}" \
@@ -909,8 +920,6 @@ if [ ! -e bin/genidl ]; then
     > build/mingw/tools/make-install-strip.log 2>&1
   verify bin/genidl
 fi
-
-rmdir include 2>/dev/null || true
 
 if [ ! -e ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.builtins.a ]; then
   if [ ! -e build/mingw-builtins/build.ninja ]; then
@@ -952,7 +961,6 @@ if [ ! -e sys/mingw/lib/shared/libc++.dll.a ]; then
     print "Configuring mingw runtimes ..."
     rm -rf build/mingw-runtimes
     cmake -GNinja -Wno-dev \
-      -DACE_ENABLE_RTTI=ON \
       -DACE_DISABLE_IPO=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX="${ACE}/sys/mingw" \
@@ -967,23 +975,22 @@ if [ ! -e sys/mingw/lib/shared/libc++.dll.a ]; then
       -DLIBUNWIND_ENABLE_SHARED=OFF \
       -DLIBUNWIND_ENABLE_STATIC=ON \
       -DLIBUNWIND_INSTALL_HEADERS=ON \
-      -DLIBUNWIND_INSTALL_LIBRARY=ON \
+      -DLIBUNWIND_INSTALL_LIBRARY=OFF \
       -DLIBUNWIND_USE_COMPILER_RT=ON \
       -DLIBCXXABI_ENABLE_SHARED=OFF \
       -DLIBCXXABI_ENABLE_STATIC=ON \
-      -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF \
+      -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
       -DLIBCXXABI_INSTALL_HEADERS=OFF \
       -DLIBCXXABI_INSTALL_LIBRARY=OFF \
+      -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
       -DLIBCXXABI_USE_COMPILER_RT=ON \
-      -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
+      -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
       -DLIBCXX_ABI_UNSTABLE=ON \
       -DLIBCXX_ABI_VERSION=2 \
-      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables;-fno-rtti" \
+      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables" \
       -DLIBCXX_ENABLE_SHARED=ON \
       -DLIBCXX_ENABLE_STATIC=ON \
       -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
-      -DLIBCXX_ENABLE_EXCEPTIONS=OFF \
-      -DLIBCXX_ENABLE_RTTI=OFF \
       -DLIBCXX_HAS_ATOMIC_LIB=OFF \
       -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
       -DLIBCXX_INSTALL_HEADERS=ON \
@@ -998,8 +1005,8 @@ if [ ! -e sys/mingw/lib/shared/libc++.dll.a ]; then
   ninja -C build/mingw-runtimes install/strip
 
   verify sys/mingw/lib/libc++.a
+  verify sys/mingw/bin/libc++.dll
   verify sys/mingw/lib/libc++.dll.a
-  verify sys/mingw/lib/libunwind.a
 
   mkdir -p sys/mingw/lib/shared
   mv sys/mingw/lib/libc++.dll.a sys/mingw/lib/shared/
@@ -1199,8 +1206,10 @@ if [ ! -e Ace/lib/lua/5.4/lldb.dll ] || [ -h Ace/lib/lua/5.4/lldb.dll ]; then
   rm -rf Ace/share/clang
 fi
 
+rmdir Ace/include 2>/dev/null || true
+
 MINGW_LFLAGS="--target=x86_64-w64-windows-gnu --sysroot=${ACE}/Ace"
-MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
+MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
 MINGW_RFLAGS="-I${ACE}/Ace/include"
 
 if [ ! -e build/windows/mingw/headers/Makefile ]; then
@@ -1307,8 +1316,6 @@ if [ ! -e Ace/bin/genidl.exe ]; then
   verify Ace/bin/genidl.exe
 fi
 
-rmdir Ace/share 2>/dev/null || true
-
 if [ ! -e Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.builtins.a ]; then
   if [ ! -e build/windows/mingw-builtins/build.ninja ]; then
     print "Configuring windows builtins ..."
@@ -1349,7 +1356,6 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
     print "Configuring windows runtimes ..."
     rm -rf build/windows/mingw-runtimes
     cmake -GNinja -Wno-dev \
-      -DACE_ENABLE_RTTI=ON \
       -DACE_DISABLE_IPO=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX="${ACE}/Ace" \
@@ -1364,23 +1370,22 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
       -DLIBUNWIND_ENABLE_SHARED=OFF \
       -DLIBUNWIND_ENABLE_STATIC=ON \
       -DLIBUNWIND_INSTALL_HEADERS=ON \
-      -DLIBUNWIND_INSTALL_LIBRARY=ON \
+      -DLIBUNWIND_INSTALL_LIBRARY=OFF \
       -DLIBUNWIND_USE_COMPILER_RT=ON \
       -DLIBCXXABI_ENABLE_SHARED=OFF \
       -DLIBCXXABI_ENABLE_STATIC=ON \
-      -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF \
+      -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
       -DLIBCXXABI_INSTALL_HEADERS=OFF \
       -DLIBCXXABI_INSTALL_LIBRARY=OFF \
+      -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
       -DLIBCXXABI_USE_COMPILER_RT=ON \
-      -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
+      -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
       -DLIBCXX_ABI_UNSTABLE=ON \
       -DLIBCXX_ABI_VERSION=2 \
-      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables;-fno-rtti" \
+      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables" \
       -DLIBCXX_ENABLE_SHARED=ON \
       -DLIBCXX_ENABLE_STATIC=ON \
       -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
-      -DLIBCXX_ENABLE_EXCEPTIONS=OFF \
-      -DLIBCXX_ENABLE_RTTI=OFF \
       -DLIBCXX_HAS_ATOMIC_LIB=OFF \
       -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
       -DLIBCXX_INSTALL_HEADERS=ON \
@@ -1395,8 +1400,8 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
   ninja -C build/windows/mingw-runtimes install/strip
 
   verify Ace/lib/libc++.a
+  verify Ace/bin/libc++.dll
   verify Ace/lib/libc++.dll.a
-  verify Ace/lib/libunwind.a
 
   mkdir -p Ace/lib/shared
   mv Ace/lib/libc++.dll.a Ace/lib/shared/
@@ -1438,8 +1443,8 @@ if [ ! -e Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a ]; th
   verify Ace/${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a
 fi
 
-if [ ! -f Ace/share/lldb-dap.vsix ]; then
-  cp -a share/lldb-dap.vsix Ace/share/
+if [ ! -d Ace/share/extensions ]; then
+  cp -a share/extensions Ace/share/
 fi
 
 if [ ! -f Ace/mingw.cmake ]; then
