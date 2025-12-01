@@ -2,8 +2,7 @@
 for %%I in ("%~dp0..") do set "ACE=%%~fI"
 cd "%ACE%"
 
-:: res\vcpkg.cmd remove --triplet=mingw egl-registry opengl-registry opengl egl glbinding globjects ktx sdl3
-:: res\vcpkg.cmd remove sdl3:mingw
+:: res\vcpkg.cmd remove sdl3
 
 res\vcpkg.cmd install --triplet=mingw ^
   doctest[core] expat[core] libxml2[core] pugixml[core] ^
@@ -12,12 +11,14 @@ res\vcpkg.cmd install --triplet=mingw ^
   libjpeg-turbo[core] libpng[core] lunasvg[core] plutovg[core] plutosvg[core] ^
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] ^
   spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] ^
-  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
+  egl-registry[core] opengl-registry[core] opengl[core] vulkan-headers[core] ^
+  vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
   simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] ^
   convectionkernels[core] draco[core] meshoptimizer[core] recastnavigation[core] ^
   glm[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] ^
   sdl3[core] sqlite3[core,zlib] lua[core,cpp]
 
-::find vcpkg/buildtrees/lua/src -name lua.hpp -print -quit | while read file; do
-::  cp -a "${file}" vcpkg/installed/mingw/include/
-::done
+for /f "delims=" %%F in ('dir "vcpkg\buildtrees\lua\src\lua.hpp" /s /b 2^>nul') do (
+  copy "%%F" "vcpkg\installed\mingw\include\lua.hpp" >nul
+  goto :eof
+)

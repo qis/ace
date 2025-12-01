@@ -5,14 +5,7 @@ RES=$(dirname "${SRC}")
 ACE=$(dirname "${RES}")
 cd "${ACE}" || exit 1
 
-# egl-registry[core] opengl-registry[core] opengl[core] egl[core] glbinding[core] globjects[core]
-# openssl[core]
-
-# res/vcpkg remove --triplet=linux egl-registry opengl-registry opengl egl glbinding globjects ktx sdl3
-# res/vcpkg remove --triplet=mingw egl-registry opengl-registry opengl egl glbinding globjects ktx sdl3
-# res/vcpkg remove --triplet=linux ktx
-
-res/vcpkg remove sdl3:linux sdl3:mingw
+# res/vcpkg remove sdl3:linux sdl3:mingw
 
 res/vcpkg install --triplet=linux ${*} liburing[core] \
   doctest[core] expat[core] libxml2[core] pugixml[core] \
@@ -22,7 +15,8 @@ res/vcpkg install --triplet=linux ${*} liburing[core] \
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
   libffi[core] wayland[core,force-build] wayland-protocols[core,force-build] \
   spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
-  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  egl-registry[core] opengl-registry[core] opengl[core] vulkan-headers[core] \
+  vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] \
   convectionkernels[core] draco[core] meshoptimizer[core] recastnavigation[core] \
   glm[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] \
@@ -39,7 +33,8 @@ res/vcpkg install --triplet=mingw ${*} \
   libjpeg-turbo[core] libpng[core] lunasvg[core] plutovg[core] plutosvg[core] \
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
   spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
-  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  egl-registry[core] opengl-registry[core] opengl[core] vulkan-headers[core] \
+  vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] \
   convectionkernels[core] draco[core] meshoptimizer[core] recastnavigation[core] \
   glm[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] \

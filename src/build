@@ -1449,8 +1449,9 @@ fi
 
 if [ ! -f Ace/mingw.cmake ]; then
   rm -rf Ace/res
-  cp -a src/windows/res Ace/
-  cp -a res/cmake res/ports Ace/res/
+  mkdir -p Ace/res/triplets
+  cp -a res/triplets/mingw.cmake Ace/res/triplets/
+  cp -a res/cmake res/ports src/windows/toolchain.cmake Ace/res/
   cp -a res/modules.cmake res/server.cmd res/install.cmd res/vcpkg.cmd Ace/res/
   cp -a mingw.cmake Ace/
 fi

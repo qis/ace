@@ -67,13 +67,17 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "")
 # Visual Studio 2022 Version 17.14 sets _MSC_VER to 1944.
 # https://learn.microsoft.com/cpp/overview/compiler-versions?view=msvc-170
 # MinGW is already configured to define WINVER=0x0A00 and _WIN32_WINNT=0x0A00.
-set(CMAKE_C_FLAGS_INIT "-march=x86-64-v3 -mavx2 -fms-compatibility-version=19.44")
+set(CMAKE_C_FLAGS_INIT "-fms-compatibility-version=19.44")
 set(CMAKE_C_FLAGS_DEBUG_INIT "-Og -g")
 set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG -fomit-frame-pointer")
 set(CMAKE_C_FLAGS_MINSIZEREL_INIT "-Oz -DNDEBUG -fomit-frame-pointer")
 set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "-O2 -g -DNDEBUG")
 set(CMAKE_C_FLAGS_COVERAGE_INIT "-O0 -g -fno-omit-frame-pointer -fprofile-instr-generate -fcoverage-mapping")
 set(CMAKE_C_FLAGS_PROFILE_INIT "-O3 -g -DNDEBUG -fno-omit-frame-pointer -fprofile-instr-generate")
+
+if(NOT ACE_DISABLE_AVX)
+  set(CMAKE_C_FLAGS_INIT "-march=x86-64-v3 -mavx2 ${CMAKE_C_FLAGS_INIT}")
+endif()
 
 if(NOT ACE_DISABLE_IPO)
   set(CMAKE_C_FLAGS_RELEASE_INIT "${CMAKE_C_FLAGS_RELEASE_INIT} -flto")
