@@ -6,24 +6,14 @@ vcpkg_from_github(
     HEAD_REF master
     PATCHES
         cmakedefine01.diff
+        ace.diff
 )
 
-vcpkg_check_features(OUT_FEATURE_OPTIONS options
-    FEATURES
-        shader-optimizer    VSG_SUPPORTS_ShaderOptimizer
-        windowing           VSG_SUPPORTS_Windowing
-)
-
-if("windowing" IN_LIST FEATURES AND NOT (VCPKG_TARGET_IS_ANDROID OR VCPKG_TARGET_IS_IOS OR VCPKG_TARGET_IS_OSX OR VCPKG_TARGET_IS_WINDOWS))
-    vcpkg_find_acquire_program(PKGCONFIG)
-    set(ENV{PKG_CONFIG} "${PKGCONFIG}")
-endif()
-
-# added -DGLSLANG_MIN_VERSION=15 to sync with vcpkg version of glslang
 vcpkg_cmake_configure(
     SOURCE_PATH "${SOURCE_PATH}"
     OPTIONS
-        ${options}
+        -DVSG_SUPPORTS_ShaderOptimizer=ON
+        -DVSG_SUPPORTS_Windowing=OFF
         -DGLSLANG_MIN_VERSION=
 )
 vcpkg_cmake_install()

@@ -1048,6 +1048,14 @@ if [ ! -e ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a ]; then
   verify ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a
 fi
 
+if [ ! -f share/license.rtf ]; then
+  cp -a src/license.rtf share/
+fi
+
+if [ ! -f share/license.txt ]; then
+  cp -a src/license.txt share/
+fi
+
 # =================================================================================================
 # windows
 # =================================================================================================
@@ -1449,10 +1457,11 @@ fi
 
 if [ ! -f Ace/mingw.cmake ]; then
   rm -rf Ace/res
-  mkdir -p Ace/res/triplets
+  mkdir -p Ace/res/triplets Ace/share
   cp -a res/triplets/mingw.cmake Ace/res/triplets/
   cp -a res/cmake res/ports src/windows/toolchain.cmake Ace/res/
   cp -a res/modules.cmake res/server.cmd res/install.cmd res/vcpkg.cmd Ace/res/
+  cp -a src/license.rtf src/license.txt Ace/share/
   cp -a mingw.cmake Ace/
 fi
 

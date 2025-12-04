@@ -5,40 +5,36 @@ RES=$(dirname "${SRC}")
 ACE=$(dirname "${RES}")
 cd "${ACE}" || exit 1
 
-# res/vcpkg remove sdl3:linux sdl3:mingw
-
 res/vcpkg install --triplet=linux ${*} liburing[core] \
-  doctest[core] expat[core] libxml2[core] pugixml[core] \
+  doctest[core] expat[core] libxml2[core] pugixml[core] lua[core,cpp] \
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
   libdeflate[core,compression,decompression,gzip,zlib] miniz[core] \
   libjpeg-turbo[core] libpng[core] lunasvg[core] plutovg[core] plutosvg[core] \
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
   libffi[core] wayland[core,force-build] wayland-protocols[core,force-build] \
-  spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
-  egl-registry[core] opengl-registry[core] opengl[core] vulkan-headers[core] \
-  vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  egl-registry[core] spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] \
   convectionkernels[core] draco[core] meshoptimizer[core] recastnavigation[core] \
-  glm[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] \
-  sdl3[core] sqlite3[core,zlib] lua[core,cpp]
+  itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] \
+  glm[core] sdl3[core] vsg[core]
 
 find vcpkg/buildtrees/lua/src -name lua.hpp -print -quit | while read file; do
   cp -a "${file}" vcpkg/installed/linux/include/
 done
 
 res/vcpkg install --triplet=mingw ${*} \
-  doctest[core] expat[core] libxml2[core] pugixml[core] \
+  doctest[core] expat[core] libxml2[core] pugixml[core] lua[core,cpp] \
   zlib[core] bzip2[core] liblzma[core] lz4[core] brotli[core] zstd[core] \
   libdeflate[core,compression,decompression,gzip,zlib] miniz[core] \
   libjpeg-turbo[core] libpng[core] lunasvg[core] plutovg[core] plutosvg[core] \
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] \
-  spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
-  egl-registry[core] opengl-registry[core] opengl[core] vulkan-headers[core] \
-  vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
+  egl-registry[core] spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] \
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] \
   simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] \
   convectionkernels[core] draco[core] meshoptimizer[core] recastnavigation[core] \
-  glm[core] itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] \
-  sdl3[core] sqlite3[core,zlib] lua[core,cpp]
+  itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] \
+  glm[core] sdl3[core] vsg[core]
 
 find vcpkg/buildtrees/lua/src -name lua.hpp -print -quit | while read file; do
   cp -a "${file}" vcpkg/installed/mingw/include/

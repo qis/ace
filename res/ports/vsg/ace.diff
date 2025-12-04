@@ -1,0 +1,135 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index 62940f9..6fb8a3c 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -28,12 +28,8 @@ if (MSVC)
+     add_compile_options(/bigobj)
+ endif()
+ 
+-if (VULKAN_SDK)
+-    message("Within VulkanSceneGraph cmake, setting VULKAN_SDK env var to " ${VULKAN_SDK})
+-    set(ENV{VULKAN_SDK} ${VULKAN_SDK})
+-endif()
+-
+-find_package(Vulkan ${Vulkan_MIN_VERSION} REQUIRED)
++find_package(volk CONFIG REQUIRED)
++find_package(SDL3 CONFIG REQUIRED)
+ 
+ find_package(Threads REQUIRED)
+ 
+diff --git i/include/vsg/vk/vulkan.h w/include/vsg/vk/vulkan.h
+index 71c21dc..26631d3 100644
+--- i/include/vsg/vk/vulkan.h
++++ w/include/vsg/vk/vulkan.h
+@@ -12,7 +12,7 @@
+ //
+ // Include Vulkan headers that are available in the system.
+ //
+-#include <vulkan/vulkan.h>
++#include <volk.h>
+ //
+ // Then add definitions not provided by older headers below.
+ //
+diff --git i/src/vsg/CMakeLists.txt w/src/vsg/CMakeLists.txt
+index 26e8719..2e153a1 100644
+--- i/src/vsg/CMakeLists.txt
++++ w/src/vsg/CMakeLists.txt
+@@ -269,10 +269,7 @@ set(SOURCES
+ )
+ 
+ # set up library dependencies
+-set(LIBRARIES PUBLIC
+-        Vulkan::Vulkan
+-        Threads::Threads
+-)
++set(LIBRARIES PUBLIC Threads::Threads volk::volk_headers SDL3::SDL3)
+ 
+ if (${VSG_SUPPORTS_ShaderCompiler})
+     list(INSERT LIBRARIES 0 PRIVATE glslang::glslang glslang::glslang-default-resource-limits glslang::SPIRV)
+@@ -338,6 +335,12 @@ if (VSG_SUPPORTS_Windowing)
+ endif()
+ 
+ add_library(vsg ${HEADERS} ${SOURCES})
++target_compile_definitions(vsg PUBLIC VK_NO_PROTOTYPES)
++if(WIN32)
++    target_compile_definitions(vsg PUBLIC VK_USE_PLATFORM_WIN32_KHR)
++else()
++    target_compile_definitions(vsg PUBLIC VK_USE_PLATFORM_WAYLAND_KHR)
++endif()
+ 
+ # add definitions to enable building VulkanSceneGraph as part of submodule
+ add_library(vsg::vsg ALIAS vsg)
+diff --git i/src/vsg/io/FileSystem.cpp w/src/vsg/io/FileSystem.cpp
+index 45c83fe..66e6e20 100644
+--- i/src/vsg/io/FileSystem.cpp
++++ w/src/vsg/io/FileSystem.cpp
+@@ -17,7 +17,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
+ 
+ #include <cstdio>
+ 
+-#if defined(WIN32) && !defined(__CYGWIN__)
++#if defined(_MSC_VER) || defined(__MINGW32__)
+ #    include <cstdlib>
+ #    include <direct.h>
+ #    include <io.h>
+diff --git i/src/vsg/vk/Device.cpp w/src/vsg/vk/Device.cpp
+index e4b226a..367daf1 100644
+--- i/src/vsg/vk/Device.cpp
++++ w/src/vsg/vk/Device.cpp
+@@ -138,6 +138,8 @@ Device::Device(PhysicalDevice* physicalDevice, const QueueSettings& queueSetting
+         throw Exception{"Error: vsg::Device::create(...) failed to create logical device.", result};
+     }
+ 
++    volkLoadDevice(_device);
++
+     // allocate the requested queues
+     for (auto queueInfo : queueCreateInfos)
+     {
+diff --git i/src/vsg/vk/Instance.cpp w/src/vsg/vk/Instance.cpp
+index 864ae8b..ae57204 100644
+--- i/src/vsg/vk/Instance.cpp
++++ w/src/vsg/vk/Instance.cpp
+@@ -151,6 +151,7 @@ Instance::Instance(Names instanceExtensions, Names layers, uint32_t vulkanApiVer
+     {
+         _instance = instance;
+         _allocator = allocator;
++        volkLoadInstanceOnly(instance);
+ 
+         uint32_t deviceCount = 0;
+         vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+diff --git i/src/vsg/vk/PhysicalDevice.cpp w/src/vsg/vk/PhysicalDevice.cpp
+index 2ebcd48..2927d49 100644
+--- i/src/vsg/vk/PhysicalDevice.cpp
++++ w/src/vsg/vk/PhysicalDevice.cpp
+@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
+ 
+ </editor-fold> */
+ 
++#include <SDL3/SDL_vulkan.h>
+ #include <vsg/core/Exception.h>
+ #include <vsg/io/Logger.h>
+ #include <vsg/vk/PhysicalDevice.h>
+@@ -78,7 +79,8 @@ std::pair<int, int> PhysicalDevice::getQueueFamily(VkQueueFlags queueFlags, Surf
+         bool queueMatched = (family.queueFlags & queueFlags) == queueFlags;
+ 
+         VkBool32 presentSupported = false;
+-        vkGetPhysicalDeviceSurfaceSupportKHR(_device, i, *surface, &presentSupported);
++        //vkGetPhysicalDeviceSurfaceSupportKHR(_device, i, *surface, &presentSupported);
++        presentSupported = SDL_Vulkan_GetPresentationSupport(_instance.ref_ptr()->vk(), _device, static_cast<Uint32>(i));
+ 
+         if (queueMatched && presentSupported)
+         {
+diff --git i/src/vsg/vsgConfig.cmake.in w/src/vsg/vsgConfig.cmake.in
+index a201219..6dd20bd 100644
+--- i/src/vsg/vsgConfig.cmake.in
++++ w/src/vsg/vsgConfig.cmake.in
+@@ -1,7 +1,8 @@
+ include(CMakeFindDependencyMacro)
+ 
+-find_package(Vulkan @Vulkan_MIN_VERSION@ REQUIRED)
+ find_dependency(Threads)
++find_dependency(volk CONFIG)
++find_dependency(SDL3 CONFIG)
+ @FIND_DEPENDENCY_glslang@
+ if (@VSG_SUPPORTS_ShaderOptimizer@)
+     find_dependency(SPIRV-Tools-opt)

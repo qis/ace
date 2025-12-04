@@ -64,7 +64,7 @@ vcpkg_cmake_configure(
         -DSDL_AUDIO=ON
         -DSDL_VIDEO=ON
         -DSDL_GPU=OFF
-	-DSDL_RENDER=ON
+	-DSDL_RENDER=OFF
         -DSDL_CAMERA=OFF
         -DSDL_JOYSTICK=ON
         -DSDL_HAPTIC=ON

@@ -7,6 +7,8 @@
   "license": "MIT",
   "dependencies": [
     "glslang",
+    "volk",
+    "sdl3",
     {
       "name": "vcpkg-cmake",
       "host": true
@@ -14,29 +16,6 @@
     {
       "name": "vcpkg-cmake-config",
       "host": true
-    },
-    "vulkan"
-  ],
-  "features": {
-    "shader-optimizer": {
-      "description": "shader optimizer support",
-      "dependencies": [
-        {
-          "name": "glslang",
-          "features": [
-            "opt"
-          ]
-        }
-      ]
-    },
-    "windowing": {
-      "description": "native windowing support providing a default implementation of vsg::Window::create()",
-      "dependencies": [
-        {
-          "name": "xcb",
-          "platform": "!(android | ios | osx | windows)"
-        }
-      ]
     }
-  }
+  ]
 }
