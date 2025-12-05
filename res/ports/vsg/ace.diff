@@ -86,10 +86,50 @@ index e4b226a..367daf1 100644
      for (auto queueInfo : queueCreateInfos)
      {
 diff --git i/src/vsg/vk/Instance.cpp w/src/vsg/vk/Instance.cpp
-index 864ae8b..ae57204 100644
+index 864ae8b..1a4c397 100644
 --- i/src/vsg/vk/Instance.cpp
 +++ w/src/vsg/vk/Instance.cpp
-@@ -151,6 +151,7 @@ Instance::Instance(Names instanceExtensions, Names layers, uint32_t vulkanApiVer
+@@ -137,20 +137,45 @@ Instance::Instance(Names instanceExtensions, Names layers, uint32_t vulkanApiVer
+     }
+ #endif
+ 
++    createInfo.pNext = nullptr;
++
++    bool utils = false;
++    for (const std::string_view e : instanceExtensions)
++    {
++        if (e == VK_EXT_DEBUG_UTILS_EXTENSION_NAME)
++        {
++            utils = true;
++            break;
++        }
++    }
++
++    VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{};
++    if (utils && isExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
++    {
++        debugUtilsMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
++        debugUtilsMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
++        debugUtilsMessengerCreateInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
++        debugUtilsMessengerCreateInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT;
++        debugUtilsMessengerCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT;
++        debugUtilsMessengerCreateInfo.messageType |= VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
++        debugUtilsMessengerCreateInfo.messageType |= VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
++        debugUtilsMessengerCreateInfo.pfnUserCallback = debugUtilsMessengerCallback;
++        createInfo.pNext = &debugUtilsMessengerCreateInfo;
++    }
++
+     createInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
+     createInfo.ppEnabledExtensionNames = instanceExtensions.empty() ? nullptr : instanceExtensions.data();
+ 
+     createInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+     createInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
+ 
+-    createInfo.pNext = nullptr;
+-
+     VkInstance instance;
+     VkResult result = vkCreateInstance(&createInfo, allocator, &instance);
+     if (result == VK_SUCCESS)
      {
          _instance = instance;
          _allocator = allocator;
@@ -97,6 +137,23 @@ index 864ae8b..ae57204 100644
  
          uint32_t deviceCount = 0;
          vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+@@ -169,16 +194,6 @@ Instance::Instance(Names instanceExtensions, Names layers, uint32_t vulkanApiVer
+     }
+ 
+     _extensions = InstanceExtensions::create(this);
+-
+-    if (isExtensionSupported(VK_EXT_DEBUG_UTILS_EXTENSION_NAME) && _extensions->vkCreateDebugUtilsMessengerEXT)
+-    {
+-        VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{};
+-        debugUtilsMessengerCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+-        debugUtilsMessengerCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+-        debugUtilsMessengerCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+-        debugUtilsMessengerCreateInfo.pfnUserCallback = debugUtilsMessengerCallback;
+-        result = _extensions->vkCreateDebugUtilsMessengerEXT(instance, &debugUtilsMessengerCreateInfo, nullptr, &_debugUtilsMessenger);
+-    }
+ }
+ 
+ Instance::~Instance()
 diff --git i/src/vsg/vk/PhysicalDevice.cpp w/src/vsg/vk/PhysicalDevice.cpp
 index 2ebcd48..2927d49 100644
 --- i/src/vsg/vk/PhysicalDevice.cpp

@@ -29,32 +29,6 @@ create() {
   touch "${1}" || error "Could not create file: ${1}"
 }
 
-if [ "${1}" == "reset" ]; then
-  printf "\e[1;32mRemoving\e[0m: \e[1;31mbin\e[0m, \e[1;31minclude\e[0m, \e[1;31mlib\e[0m, \e[1;31mshare\e[0m ...\n"
-  rm -rf bin include lib share
-
-  printf "\e[1;32mRemoving\e[0m: \e[1;31mbuild\e[0m subdirectories ...\n"
-  rm -rf \
-    build/host \
-    build/host-builtins \
-    build/host-runtimes \
-    build/yasm \
-    build/readpe \
-    build/llvm \
-    build/llvm-builtins \
-    build/llvm-runtimes \
-    build/mingw \
-    build/mingw-builtins \
-    build/mingw-runtimes \
-    build/windows \
-    Ace
-
-  printf "\e[1;32mRemoving\e[0m: \e[1;31mvcpkg\e[0m subdirectories ...\n"
-  rm -rf vcpkg/buildtrees vcpkg/packages vcpkg/installed build/vcpkg.linux build/vcpkg.mingw
-
-  exit
-fi
-
 # =================================================================================================
 # downloads
 # =================================================================================================
@@ -192,18 +166,29 @@ if [ ! -d sys/linux ]; then
     --build-root "${ACE}/sys/linux" src/linux.txt || (rm -rf sys/linux; error "Could not create linux sysroot.")
 
   rm -rf \
+    sys/linux/bin \
     sys/linux/etc \
     sys/linux/var \
-    sys/linux/usr/bin \
     sys/linux/usr/sbin \
     sys/linux/usr/share \
     sys/linux/packages \
     sys/linux/debian-bullseye-amd64-Packages.db \
-    sys/linux/debian-bullseye-amd64-Packages.gz
+    sys/linux/debian-bullseye-amd64-Packages.gz \
+    sys/linux/usr/include/x86_64-linux-gnu/ffi.h \
+    sys/linux/usr/include/x86_64-linux-gnu/ffitarget.h \
+    sys/linux/usr/lib/x86_64-linux-gnu/libffi.a \
+    sys/linux/usr/lib/x86_64-linux-gnu/libffi.so \
+    sys/linux/usr/lib/x86_64-linux-gnu/libffi_pic.a \
+    sys/linux/usr/lib/x86_64-linux-gnu/pkgconfig/libffi.pc \
+    sys/linux/usr/lib/x86_64-linux-gnu/libffi.so.7 \
+    sys/linux/usr/lib/x86_64-linux-gnu/libffi.so.7.1.0
+
+  sed -iE 's/^Requires.private: libffi$//' sys/linux/usr/lib/x86_64-linux-gnu/pkgconfig/wayland-client.pc
 
   symlinks -cdsr sys/linux
   find sys -type d -exec chmod 0755 '{}' ';'
   find sys -type f -exec chmod 0644 '{}' ';'
+  find sys/linux/usr/bin -type f -exec chmod 0755 '{}' ';'
 fi
 
 # =================================================================================================

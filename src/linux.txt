@@ -12,6 +12,8 @@ libtinfo-dev
 libtinfo6
 libedit-dev
 libedit2
+libcap-dev
+libcap2
 libudev-dev
 libudev1
 libusb-1.0-0-dev
@@ -33,7 +35,16 @@ libxkbcommon-dev
 libxkbcommon0
 libglx-dev
 libglx0
+libglvnd-dev
+libglvnd0
 libgl-dev
 libgl1
 libegl-dev
 libegl1
+libegl1-mesa-dev
+libwayland-bin
+libwayland-client0
+libwayland-cursor0
+libwayland-egl1
+libwayland-dev
+wayland-protocols

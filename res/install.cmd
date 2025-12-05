@@ -8,8 +8,8 @@ res\vcpkg.cmd install --triplet=mingw ^
   libdeflate[core,compression,decompression,gzip,zlib] miniz[core] ^
   libjpeg-turbo[core] libpng[core] lunasvg[core] plutovg[core] plutosvg[core] ^
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] ^
-  egl-registry[core] spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] ^
-  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] volk[core] ^
+  spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] volk[core] ^
+  vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
   simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] ^
   convectionkernels[core] draco[core] meshoptimizer[core] recastnavigation[core] ^
   itlib[core] robin-hood-hashing[core] rmlui[core,freetype,svg] ^

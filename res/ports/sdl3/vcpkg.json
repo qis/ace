@@ -12,14 +12,6 @@
       "platform": "linux"
     },
     {
-      "name": "egl-registry",
-      "platform": "linux"
-    },
-    {
-      "name": "wayland-protocols",
-      "platform": "linux"
-    },
-    {
       "name": "vcpkg-cmake",
       "host": true
     },
