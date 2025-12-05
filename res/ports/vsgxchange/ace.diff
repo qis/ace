@@ -1,0 +1,34 @@
+diff --git i/CMakeLists.txt w/CMakeLists.txt
+index dfa2b80..c398589 100644
+--- i/CMakeLists.txt
++++ w/CMakeLists.txt
+@@ -39,6 +39,9 @@ if (vsgXchange_OSG)
+     endif()
+ endif()
+ 
++find_package(volk CONFIG REQUIRED)
++list(APPEND EXTRA_LIBRARIES volk::volk)
++
+ # for generated cmake support files
+ set(FIND_DEPENDENCY ${FIND_DEPENDENCY} "find_dependency(vsg ${VSG_MIN_VERSION} REQUIRED)")
+ 
+@@ -81,6 +84,5 @@ endif()
+ 
+ # source directory for main vsgXchange library
+ add_subdirectory(src)
+-add_subdirectory(applications/vsgconv)
+ 
+ vsg_add_feature_summary()
+diff --git i/src/ktx/libktx/vkloader.c w/src/ktx/libktx/vkloader.c
+index 05cd6d7..183f0c1 100644
+--- i/src/ktx/libktx/vkloader.c
++++ w/src/ktx/libktx/vkloader.c
+@@ -27,7 +27,7 @@
+ #include <string.h>
+ 
+ #if 1
+-#include <vulkan/vulkan.h> // Must be included before ktxvulkan.h.
++#include <volk.h> // Must be included before ktxvulkan.h.
+ #else
+ #include "vk_funcs.h"   // Must be included before ktxvulkan.h.
+ #endif
