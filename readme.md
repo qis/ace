@@ -124,7 +124,7 @@ git clone https://github.com/qis/ace /opt/ace
 
 # Build toolchain.
 cd /opt/ace
-src/build
+src/build.sh
 ```
 
 ## Install

@@ -91,7 +91,7 @@ download_pip() {
 # download_sha "name" "${NAME_GIT}" "${NAME_SHA}" "CMakeLists.txt"
 # download_pip <package>
 
-LLVM_VER="21.1.6"
+LLVM_VER="21.1.8"
 LLVM_TAG="llvmorg-${LLVM_VER}"
 LLVM_GIT="https://github.com/llvm/llvm-project"
 download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "README.md"
