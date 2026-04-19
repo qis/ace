@@ -276,8 +276,8 @@ if [ ! -e build/host/bin/clang ]; then
 
   verify build/host/bin/clang
 
-  print "Creating build/host.tar.xz ..."
-  env --chdir=build tar cpJf host.tar.xz host
+  print "Creating build/host.tar.gz ..."
+  env --chdir=build tar czpf host.tar.gz host
 fi
 
 if [ ! -e build/host/${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.builtins.a ]; then
