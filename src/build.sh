@@ -459,9 +459,9 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
   cp -a build/host/linux/tools/shaderc/glslc bin/
   cp -a build/host/linux/tools/glslang/glslang bin/
   cp -a build/host/linux/tools/glslang/glslangValidator bin/
-  cp -a build/host/linux/tools/glslang/spirv-remap bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-as bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-cfg bin/
+  cp -a build/host/linux/tools/spirv-tools/spirv-diff bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-dis bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-link bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-lint bin/
@@ -1091,9 +1091,9 @@ if [ ! -e build/windows/mingw/index.txt ]; then
   cp -a build/windows/mingw/tools/shaderc/glslc.exe Ace/bin/
   cp -a build/windows/mingw/tools/glslang/glslang.exe Ace/bin/
   cp -a build/windows/mingw/tools/glslang/glslangValidator.exe Ace/bin/
-  cp -a build/windows/mingw/tools/glslang/spirv-remap.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-as.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-cfg.exe Ace/bin/
+  cp -a build/windows/mingw/tools/spirv-tools/spirv-diff.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-dis.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-link.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-lint.exe Ace/bin/
