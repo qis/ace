@@ -453,8 +453,7 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
     expat[core] libxml2[core] \
     openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] \
     spirv-headers[core] spirv-tools[core,tools] \
-    glslang[core,opt,tools] shaderc[core] \
-    meshoptimizer[core,gltfpack]
+    glslang[core,opt,tools] shaderc[core]
 
   cp -a build/host/linux/tools/sqlite3 bin/
   cp -a build/host/linux/tools/shaderc/glslc bin/
@@ -470,7 +469,6 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
   cp -a build/host/linux/tools/spirv-tools/spirv-opt bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-reduce bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-val bin/
-  cp -a build/host/linux/tools/meshoptimizer/gltfpack bin/
   cp -a build/host/linux/tools/openssl/c_rehash bin/
   cp -a build/host/linux/tools/openssl/openssl bin/
   cp -a build/host/linux/tools/lua/luac bin/
@@ -1087,8 +1085,7 @@ if [ ! -e build/windows/mingw/index.txt ]; then
     expat[core] libxml2[core] \
     openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] yasm[core,tools] \
     spirv-headers[core] spirv-tools[core,tools] \
-    glslang[core,opt,tools] shaderc[core] \
-    meshoptimizer[core,gltfpack]
+    glslang[core,opt,tools] shaderc[core]
 
   cp -a build/windows/mingw/tools/sqlite3.exe Ace/bin/
   cp -a build/windows/mingw/tools/shaderc/glslc.exe Ace/bin/
@@ -1104,7 +1101,6 @@ if [ ! -e build/windows/mingw/index.txt ]; then
   cp -a build/windows/mingw/tools/spirv-tools/spirv-opt.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-reduce.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-val.exe Ace/bin/
-  cp -a build/windows/mingw/tools/meshoptimizer/gltfpack.exe Ace/bin/
   cp -a build/windows/mingw/tools/openssl/openssl.exe Ace/bin/
   cp -a build/windows/mingw/tools/openssl/c_rehash Ace/bin/
   cp -a build/windows/mingw/tools/yasm/vsyasm.exe Ace/bin/
