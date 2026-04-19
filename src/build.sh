@@ -159,8 +159,13 @@ fi
 # sys/linux
 # =================================================================================================
 
-if [ ! -d sys/linux ]; then
+if [ ! -f build/src/pip/bin/cross-sysroot ]; then
+  print "Installing cross-sysroot ..."
   download_pip "cross-sysroot"
+  verify build/src/pip/bin/cross-sysroot
+fi
+
+if [ ! -d sys/linux ]; then
   print "Creating sys/linux ..."
   cross-sysroot --distribution debian --distribution-version bullseye --architecture amd64 \
     --build-root "${ACE}/sys/linux" src/linux.txt || (rm -rf sys/linux; error "Could not create linux sysroot.")
@@ -190,6 +195,8 @@ if [ ! -d sys/linux ]; then
   find sys -type f -exec chmod 0644 '{}' ';'
   find sys/linux/usr/bin -type f -exec chmod 0755 '{}' ';'
 fi
+
+exit "TMP"
 
 # =================================================================================================
 # host
