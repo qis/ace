@@ -116,10 +116,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  # Visual Studio 2022 Version 17.14 sets _MSC_VER to 1944.
-  # https://learn.microsoft.com/cpp/overview/compiler-versions?view=msvc-170
+  # Visual Studio 2026 Version 18.5.0 sets _MSC_VER to 1950.
   # MinGW is already configured to define WINVER=0x0A00 and _WIN32_WINNT=0x0A00.
-  set(CMAKE_C_FLAGS_INIT "${CMAKE_C_FLAGS_INIT} -fms-compatibility-version=19.44")
+  set(CMAKE_C_FLAGS_INIT "${CMAKE_C_FLAGS_INIT} -fms-compatibility-version=19.50")
 endif()
 
 if(NOT ACE_DISABLE_IPO)

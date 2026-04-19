@@ -91,7 +91,7 @@ download_pip() {
 # download_sha "name" "${NAME_GIT}" "${NAME_SHA}" "CMakeLists.txt"
 # download_pip <package>
 
-LLVM_VER="21.1.8"
+LLVM_VER="22.1.3"
 LLVM_TAG="llvmorg-${LLVM_VER}"
 LLVM_GIT="https://github.com/llvm/llvm-project"
 download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "README.md"
@@ -108,7 +108,7 @@ NINJA_TAG="v${NINJA_VER}"
 NINJA_GIT="https://github.com/ninja-build/ninja"
 download_tag "ninja" "${NINJA_GIT}" "${NINJA_TAG}" "CMakeLists.txt"
 
-CLANGD_VER="0.2.0"
+CLANGD_VER="0.4.0"
 CLANGD_GIT="https://github.com/clangd/vscode-clangd"
 download_tag "clangd" "${CLANGD_GIT}" "${CLANGD_VER}" "package.json"
 
@@ -117,18 +117,18 @@ READPE_TAG="v${READPE_VER}"
 READPE_GIT="https://github.com/mentebinaria/readpe"
 download_tag "readpe" "${READPE_GIT}" "${READPE_TAG}" "Makefile"
 
-MINGW_VER="13.0.0"
+MINGW_VER="14.0.0"
 MINGW_TAG="v${MINGW_VER}"
 MINGW_GIT="https://github.com/mingw-w64/mingw-w64"
 download_tag "mingw" "${MINGW_GIT}" "${MINGW_TAG}" "configure"
 
-NODE_VER="24.11.1"
+NODE_VER="24.15.0"
 NODE_URL="https://nodejs.org/download/release/v${NODE_VER}/node-v${NODE_VER}-linux-x64.tar.xz"
 download_tar "node" "${NODE_URL}" "node.tar.xz" 1 "LICENSE"
 
 export PATH="${ACE}/build/src/node/bin:${PATH}"
 
-POWERSHELL_VER="7.5.4"
+POWERSHELL_VER="7.6.0"
 POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
 POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/v${POWERSHELL_VER}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
 download_tar "powershell" "${POWERSHELL_URL}" "powershell.tar.gz" 0 "pwsh"
@@ -142,7 +142,7 @@ export PATH="${ACE}/build/src/powershell:${PATH}"
 # =================================================================================================
 # vcpkg
 # =================================================================================================
-VCPKG_TAG="2025.10.17"
+VCPKG_TAG="2026.03.18"
 
 if [ ! -f vcpkg/bootstrap-vcpkg.sh ]; then
   git clone https://github.com/microsoft/vcpkg -b "${VCPKG_TAG}" --depth 1 vcpkg
@@ -685,25 +685,26 @@ if [ ! -e sys/linux/usr/lib/shared/libc++.so ]; then
       -DLLVM_INCLUDE_TESTS=OFF \
       -DLLVM_INCLUDE_DOCS=OFF \
       -DLLVM_USE_LINKER="lld" \
-      -DLIBUNWIND_ENABLE_SHARED=OFF \
+      -DLIBUNWIND_ENABLE_SHARED=ON \
       -DLIBUNWIND_ENABLE_STATIC=ON \
       -DLIBUNWIND_INSTALL_HEADERS=ON \
-      -DLIBUNWIND_INSTALL_LIBRARY=OFF \
+      -DLIBUNWIND_INSTALL_LIBRARY=ON \
       -DLIBUNWIND_USE_COMPILER_RT=ON \
       -DLIBCXXABI_ENABLE_SHARED=OFF \
       -DLIBCXXABI_ENABLE_STATIC=ON \
-      -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+      -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF \
       -DLIBCXXABI_INSTALL_HEADERS=OFF \
       -DLIBCXXABI_INSTALL_LIBRARY=OFF \
-      -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
       -DLIBCXXABI_USE_COMPILER_RT=ON \
-      -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
+      -DLIBCXXABI_USE_LLVM_UNWINDER=OFF \
       -DLIBCXX_ABI_UNSTABLE=ON \
       -DLIBCXX_ABI_VERSION=2 \
-      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables" \
+      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables;-fno-rtti" \
       -DLIBCXX_ENABLE_SHARED=ON \
       -DLIBCXX_ENABLE_STATIC=ON \
       -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+      -DLIBCXX_ENABLE_EXCEPTIONS=OFF \
+      -DLIBCXX_ENABLE_RTTI=OFF \
       -DLIBCXX_HAS_ATOMIC_LIB=OFF \
       -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
       -DLIBCXX_INSTALL_HEADERS=ON \
@@ -726,6 +727,9 @@ if [ ! -e sys/linux/usr/lib/shared/libc++.so ]; then
   mv sys/linux/usr/lib/libc++.so sys/linux/usr/lib/shared/
   verify sys/linux/usr/lib/shared/libc++.so
 fi
+
+echo "DONE"
+exit
 
 if [ ! -e ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a ]; then
   if [ ! -e build/llvm-compiler-rt/build.ninja ]; then
@@ -802,7 +806,7 @@ fi
 # =================================================================================================
 
 MINGW_LFLAGS="--target=x86_64-w64-windows-gnu --sysroot=${ACE}/sys/mingw"
-MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
+MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.50 -fomit-frame-pointer"
 MINGW_RFLAGS="-I${ACE}/sys/mingw/include"
 
 if [ ! -e build/mingw/headers/Makefile ]; then
@@ -964,7 +968,7 @@ if [ ! -e sys/mingw/lib/shared/libc++.dll.a ]; then
       -DLIBUNWIND_USE_COMPILER_RT=ON \
       -DLIBCXXABI_ENABLE_SHARED=OFF \
       -DLIBCXXABI_ENABLE_STATIC=ON \
-      -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+      -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF \
       -DLIBCXXABI_INSTALL_HEADERS=OFF \
       -DLIBCXXABI_INSTALL_LIBRARY=OFF \
       -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
@@ -972,10 +976,12 @@ if [ ! -e sys/mingw/lib/shared/libc++.dll.a ]; then
       -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
       -DLIBCXX_ABI_UNSTABLE=ON \
       -DLIBCXX_ABI_VERSION=2 \
-      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables" \
+      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables;-fno-rtti" \
       -DLIBCXX_ENABLE_SHARED=ON \
       -DLIBCXX_ENABLE_STATIC=ON \
       -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+      -DLIBCXX_ENABLE_EXCEPTIONS=OFF \
+      -DLIBCXX_ENABLE_RTTI=OFF \
       -DLIBCXX_HAS_ATOMIC_LIB=OFF \
       -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
       -DLIBCXX_INSTALL_HEADERS=ON \
@@ -1202,7 +1208,7 @@ fi
 rmdir Ace/include 2>/dev/null || true
 
 MINGW_LFLAGS="--target=x86_64-w64-windows-gnu --sysroot=${ACE}/Ace"
-MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
+MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.50 -fomit-frame-pointer"
 MINGW_RFLAGS="-I${ACE}/Ace/include"
 
 if [ ! -e build/windows/mingw/headers/Makefile ]; then
@@ -1367,7 +1373,7 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
       -DLIBUNWIND_USE_COMPILER_RT=ON \
       -DLIBCXXABI_ENABLE_SHARED=OFF \
       -DLIBCXXABI_ENABLE_STATIC=ON \
-      -DLIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
+      -DLIBCXXABI_ENABLE_EXCEPTIONS=OFF \
       -DLIBCXXABI_INSTALL_HEADERS=OFF \
       -DLIBCXXABI_INSTALL_LIBRARY=OFF \
       -DLIBCXXABI_STATICALLY_LINK_UNWINDER_IN_STATIC_LIBRARY=ON \
@@ -1375,10 +1381,12 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
       -DLIBCXXABI_USE_LLVM_UNWINDER=ON \
       -DLIBCXX_ABI_UNSTABLE=ON \
       -DLIBCXX_ABI_VERSION=2 \
-      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables" \
+      -DLIBCXX_ADDITIONAL_COMPILE_FLAGS="-flto;-fwhole-program-vtables;-fno-rtti" \
       -DLIBCXX_ENABLE_SHARED=ON \
       -DLIBCXX_ENABLE_STATIC=ON \
       -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON \
+      -DLIBCXX_ENABLE_EXCEPTIONS=OFF \
+      -DLIBCXX_ENABLE_RTTI=OFF \
       -DLIBCXX_HAS_ATOMIC_LIB=OFF \
       -DLIBCXX_INCLUDE_BENCHMARKS=OFF \
       -DLIBCXX_INSTALL_HEADERS=ON \

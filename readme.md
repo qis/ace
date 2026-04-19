@@ -238,7 +238,7 @@ find ~/.vscode-server/bin -type f -name code-server | while read server; do
   "${server}" --install-extension "${ACE}/share/cmake-tools.vsix"
 done
 
-bin/clang++ --target=x86_64-w64-windows-gnu --sysroot=sys/mingw -fms-compatibility-version=19.44 \
+bin/clang++ --target=x86_64-w64-windows-gnu --sysroot=sys/mingw -fms-compatibility-version=19.50 \
   -std=c++26 -fstrict-vtable-pointers -Og -g main.cpp -Lsys/mingw/lib/shared
 
 bin/peldd a.exe

@@ -56,7 +56,7 @@ set(CMAKE_RC_FLAGS_INIT "-I ${CMAKE_SYSROOT}/include")
 set(CMAKE_C_EXTENSIONS OFF CACHE BOOL "")
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "")
 
-set(CMAKE_C_FLAGS_INIT "-march=x86-64-v3 -mavx2 -fms-compatibility-version=19.44")
+set(CMAKE_C_FLAGS_INIT "-march=x86-64-v3 -mavx2 -fms-compatibility-version=19.50")
 set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG -fomit-frame-pointer -flto")
 
 set(CMAKE_CXX_FLAGS_INIT "${CMAKE_C_FLAGS_INIT} -fstrict-vtable-pointers -fno-exceptions")
