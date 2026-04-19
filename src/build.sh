@@ -380,6 +380,7 @@ if [ ! -e bin/yasm ]; then
         -DCMAKE_INSTALL_PREFIX="${ACE}/build/host" \
         -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
         -DCMAKE_TOOLCHAIN_FILE="${ACE}/src/linux.cmake" \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DYASM_BUILD_TESTS=OFF \
         -B build/yasm build/src/yasm
       verify build/yasm/build.ninja

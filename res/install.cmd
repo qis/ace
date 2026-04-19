@@ -8,10 +8,12 @@ res\vcpkg.cmd install --triplet=mingw --recurse doctest[core] lua[core,cpp] ^
   freetype[core,zlib,bzip2,brotli,png,subpixel-rendering] harfbuzz[core,freetype] ^
   spirv-headers[core] spirv-tools[core] glslang[core,opt] shaderc[core] volk[core] ^
   vulkan-headers[core] vulkan-utility-libraries[core] vulkan-memory-allocator[core] ^
-  convectionkernels[core] meshoptimizer[core] recastnavigation[core] polyclipping[core] ^
+  convectionkernels[core]                     recastnavigation[core] polyclipping[core] ^
   simdjson[core,deprecated,threads,utf8-validation] fastgltf[core] ktx[core,vulkan] ^
   lunasvg[core] plutovg[core] plutosvg[core] itlib[core] robin-hood-hashing[core] ^
   rmlui[core,freetype,svg] glm[core] sdl3[core]
+
+rem                       meshoptimizer[core]
 
 for /f "delims=" %%F in ('dir "vcpkg\buildtrees\lua\src\lua.hpp" /s /b 2^>nul') do (
   copy "%%F" "vcpkg\installed\mingw\include\lua.hpp" >nul

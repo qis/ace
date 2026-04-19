@@ -93,7 +93,7 @@ sudo apt install -y autoconf libtool \
   $(apt-cache search '^libicu[0-9]+$' | grep -v dev | head -1 | awk '{print $1}')
 
 # Install cmake(1).
-wget -O ~/cmake.tar.gz https://github.com/Kitware/CMake/releases/download/v3.31.10/cmake-3.31.10-linux-x86_64.tar.gz
+wget -O ~/cmake.tar.gz https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz
 sudo rm -rf /opt/cmake; sudo mkdir /opt/cmake; sudo tar xf ~/cmake.tar.gz -C /opt/cmake -m --strip-components=1
 
 sudo tee /etc/profile.d/cmake.sh >/dev/null <<'EOF'
