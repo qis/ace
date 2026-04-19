@@ -165,7 +165,7 @@ if [ ! -f build/src/pip/bin/cross-sysroot ]; then
   verify build/src/pip/bin/cross-sysroot
 fi
 
-if [ ! -d sys/linux ]; then
+if [ ! -d sys/linux ] && [ ! -f build/src/linux.tar.xz ]; then
   print "Creating sys/linux ..."
   cross-sysroot --distribution debian --distribution-version bullseye --architecture amd64 \
     --build-root "${ACE}/sys/linux" src/linux.txt || (rm -rf sys/linux; error "Could not create linux sysroot.")
@@ -194,9 +194,15 @@ if [ ! -d sys/linux ]; then
   find sys -type d -exec chmod 0755 '{}' ';'
   find sys -type f -exec chmod 0644 '{}' ';'
   find sys/linux/usr/bin -type f -exec chmod 0755 '{}' ';'
+
+  print "Creating sys/linux archive ..."
+  tar cJf build/src/linux.tar.xz sys/linux
 fi
 
-exit "TMP"
+if [ ! -d sys/linux ]; then
+  print "Extracting sys/linux archive ..."
+  tar xf build/src/linux.tar.xz
+fi
 
 # =================================================================================================
 # host
