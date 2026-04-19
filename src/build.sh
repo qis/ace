@@ -97,12 +97,6 @@ LLVM_GIT="https://github.com/llvm/llvm-project"
 download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "README.md"
 LLVM_RES="lib/clang/$(cmake -P src/version.cmake)"
 
-YASM_VER="1.3.0"
-YASM_TAG="v${YASM_VER}"
-YASM_GIT="https://github.com/yasm/yasm"
-YASM_EXE="http://www.tortall.net/projects/yasm/releases/yasm-${YASM_VER}-win64.exe"
-download_tag "yasm" "${YASM_GIT}" "${YASM_TAG}" "CMakeLists.txt"
-
 NINJA_VER="1.13.2"
 NINJA_TAG="v${NINJA_VER}"
 NINJA_GIT="https://github.com/ninja-build/ninja"
@@ -368,42 +362,6 @@ fi
 mkdir -p bin lib share
 
 # =================================================================================================
-# yasm
-# =================================================================================================
-
-if [ ! -e bin/yasm ]; then
-  if [ ! -e build/host/bin/yasm ]; then
-    if [ ! -e build/yasm/build.ninja ]; then
-      print "Configuring yasm ..."
-      cmake -GNinja -Wno-dev \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX="${ACE}/build/host" \
-        -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
-        -DCMAKE_TOOLCHAIN_FILE="${ACE}/src/linux.cmake" \
-        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
-        -DYASM_BUILD_TESTS=OFF \
-        -B build/yasm build/src/yasm
-      verify build/yasm/build.ninja
-    fi
-
-    print "Installing yasm ..."
-    ninja -C build/yasm install/strip
-    verify build/host/lib/libyasmstd.so
-    verify build/host/lib/libyasm.so
-    verify build/host/bin/vsyasm
-    verify build/host/bin/ytasm
-    verify build/host/bin/yasm
-  fi
-
-  cp -a build/host/lib/libyasmstd.so lib/
-  cp -a build/host/lib/libyasm.so lib/
-  cp -a build/host/bin/vsyasm bin/
-  cp -a build/host/bin/ytasm bin/
-  cp -a build/host/bin/yasm bin/
-  verify bin/yasm
-fi
-
-# =================================================================================================
 # ninja
 # =================================================================================================
 
@@ -452,7 +410,7 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
     --triplet=linux \
     zlib[core] liblzma[core] \
     expat[core] libxml2[core] \
-    openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] \
+    openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] yasm[core,tools] \
     spirv-headers[core] spirv-tools[core,tools] \
     glslang[core,opt,tools] shaderc[core]
 
@@ -472,6 +430,9 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
   cp -a build/host/linux/tools/spirv-tools/spirv-val bin/
   cp -a build/host/linux/tools/openssl/c_rehash bin/
   cp -a build/host/linux/tools/openssl/openssl bin/
+  cp -a build/host/linux/tools/yasm/vsyasm bin/
+  cp -a build/host/linux/tools/yasm/ytasm bin/
+  cp -a build/host/linux/tools/yasm/yasm bin/
   cp -a build/host/linux/tools/lua/luac bin/
   cp -a build/host/linux/tools/lua/lua bin/
 
