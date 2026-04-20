@@ -410,12 +410,10 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
     --triplet=linux \
     zlib[core] liblzma[core] \
     expat[core] libxml2[core] \
-    lua[core,cpp,tools] yasm[core,tools] \
-    openssl[core,tools] sqlite3[core,tool,zlib] \
+    lua[core,cpp,tools] yasm[core,tools] openssl[core,tools] \
     spirv-headers[core] spirv-tools[core,tools] \
     glslang[core,opt,tools] shaderc[core]
 
-  cp -a build/host/linux/tools/sqlite3 bin/
   cp -a build/host/linux/tools/shaderc/glslc bin/
   cp -a build/host/linux/tools/glslang/glslang bin/
   cp -a build/host/linux/tools/glslang/glslangValidator bin/
@@ -1052,12 +1050,10 @@ if [ ! -e build/windows/mingw/index.txt ]; then
     --triplet=mingw \
     zlib[core] liblzma[core] \
     expat[core] libxml2[core] \
-    lua[core,cpp,tools] yasm[core,tools] \
-    openssl[core,tools] sqlite3[core,tool,zlib] \
+    lua[core,cpp,tools] yasm[core,tools] openssl[core,tools] \
     spirv-headers[core] spirv-tools[core,tools] \
     glslang[core,opt,tools] shaderc[core]
 
-  cp -a build/windows/mingw/tools/sqlite3.exe Ace/bin/
   cp -a build/windows/mingw/tools/shaderc/glslc.exe Ace/bin/
   cp -a build/windows/mingw/tools/glslang/glslang.exe Ace/bin/
   cp -a build/windows/mingw/tools/glslang/glslangValidator.exe Ace/bin/
