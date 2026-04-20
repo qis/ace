@@ -973,14 +973,16 @@ if [ ! -e sys/mingw/lib/shared/libc++.dll.a ]; then
   verify sys/mingw/lib/libc++.a
   verify sys/mingw/bin/libc++.dll
   verify sys/mingw/lib/libc++.dll.a
+  verify sys/mingw/lib/libunwind.a
+  verify sys/mingw/bin/libunwind.dll
+  verify sys/mingw/lib/libunwind.dll.a
 
   mkdir -p sys/mingw/lib/shared
+  mv sys/mingw/lib/libunwind.dll.a sys/mingw/lib/shared/
   mv sys/mingw/lib/libc++.dll.a sys/mingw/lib/shared/
+  verify sys/mingw/lib/shared/libunwind.dll.a
   verify sys/mingw/lib/shared/libc++.dll.a
 fi
-
-echo "DONE"
-exit
 
 if [ ! -e ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a ]; then
   if [ ! -e build/mingw-compiler-rt/build.ninja ]; then
