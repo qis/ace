@@ -758,9 +758,9 @@ mkdir -p share/extensions
 
 if [ ! -f share/extensions/lldb-dap.vsix ]; then
   print "Building extension: lldb-dap ..."
-  env --chdir=build/src/llvm/lldb/tools/lldb-dap npm install
-  env --chdir=build/src/llvm/lldb/tools/lldb-dap node_modules/.bin/vsce package
-  find build/src/llvm/lldb/tools/lldb-dap -maxdepth 1 -name 'lldb-dap-*.vsix' -print -quit | while read file; do
+  env --chdir=build/src/llvm/lldb/tools/lldb-dap/extension npm install
+  env --chdir=build/src/llvm/lldb/tools/lldb-dap/extension node_modules/.bin/vsce package
+  find build/src/llvm/lldb/tools/lldb-dap/extension -maxdepth 1 -name 'lldb-dap-*.vsix' -print -quit | while read file; do
     cp -a "${file}" share/extensions/lldb-dap.vsix
   done
   verify share/extensions/lldb-dap.vsix
