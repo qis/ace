@@ -979,6 +979,9 @@ if [ ! -e sys/mingw/lib/shared/libc++.dll.a ]; then
   verify sys/mingw/lib/shared/libc++.dll.a
 fi
 
+echo "DONE"
+exit
+
 if [ ! -e ${LLVM_RES}/lib/x86_64-w64-windows-gnu/libclang_rt.profile.a ]; then
   if [ ! -e build/mingw-compiler-rt/build.ninja ]; then
     print "Configuring mingw compiler-rt ..."
