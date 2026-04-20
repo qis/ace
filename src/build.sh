@@ -410,7 +410,8 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
     --triplet=linux \
     zlib[core] liblzma[core] \
     expat[core] libxml2[core] \
-    openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] yasm[core,tools] \
+    lua[core,cpp,tools] yasm[core,tools] \
+    openssl[core,tools] sqlite3[core,tool,zlib] \
     spirv-headers[core] spirv-tools[core,tools] \
     glslang[core,opt,tools] shaderc[core]
 
@@ -698,11 +699,12 @@ if [ ! -e sys/linux/usr/lib/shared/libc++.so ]; then
   mv sys/linux/usr/lib/libc++.so.2.0 sys/linux/usr/lib/shared/
   mv sys/linux/usr/lib/libc++.so.2 sys/linux/usr/lib/shared/
   mv sys/linux/usr/lib/libc++.so sys/linux/usr/lib/shared/
+  mv sys/linux/usr/lib/libunwind.so.1.0 sys/linux/usr/lib/shared/
+  mv sys/linux/usr/lib/libunwind.so.1 sys/linux/usr/lib/shared/
+  mv sys/linux/usr/lib/libunwind.so sys/linux/usr/lib/shared/
+  verify sys/linux/usr/lib/shared/libunwind.so
   verify sys/linux/usr/lib/shared/libc++.so
 fi
-
-echo "DONE"
-exit
 
 if [ ! -e ${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.profile.a ]; then
   if [ ! -e build/llvm-compiler-rt/build.ninja ]; then
@@ -1045,7 +1047,8 @@ if [ ! -e build/windows/mingw/index.txt ]; then
     --triplet=mingw \
     zlib[core] liblzma[core] \
     expat[core] libxml2[core] \
-    openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] yasm[core,tools] \
+    lua[core,cpp,tools] yasm[core,tools] \
+    openssl[core,tools] sqlite3[core,tool,zlib] \
     spirv-headers[core] spirv-tools[core,tools] \
     glslang[core,opt,tools] shaderc[core]
 
