@@ -1139,7 +1139,7 @@ if [ ! -e build/windows/llvm/build.ninja ]; then
   verify build/windows/llvm/build.ninja
 fi
 
-if [ ! -e Ace/lib/lua/5.4/lldb.dll ] || [ -h Ace/lib/lua/5.4/lldb.dll ]; then
+if [ ! -e Ace/lib/lua/5.5/lldb.dll ] || [ -h Ace/lib/lua/5.5/lldb.dll ]; then
   print "Installing windows llvm ..."
   ninja -C build/windows/llvm \
     install-LTO-stripped \
@@ -1172,9 +1172,9 @@ if [ ! -e Ace/lib/lua/5.4/lldb.dll ] || [ -h Ace/lib/lua/5.4/lldb.dll ]; then
     install-clangd-stripped
   verify Ace/bin/liblldb.dll
 
-  rm -f Ace/lib/lua/5.4/lldb.dll
-  cp -a Ace/bin/liblldb.dll Ace/lib/lua/5.4/lldb.dll
-  verify Ace/lib/lua/5.4/lldb.dll
+  rm -f Ace/lib/lua/5.5/lldb.dll
+  cp -a Ace/bin/liblldb.dll Ace/lib/lua/5.5/lldb.dll
+  verify Ace/lib/lua/5.5/lldb.dll
 
   rm -rf Ace/include/llvm-c
   rm -rf Ace/share/clang
