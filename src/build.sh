@@ -1330,6 +1330,7 @@ if [ ! -e Ace/lib/shared/libc++.dll.a ]; then
     print "Configuring windows runtimes ..."
     rm -rf build/windows/mingw-runtimes
     cmake -GNinja -Wno-dev \
+      -DACE_ENABLE_RTTI=ON \
       -DACE_DISABLE_IPO=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_INSTALL_PREFIX="${ACE}/Ace" \
