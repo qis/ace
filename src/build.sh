@@ -91,24 +91,18 @@ download_pip() {
 # download_sha "name" "${NAME_GIT}" "${NAME_SHA}" "CMakeLists.txt"
 # download_pip <package>
 
-LLVM_VER="21.1.8"
+LLVM_VER="22.1.3"
 LLVM_TAG="llvmorg-${LLVM_VER}"
 LLVM_GIT="https://github.com/llvm/llvm-project"
 download_tag "llvm" "${LLVM_GIT}" "${LLVM_TAG}" "README.md"
 LLVM_RES="lib/clang/$(cmake -P src/version.cmake)"
-
-YASM_VER="1.3.0"
-YASM_TAG="v${YASM_VER}"
-YASM_GIT="https://github.com/yasm/yasm"
-YASM_EXE="http://www.tortall.net/projects/yasm/releases/yasm-${YASM_VER}-win64.exe"
-download_tag "yasm" "${YASM_GIT}" "${YASM_TAG}" "CMakeLists.txt"
 
 NINJA_VER="1.13.2"
 NINJA_TAG="v${NINJA_VER}"
 NINJA_GIT="https://github.com/ninja-build/ninja"
 download_tag "ninja" "${NINJA_GIT}" "${NINJA_TAG}" "CMakeLists.txt"
 
-CLANGD_VER="0.2.0"
+CLANGD_VER="0.4.0"
 CLANGD_GIT="https://github.com/clangd/vscode-clangd"
 download_tag "clangd" "${CLANGD_GIT}" "${CLANGD_VER}" "package.json"
 
@@ -117,18 +111,18 @@ READPE_TAG="v${READPE_VER}"
 READPE_GIT="https://github.com/mentebinaria/readpe"
 download_tag "readpe" "${READPE_GIT}" "${READPE_TAG}" "Makefile"
 
-MINGW_VER="13.0.0"
+MINGW_VER="14.0.0"
 MINGW_TAG="v${MINGW_VER}"
 MINGW_GIT="https://github.com/mingw-w64/mingw-w64"
 download_tag "mingw" "${MINGW_GIT}" "${MINGW_TAG}" "configure"
 
-NODE_VER="24.11.1"
+NODE_VER="24.15.0"
 NODE_URL="https://nodejs.org/download/release/v${NODE_VER}/node-v${NODE_VER}-linux-x64.tar.xz"
 download_tar "node" "${NODE_URL}" "node.tar.xz" 1 "LICENSE"
 
 export PATH="${ACE}/build/src/node/bin:${PATH}"
 
-POWERSHELL_VER="7.5.4"
+POWERSHELL_VER="7.6.0"
 POWERSHELL_GIT="https://github.com/PowerShell/PowerShell"
 POWERSHELL_URL="${POWERSHELL_GIT}/releases/download/v${POWERSHELL_VER}/powershell-${POWERSHELL_VER}-linux-x64.tar.gz"
 download_tar "powershell" "${POWERSHELL_URL}" "powershell.tar.gz" 0 "pwsh"
@@ -142,7 +136,7 @@ export PATH="${ACE}/build/src/powershell:${PATH}"
 # =================================================================================================
 # vcpkg
 # =================================================================================================
-VCPKG_TAG="2025.10.17"
+VCPKG_TAG="2026.03.18"
 
 if [ ! -f vcpkg/bootstrap-vcpkg.sh ]; then
   git clone https://github.com/microsoft/vcpkg -b "${VCPKG_TAG}" --depth 1 vcpkg
@@ -159,8 +153,13 @@ fi
 # sys/linux
 # =================================================================================================
 
-if [ ! -d sys/linux ]; then
+if [ ! -f build/src/pip/bin/cross-sysroot ]; then
+  print "Installing cross-sysroot ..."
   download_pip "cross-sysroot"
+  verify build/src/pip/bin/cross-sysroot
+fi
+
+if [ ! -d sys/linux ] && [ ! -f build/src/linux.tar.gz ]; then
   print "Creating sys/linux ..."
   cross-sysroot --distribution debian --distribution-version bullseye --architecture amd64 \
     --build-root "${ACE}/sys/linux" src/linux.txt || (rm -rf sys/linux; error "Could not create linux sysroot.")
@@ -189,6 +188,14 @@ if [ ! -d sys/linux ]; then
   find sys -type d -exec chmod 0755 '{}' ';'
   find sys -type f -exec chmod 0644 '{}' ';'
   find sys/linux/usr/bin -type f -exec chmod 0755 '{}' ';'
+
+  print "Creating sys/linux archive ..."
+  tar czpf build/src/linux.tar.gz sys/linux
+fi
+
+if [ ! -d sys/linux ]; then
+  print "Extracting sys/linux archive ..."
+  tar xf build/src/linux.tar.gz
 fi
 
 # =================================================================================================
@@ -263,8 +270,8 @@ if [ ! -e build/host/bin/clang ]; then
 
   verify build/host/bin/clang
 
-  print "Creating build/host.tar.xz ..."
-  env --chdir=build tar cpJf host.tar.xz host
+  print "Creating build/host.tar.gz ..."
+  env --chdir=build tar czpf host.tar.gz host
 fi
 
 if [ ! -e build/host/${LLVM_RES}/lib/x86_64-pc-linux-gnu/libclang_rt.builtins.a ]; then
@@ -355,41 +362,6 @@ fi
 mkdir -p bin lib share
 
 # =================================================================================================
-# yasm
-# =================================================================================================
-
-if [ ! -e bin/yasm ]; then
-  if [ ! -e build/host/bin/yasm ]; then
-    if [ ! -e build/yasm/build.ninja ]; then
-      print "Configuring yasm ..."
-      cmake -GNinja -Wno-dev \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX="${ACE}/build/host" \
-        -DCMAKE_INSTALL_RPATH="\$ORIGIN/../lib" \
-        -DCMAKE_TOOLCHAIN_FILE="${ACE}/src/linux.cmake" \
-        -DYASM_BUILD_TESTS=OFF \
-        -B build/yasm build/src/yasm
-      verify build/yasm/build.ninja
-    fi
-
-    print "Installing yasm ..."
-    ninja -C build/yasm install/strip
-    verify build/host/lib/libyasmstd.so
-    verify build/host/lib/libyasm.so
-    verify build/host/bin/vsyasm
-    verify build/host/bin/ytasm
-    verify build/host/bin/yasm
-  fi
-
-  cp -a build/host/lib/libyasmstd.so lib/
-  cp -a build/host/lib/libyasm.so lib/
-  cp -a build/host/bin/vsyasm bin/
-  cp -a build/host/bin/ytasm bin/
-  cp -a build/host/bin/yasm bin/
-  verify bin/yasm
-fi
-
-# =================================================================================================
 # ninja
 # =================================================================================================
 
@@ -438,18 +410,16 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
     --triplet=linux \
     zlib[core] liblzma[core] \
     expat[core] libxml2[core] \
-    openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] \
+    lua[core,cpp,tools] yasm[core,tools] openssl[core,tools] \
     spirv-headers[core] spirv-tools[core,tools] \
-    glslang[core,opt,tools] shaderc[core] \
-    meshoptimizer[core,gltfpack]
+    glslang[core,opt,tools] shaderc[core]
 
-  cp -a build/host/linux/tools/sqlite3 bin/
   cp -a build/host/linux/tools/shaderc/glslc bin/
   cp -a build/host/linux/tools/glslang/glslang bin/
   cp -a build/host/linux/tools/glslang/glslangValidator bin/
-  cp -a build/host/linux/tools/glslang/spirv-remap bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-as bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-cfg bin/
+  cp -a build/host/linux/tools/spirv-tools/spirv-diff bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-dis bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-link bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-lint bin/
@@ -457,9 +427,11 @@ if [ ! -e bin/lua ] || [ ! -f build/host/linux/index.txt ]; then
   cp -a build/host/linux/tools/spirv-tools/spirv-opt bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-reduce bin/
   cp -a build/host/linux/tools/spirv-tools/spirv-val bin/
-  cp -a build/host/linux/tools/meshoptimizer/gltfpack bin/
   cp -a build/host/linux/tools/openssl/c_rehash bin/
   cp -a build/host/linux/tools/openssl/openssl bin/
+  cp -a build/host/linux/tools/yasm/vsyasm bin/
+  cp -a build/host/linux/tools/yasm/ytasm bin/
+  cp -a build/host/linux/tools/yasm/yasm bin/
   cp -a build/host/linux/tools/lua/luac bin/
   cp -a build/host/linux/tools/lua/lua bin/
 
@@ -779,9 +751,9 @@ mkdir -p share/extensions
 
 if [ ! -f share/extensions/lldb-dap.vsix ]; then
   print "Building extension: lldb-dap ..."
-  env --chdir=build/src/llvm/lldb/tools/lldb-dap npm install
-  env --chdir=build/src/llvm/lldb/tools/lldb-dap node_modules/.bin/vsce package
-  find build/src/llvm/lldb/tools/lldb-dap -maxdepth 1 -name 'lldb-dap-*.vsix' -print -quit | while read file; do
+  env --chdir=build/src/llvm/lldb/tools/lldb-dap/extension npm install
+  env --chdir=build/src/llvm/lldb/tools/lldb-dap/extension node_modules/.bin/vsce package
+  find build/src/llvm/lldb/tools/lldb-dap/extension -maxdepth 1 -name 'lldb-dap-*.vsix' -print -quit | while read file; do
     cp -a "${file}" share/extensions/lldb-dap.vsix
   done
   verify share/extensions/lldb-dap.vsix
@@ -802,7 +774,7 @@ fi
 # =================================================================================================
 
 MINGW_LFLAGS="--target=x86_64-w64-windows-gnu --sysroot=${ACE}/sys/mingw"
-MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
+MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.50 -fomit-frame-pointer"
 MINGW_RFLAGS="-I${ACE}/sys/mingw/include"
 
 if [ ! -e build/mingw/headers/Makefile ]; then
@@ -1066,18 +1038,16 @@ if [ ! -e build/windows/mingw/index.txt ]; then
     --triplet=mingw \
     zlib[core] liblzma[core] \
     expat[core] libxml2[core] \
-    openssl[core,tools] sqlite3[core,tool,zlib] lua[core,cpp,tools] yasm[core,tools] \
+    lua[core,cpp,tools] yasm[core,tools] openssl[core,tools] \
     spirv-headers[core] spirv-tools[core,tools] \
-    glslang[core,opt,tools] shaderc[core] \
-    meshoptimizer[core,gltfpack]
+    glslang[core,opt,tools] shaderc[core]
 
-  cp -a build/windows/mingw/tools/sqlite3.exe Ace/bin/
   cp -a build/windows/mingw/tools/shaderc/glslc.exe Ace/bin/
   cp -a build/windows/mingw/tools/glslang/glslang.exe Ace/bin/
   cp -a build/windows/mingw/tools/glslang/glslangValidator.exe Ace/bin/
-  cp -a build/windows/mingw/tools/glslang/spirv-remap.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-as.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-cfg.exe Ace/bin/
+  cp -a build/windows/mingw/tools/spirv-tools/spirv-diff.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-dis.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-link.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-lint.exe Ace/bin/
@@ -1085,7 +1055,6 @@ if [ ! -e build/windows/mingw/index.txt ]; then
   cp -a build/windows/mingw/tools/spirv-tools/spirv-opt.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-reduce.exe Ace/bin/
   cp -a build/windows/mingw/tools/spirv-tools/spirv-val.exe Ace/bin/
-  cp -a build/windows/mingw/tools/meshoptimizer/gltfpack.exe Ace/bin/
   cp -a build/windows/mingw/tools/openssl/openssl.exe Ace/bin/
   cp -a build/windows/mingw/tools/openssl/c_rehash Ace/bin/
   cp -a build/windows/mingw/tools/yasm/vsyasm.exe Ace/bin/
@@ -1158,7 +1127,7 @@ if [ ! -e build/windows/llvm/build.ninja ]; then
   verify build/windows/llvm/build.ninja
 fi
 
-if [ ! -e Ace/lib/lua/5.4/lldb.dll ] || [ -h Ace/lib/lua/5.4/lldb.dll ]; then
+if [ ! -e Ace/lib/lua/5.5/lldb.dll ] || [ -h Ace/lib/lua/5.5/lldb.dll ]; then
   print "Installing windows llvm ..."
   ninja -C build/windows/llvm \
     install-LTO-stripped \
@@ -1191,9 +1160,9 @@ if [ ! -e Ace/lib/lua/5.4/lldb.dll ] || [ -h Ace/lib/lua/5.4/lldb.dll ]; then
     install-clangd-stripped
   verify Ace/bin/liblldb.dll
 
-  rm -f Ace/lib/lua/5.4/lldb.dll
-  cp -a Ace/bin/liblldb.dll Ace/lib/lua/5.4/lldb.dll
-  verify Ace/lib/lua/5.4/lldb.dll
+  rm -f Ace/lib/lua/5.5/lldb.dll
+  cp -a Ace/bin/liblldb.dll Ace/lib/lua/5.5/lldb.dll
+  verify Ace/lib/lua/5.5/lldb.dll
 
   rm -rf Ace/include/llvm-c
   rm -rf Ace/share/clang
@@ -1202,7 +1171,7 @@ fi
 rmdir Ace/include 2>/dev/null || true
 
 MINGW_LFLAGS="--target=x86_64-w64-windows-gnu --sysroot=${ACE}/Ace"
-MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.44 -fomit-frame-pointer"
+MINGW_CFLAGS="-O3 -DNDEBUG -march=x86-64-v3 -mavx2 ${MINGW_LFLAGS} -fms-compatibility-version=19.50 -fomit-frame-pointer"
 MINGW_RFLAGS="-I${ACE}/Ace/include"
 
 if [ ! -e build/windows/mingw/headers/Makefile ]; then

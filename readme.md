@@ -93,7 +93,7 @@ sudo apt install -y autoconf libtool \
   $(apt-cache search '^libicu[0-9]+$' | grep -v dev | head -1 | awk '{print $1}')
 
 # Install cmake(1).
-wget -O ~/cmake.tar.gz https://github.com/Kitware/CMake/releases/download/v3.31.10/cmake-3.31.10-linux-x86_64.tar.gz
+wget -O ~/cmake.tar.gz https://github.com/Kitware/CMake/releases/download/v4.3.1/cmake-4.3.1-linux-x86_64.tar.gz
 sudo rm -rf /opt/cmake; sudo mkdir /opt/cmake; sudo tar xf ~/cmake.tar.gz -C /opt/cmake -m --strip-components=1
 
 sudo tee /etc/profile.d/cmake.sh >/dev/null <<'EOF'
@@ -145,7 +145,7 @@ sudo chmod 0755 /etc/profile.d/ace.sh
 source /etc/profile.d/ace.sh
 
 # Install all supported vcpkg ports.
-git clone https://github.com/microsoft/vcpkg -b "2025.10.17" --depth 1 "${ACE}/vcpkg"
+git clone https://github.com/microsoft/vcpkg -b "2026.03.18" "${ACE}/vcpkg"
 sh "${ACE}/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 sh "${ACE}/res/install"
 
@@ -166,7 +166,7 @@ Install this toolchain on Windows.
 8. Install all supported vcpkg ports.
 
 ```bat
-git clone https://github.com/microsoft/vcpkg -b "2025.10.17" --depth 1 "%ACE%\vcpkg"
+git clone https://github.com/microsoft/vcpkg -b "2026.03.18" "%ACE%\vcpkg"
 "%ACE%\vcpkg\bootstrap-vcpkg.bat" -disableMetrics
 "%ACE%\res\install.cmd"
 ```
@@ -238,7 +238,7 @@ find ~/.vscode-server/bin -type f -name code-server | while read server; do
   "${server}" --install-extension "${ACE}/share/cmake-tools.vsix"
 done
 
-bin/clang++ --target=x86_64-w64-windows-gnu --sysroot=sys/mingw -fms-compatibility-version=19.44 \
+bin/clang++ --target=x86_64-w64-windows-gnu --sysroot=sys/mingw -fms-compatibility-version=19.50 \
   -std=c++26 -fstrict-vtable-pointers -Og -g main.cpp -Lsys/mingw/lib/shared
 
 bin/peldd a.exe
